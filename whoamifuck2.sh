@@ -13,7 +13,7 @@ printf "\e[1;31m  ╚══╝╚══╝ ╚═╝  ╚═╝ ╚════�
 printf "			\t\t\t	2021.2.8@whoamifuck-version 2.0     by Enomothem \n"
 printf "usage: 	\n"
 printf "	\t./whoamifuck [filepath]  \n"
-printf "\e[1;36m\t微信公众号：Eonian_Sharp \e[0m\n"
+printf "\e[1;36m\t微信公众号：Eonian Sharp \e[0m\n"
 echo
 echo
 AUTHLOG=/var/log/auth.log
