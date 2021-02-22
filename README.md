@@ -7,7 +7,7 @@
 
 ## Bx Usage
 ```
-whoamifuck2.sh  <options>[log path]
+./whoamifuck2.sh  <options>[log path]
 ```
 ![](https://gitee.com/enomothem/myblogphoto/raw/master/img/20210208184426.png)
 
