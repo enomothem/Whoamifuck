@@ -2,6 +2,7 @@
 # 入侵检测报告工具-Whoamifuck2.0【汉化】
 # Author:Enomothem
 # Time:2021年2月8日
+# update: 2021年6月3日 优化格式
 echo
 echo
 printf "\e[1;31m ██╗    ██╗██╗  ██╗ ██████╗  █████╗ ███╗   ███╗██╗    ███████╗██╗   ██╗ ██████╗██╗  ██╗ \e[0m\n"
@@ -27,7 +28,7 @@ LOG=/tmp/valid.$$.log
 grep -v "invalid" $AUTHLOG > $LOG
 users=$(grep "Failed password" $LOG | awk '{ print $(NF-5) }' | sort | uniq)
 
-printf "\e[4;34m%-5s|%-10s|%-14s|%-16s|%-33s|%s\n\e[0m" "Sr#" "登入用户名" "尝试次数" "IP地址" "虚拟主机映射" "时间范围"
+printf "\e[4;34m%-5s|%-10s|%-15s|%-19s|%-33s|%s\n\e[0m" "Sr#" "登入用户名" "尝试次数" "IP地址" "虚拟主机映射" "时间范围"
 
 ucount=0;
 
@@ -58,7 +59,7 @@ do
 
 		HOST=$(host $IP | awk '{ print $NF }' )
 
-	printf "%-5s|%-10s|%-10s|%-10s|%-27s|%-s\n" "$ucount" "$user" "$ATTEMPTS" "$IP" "$HOST" "$TIME_RANGE";
+	printf "%-5s|%-10s|%-11s|%-17s|%-27s|%-s\n" "$ucount" "$user" "$ATTEMPTS" "$IP" "$HOST" "$TIME_RANGE";
 	fi
 done
 done
