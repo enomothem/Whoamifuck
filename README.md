@@ -19,7 +19,7 @@
 ```
 ./whoamifuck.sh  <options>[log path]
 ```
-![](![](https://gitee.com/enomothem/myblogphoto/raw/master/img/QQ截图20210608215427.jpg))
+![](https://gitee.com/enomothem/myblogphoto/raw/master/img/QQ截图20210608215427.jpg)
 
 ## Cx About ES
 ![关注ES公众号](https://gitee.com/enomothem/myblogphoto/raw/master/img/20210125172117.jpg)
