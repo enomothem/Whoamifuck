@@ -16,6 +16,13 @@
 ⬜ 进程分析信息 <br>
 
 ## Cx Usage
+### Download
+```
+git clone https://github.com/enomothem/Whoamifuck.git
+cd Whoamifuck
+chmod +x whoamifuck.sh
+```
+### Usage
 ```
 ./whoamifuck.sh  <options>[log path]
 ```
