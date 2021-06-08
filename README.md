@@ -6,8 +6,8 @@
 
 ## Bx Version
 #### Update
- release: 2021年2月8日 发布whoamifuck2。
- update: 2021年6月3日 优化格式。
+ release: 2021年2月8日 发布whoamifuck2。<br>
+ update: 2021年6月3日 优化格式。<br>
  update: 2021年6月6日 whoamifuck3，加入用户基本信息。
 
 #### TODO
