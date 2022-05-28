@@ -26,7 +26,7 @@ chmod +x whoamifuck.sh
 ```
 ./whoamifuck.sh  <options>[log path]
 ```
-![](https://gitee.com/enomothem/myblogphoto/raw/master/img/QQ截图20210608215427.jpg)
+![](https://lit.enomothem.com/zhixinghe/20220528141024.jfif)
 
 ## Cx About ES
-![关注ES公众号](https://gitee.com/enomothem/myblogphoto/raw/master/img/20210125172117.jpg)
+![](https://lit.enomothem.com/zhixinghe/20220528141025.jfif)
