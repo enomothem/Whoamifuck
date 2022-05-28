@@ -1,5 +1,5 @@
 #! /bin/bash
-# 入侵检测报告工具-Whoamifuck3.0【汉化】
+# 入侵检测报告工具-Whoamifuck3.0
 # Author:Enomothem
 # Time:2021年2月8日
 # update: 2021年6月3日 优化格式
@@ -24,11 +24,11 @@ ZW=` ifconfig eth0 | head -2 | tail -1 | awk '{print $4}'`
 GW=`route -n | tail -1 | awk '{print $1}'`
 HN=`hostname`
 DNS=`head -1 /etc/resolv.conf | awk '{print $2}'`
-printf "%-21s|%-20s" "此机IP地址是" "$IP"
-printf "%-21s |%s\n" "此机子网掩码是" "$ZW"
-printf "%-21s|%s\n" "此机网关是" "$GW"
-printf "%-21s |%s\n" "此机主机名是" "$HN"
-printf "%-19s|%s\n" "此机DNS是" "$DNS"
+printf "%-21s|\t%-20s\t" "本机IP地址是" "$IP"
+printf "%-21s    |\t%s\n" "本机子网掩码是" "$ZW"
+printf "%-21s|\t%s\n" "本机网关是" "$GW"
+printf "%-21s |\t%s\n" "本机主机名是" "$HN"
+printf "%-19s|\t%s\n" "本机DNS是" "$DNS"
 echo
 printf "\e[1;31m                    [\t用户登入信息\t]                                    \e[0m\n"
 echo
