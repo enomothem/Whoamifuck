@@ -6,14 +6,16 @@
 
 ## Bx Version
 #### Update
- release: 2021年2月8日 发布whoamifuck2。<br>
- update: 2021年6月3日 优化格式。<br>
- update: 2021年6月6日 whoamifuck3，加入用户基本信息。
+ * release: 2021年2月8日 发布whoamifuck2。
+ * 2021年6月3日 优化格式。
+ * 2021年6月6日 whoamifuck3，加入用户基本信息。
+ * 2022年6月3日 增加功能。
 
 #### TODO
-⬜ 历史命令信息 <br>
-⬜ 开启服务信息 <br>
-⬜ 进程分析信息 <br>
+✔ 系统版本信息 <br>
+✔ 历史命令信息 <br>
+✔ 开启服务信息 <br>
+✔ 进程分析信息 <br>
 
 ## Cx Usage
 ### Download
