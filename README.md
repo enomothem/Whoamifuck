@@ -1,8 +1,11 @@
 # Whoamifuck
 
+中文 | English 
+
 ## Ax Introduction
-<p>Eonian_Sharp发布的第一款开源工具,这是一款由shell编写的检测入侵用户的工具</p>
-<p>这个工具方便了我们查看登入服务器的用户，使用了正则表达式去提取，去重，省去了我们看日志的繁琐。</p>
+<p>Eonian Sharp发布的第一款开源工具，这是一款由shell编写的检测入侵用户的工具，经过功能的更新，已经不仅限于检查用户的登入信息。</p>
+<p>该工具目前实现的功能基本满足了应急响应的基本需求，后续将加入更多的入侵检测点，并完善代码。</p>
+
 
 ## Bx Version
 #### Update
@@ -23,13 +26,13 @@
 ✔ 计划任务信息 <br>
 
 ## Cx Usage
-### Download
+### 下载
 ```
 git clone https://github.com/enomothem/Whoamifuck.git
 cd Whoamifuck
 chmod +x whoamifuck.sh
 ```
-### Usage
+### 使用方法
 ```
 usage:  
 
