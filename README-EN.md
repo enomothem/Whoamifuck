@@ -45,7 +45,7 @@ usage:
 	 -u              check device information.
 
 ```
-![](https://lit.enomothem.com/zhixinghe/20220604233640.png)
+![](https://lit.enomothem.com/zhixinghe/20220605001102.png)
 
 ## Cx About Eonian Sharp
 <p align="center">
