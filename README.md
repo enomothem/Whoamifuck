@@ -31,7 +31,15 @@ chmod +x whoamifuck.sh
 ```
 ### Usage
 ```
-./whoamifuck.sh  <options>[log path]
+usage:  
+
+	 -v              版本信息
+ 	 -h              帮助指南
+	 -f [filepath]   选择需要查看用户信息的文件，默认文件: /var/log/auth.log
+	 -n              基本信息输出
+	 -u              查看设备基本信息
+	 -a              检查用户进程与开启服务状态
+
 ```
 ![](https://lit.enomothem.com/zhixinghe/20220528141024.jfif)
 
