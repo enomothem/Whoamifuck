@@ -54,11 +54,70 @@ case ${op} in
 		printf "\t -h              帮助指南\n"
 		printf "\t -f [filepath]   选择需要查看用户信息的文件，默认文件: /var/log/auth.log\n"
 		printf "\t -n              基本信息输出\n"
+		printf "\t -u              查看设备基本信息\n"
 		printf "\t -a              检查用户进程与开启服务状态\n"
 		;;
         -f) FILE="${2}"
                 echo "你使用的文件是$FILE"
+                printf "\e[1;31m                    [\t用户登入信息\t]                                    \e[0m\n"
+                echo
+
+
+
+                T='11'
+
+                LOG=/tmp/valid.$$.log
+                grep -v "invalid" $AUTHLOG > $LOG
+                users=$(grep "Failed password" $LOG | awk '{ print $(NF-5) }' | sort | uniq)
+                printf "\e[4;34m%-5s|%-10s|%-15s|%-19s|%-33s|%s\n\e[0m" "Sr#" "登入用户名" "尝试次数" "IP地址" "虚拟主机映射" "时间范围"
+                ucount=0;
+                ip_list="$(egrep -o "[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+" $LOG | sort | uniq)"
+                for ip in $ip_list;
+                do
+                        grep $ip $LOG > /tmp/temp.$$.log
+                for user in $users;
+                do
+                        grep $user /tmp/temp.$$.log> /tmp/$$.log
+                        cut -c-16 /tmp/$$.log > $$.time
+                        tstart=$(head -1 $$.time);
+                        start=$(date -d "$tstart" "+%s");
+                        tend=$(tail -1 $$.time);
+                        end=$(date -d "$tend" "+%s")
+
+                        limit=$(( $end - $start ))
+
+                        if [ $limit -gt 120 ];
+                        then
+                                let ucount++;
+
+                                IP=$(egrep -o "[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+" /tmp/$$.log | head -1 );
+                                TIME_RANGE="$tstart-->$tend"
+
+                                ATTEMPTS=$(cat /tmp/$$.log|wc -l);
+
+                                HOST=$(host $IP | awk '{ print $NF }' )
+
+                        printf "%-5s|%-10s|%-11s|%-17s|%-27s|%-s\n" "$ucount" "$user" "$ATTEMPTS" "$IP" "$HOST" "$TIME_RANGE";
+                        fi
+                done
+                done
+
+                rm /tmp/valid.$$.log/tmp/$$.log $$.time/tmp/temp.$$.log 2>/dev/null
+                rm *.time
                 ;;
+        -u)     
+                printf "\e[1;31m                    [\t用户基本信息\t]                                    \e[0m\n"
+                echo
+
+
+                printf "%-21s|\t%-25s\t" "本机IP地址是" "$IP"
+                printf "%-17s|\t%s\n" "本机子网掩码是    " "$ZW"
+                printf "%-21s|\t%s\n" "本机网关是" "$GW"
+                printf "%-22s|\t%s\n" "本机主机名是" "$HN"
+                printf "%-19s|\t%s\n" "本机DNS是" "$DNS"
+                printf "%-20s|\t%s\n" "系统版本" "$OS"
+                echo
+		;;
 	-a)
 		printf "\e[1;31m                    [\t进程状态\t]                                    \e[0m\n"
 		echo
@@ -171,5 +230,6 @@ case ${op} in
                 printf "\t -f [filepath]   select file path, Default file: /var/log/auth.log\n"
                 printf "\t -n              nomal show.\n"
 		printf "\t -a              check service and process information.\n"
+		printf "\t -u              check device information.\n"
                 ;;
 esac
