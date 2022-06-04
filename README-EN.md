@@ -1,6 +1,6 @@
 # Whoamifuck
 
-中文 | English 
+[中文](https://github.com/enomothem/Whoamifuck) | English 
 
 ## Ax Introduction
 <p>Whoamifuck，Eonian sharp's first open source tool. This is a tool written by shell to detect intruders, after the function update, is not limited to checking users' login information.</p>
