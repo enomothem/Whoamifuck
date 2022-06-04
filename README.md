@@ -47,4 +47,5 @@ usage:
 ![](https://lit.enomothem.com/zhixinghe/20220528141024.jfif)
 
 ## Cx About ES
-![](https://lit.enomothem.com/zhixinghe/20220528141025.jfif)
+
+<img align="middle" width="350" src="https://lit.enomothem.com/zhixinghe/20220528141025.jfif">
