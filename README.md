@@ -1,6 +1,6 @@
 # 司稽
 
-中文 | English 
+中文 | [English](https://github.com/enomothem/Whoamifuck/blob/main/README-EN.md) 
 
 ## Ax 介绍
 <p>Whoamifuck（司稽，先秦时抓小偷滴官员），永恒之锋发布的第一款开源工具，这是一款由shell编写的检测入侵用户的工具，经过功能的更新，已经不仅限于检查用户的登入信息。</p>
