@@ -91,7 +91,7 @@ printf "                        \t\t\t                                          
 
 op="${1}"
 case ${op} in
-        -v | --version) VER="2022.6.6@whoamifuck-version 4.1"
+        -v | --version) VER="2022.6.6@whoamifuck-version 4.2"
                 echo "$VER"
                 ;;
 	-h | --help)
@@ -122,11 +122,11 @@ case ${op} in
                 echo
 		;;
 	-a | --process-and-service)
-		printf "\e[1;31m                    [\t进程状态\t]                                    \e[0m\n"
+		printf "\e[1;31m                    [\t进程状态信息\t]                                    \e[0m\n"
 		echo
 		printf "%s" "`ps aux`"
 		echo
-		printf "\e[1;31m                    [\t服务状态\t]                                    \e[0m\n"
+		printf "\e[1;31m                    [\t服务状态信息\t]                                    \e[0m\n"
 		echo
 		printf "%s" "`service --status-all`"
 		echo
