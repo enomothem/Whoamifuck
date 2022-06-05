@@ -18,13 +18,13 @@
 
 #### 待实现
 
-✔ 系统版本信息 <br>
-✔ 历史命令信息 <br>
-✔ 开启服务信息 <br>
-✔ 进程分析信息 <br>
-✔ 用户信息排查 <br>
-✔ 文件状态信息 <br>
-✔ 计划任务信息 <br>
+- [x] 系统版本信息
+- [x] 历史命令信息
+- [x] 开启服务信息
+- [x] 进程分析信息
+- [x] 用户信息排查
+- [x] 文件状态信息
+- [x] 计划任务信息
 
 ## Cx 使用
 ### 下载
@@ -37,12 +37,12 @@ chmod +x whoamifuck.sh
 ```
 usage:  
 
-	 -v              版本信息
- 	 -h              帮助指南
-	 -f [filepath]   选择需要查看用户信息的文件，默认文件: /var/log/auth.log
-	 -n              基本信息输出
-	 -u              查看设备基本信息
-	 -a              检查用户进程与开启服务状态
+	 -v --version			版本信息
+ 	 -h --help			帮助指南
+	 -f --file [filepath]		选择需要查看用户信息的文件，默认文件: /var/log/auth.log
+	 -n --nomal			基本输出模式
+	 -u --user-device		查看设备基本信息
+	 -a --process-and-servic	检查用户进程与开启服务状态
 
 ```
 ![](https://lit.enomothem.com/zhixinghe/20220604233640.png)
