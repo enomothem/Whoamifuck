@@ -18,13 +18,13 @@
 
 #### TODO
 
-✔ System Version information <br>
-✔ History Command `history` Information <br>
-✔ Enabling Service Information <br>
-✔ Process analysis information <br>
-✔ User Information Verification <br>
-✔ File Status information <br>
-✔ Scheduled Task `crontab` Information <br>
+- [x] System Version information
+- [x] History Command `history` Information
+- [x] Enabling Service Information
+- [x] Process analysis information
+- [x] User Information Verification
+- [x] File Status information
+- [x] Scheduled Task `crontab` Information
 
 ## Cx Usage
 ### Download
@@ -37,12 +37,12 @@ chmod +x whoamifuck.sh
 ```
 usage:  
 
-	 -v              show version.
- 	 -h              show help guide.
-	 -f [filepath]   select file path, Default file: /var/log/auth.log
-	 -n              nomal show.
-	 -a              check service and process information.
-	 -u              check device information.
+	 -v --version			show version.
+ 	 -h --help			show help guide.
+	 -f --file [filepath]		select file path, Default file: /var/log/auth.log
+	 -n --nomal			nomal show.
+	 -a --process-and-service	check service and process information.
+	 -u --user-device		check device information.
 
 ```
 ![](https://lit.enomothem.com/zhixinghe/20220605001102.png)
