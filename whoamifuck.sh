@@ -57,7 +57,7 @@ case ${op} in
 		printf "\t -u --user-device        		      查看设备基本信息\n"
 		printf "\t -a --process-and-service                   检查用户进程与开启服务状态\n"
 		;;
-        -f --file) FILE="${2}"
+        -f | --file) FILE="${2}"
                 echo "你使用的文件是$FILE"
                 printf "\e[1;31m                    [\t用户登入信息\t]                                    \e[0m\n"
                 echo
@@ -118,7 +118,7 @@ case ${op} in
                 printf "%-20s|\t%s\n" "系统版本" "$OS"
                 echo
 		;;
-	-a --process-and-service)
+	-a | --process-and-service)
 		printf "\e[1;31m                    [\t进程状态\t]                                    \e[0m\n"
 		echo
 		printf "%s" "`ps aux`"
