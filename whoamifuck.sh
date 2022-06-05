@@ -45,19 +45,19 @@ printf "                        \t\t\t                                          
 
 op="${1}"
 case ${op} in
-        -v) VER="2022.6.6@whoamifuck-version 4.0"
+        -v | --version) VER="2022.6.6@whoamifuck-version 4.1"
                 echo "$VER"
                 ;;
-	-h)
+	-h | --help)
 		printf "usage:  \n\n"
-		printf "\t -v              版本信息\n "
-		printf "\t -h              帮助指南\n"
-		printf "\t -f [filepath]   选择需要查看用户信息的文件，默认文件: /var/log/auth.log\n"
-		printf "\t -n              基本信息输出\n"
-		printf "\t -u              查看设备基本信息\n"
-		printf "\t -a              检查用户进程与开启服务状态\n"
+		printf "\t -v --version               		      版本信息\n "
+		printf "\t -h --help              		      帮助指南\n"
+		printf "\t -f --file [filepath]     		      选择需要查看用户信息的文件，默认文件: /var/log/auth.log\n"
+		printf "\t -n --nomal     		              基本输出模式\n"
+		printf "\t -u --user-device        		      查看设备基本信息\n"
+		printf "\t -a --process-and-service                   检查用户进程与开启服务状态\n"
 		;;
-        -f) FILE="${2}"
+        -f --file) FILE="${2}"
                 echo "你使用的文件是$FILE"
                 printf "\e[1;31m                    [\t用户登入信息\t]                                    \e[0m\n"
                 echo
@@ -105,7 +105,7 @@ case ${op} in
                 rm /tmp/valid.$$.log/tmp/$$.log $$.time/tmp/temp.$$.log 2>/dev/null
                 rm *.time
                 ;;
-        -u)     
+        -u | --user-device)     
                 printf "\e[1;31m                    [\t用户基本信息\t]                                    \e[0m\n"
                 echo
 
@@ -118,7 +118,7 @@ case ${op} in
                 printf "%-20s|\t%s\n" "系统版本" "$OS"
                 echo
 		;;
-	-a)
+	-a --process-and-service)
 		printf "\e[1;31m                    [\t进程状态\t]                                    \e[0m\n"
 		echo
 		printf "%s" "`ps aux`"
@@ -128,7 +128,7 @@ case ${op} in
 		printf "%s" "`service --status-all`"
 		echo
 		;;
-        -n)
+        -n | --nomal)
                 printf "\e[1;31m                    [\t用户基本信息\t]                                    \e[0m\n"
                 echo
 
@@ -225,11 +225,11 @@ case ${op} in
                 ;;
         *)
                 printf "usage:  \n\n"
-                printf "\t -v              show version.\n "
-		printf "\t -h              show help guide.\n"
-                printf "\t -f [filepath]   select file path, Default file: /var/log/auth.log\n"
-                printf "\t -n              nomal show.\n"
-		printf "\t -a              check service and process information.\n"
-		printf "\t -u              check device information.\n"
+                printf "\t -v --version                         show version.\n "
+		printf "\t -h --help                            show help guide.\n"
+                printf "\t -f --file [filepath]   	        select file path, Default file: /var/log/auth.log\n"
+                printf "\t -n --nomal              	        nomal show.\n"
+		printf "\t -a --process-and-service             check service and process information.\n"
+		printf "\t -u --user-device              	check device information.\n"
                 ;;
 esac
