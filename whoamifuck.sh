@@ -49,13 +49,13 @@ case ${op} in
                 echo "$VER"
                 ;;
 	-h | --help)
-		printf "usage:  \n\n"
-		printf "\t -v --version               		      版本信息\n "
-		printf "\t -h --help              		      帮助指南\n"
-		printf "\t -f --file [filepath]     		      选择需要查看用户信息的文件，默认文件: /var/log/auth.log\n"
-		printf "\t -n --nomal     		              基本输出模式\n"
-		printf "\t -u --user-device        		      查看设备基本信息\n"
-		printf "\t -a --process-and-service                   检查用户进程与开启服务状态\n"
+                printf "usage:  \n\n"
+                printf "\t -v --version\t\t\t版本信息\n "
+                printf "\t -h --help\t\t\t帮助指南\n"
+                printf "\t -f --file [filepath]\t\t选择需要查看用户信息的文件，默认文件: /var/log/auth.log\n"
+                printf "\t -n --nomal\t\t\t基本输出模式\n"
+                printf "\t -u --user-device\t\t查看设备基本信息\n"
+                printf "\t -a --process-and-servic\t检查用户进程与开启服务状态\n"
 		;;
         -f | --file) FILE="${2}"
                 echo "你使用的文件是$FILE"
@@ -225,11 +225,11 @@ case ${op} in
                 ;;
         *)
                 printf "usage:  \n\n"
-                printf "\t -v --version                         show version.\n "
-		printf "\t -h --help                            show help guide.\n"
-                printf "\t -f --file [filepath]   	        select file path, Default file: /var/log/auth.log\n"
-                printf "\t -n --nomal              	        nomal show.\n"
-		printf "\t -a --process-and-service             check service and process information.\n"
-		printf "\t -u --user-device              	check device information.\n"
+                printf "\t -v --version\t\t\tshow version.\n "
+                printf "\t -h --help\t\t\tshow help guide.\n"
+                printf "\t -f --file [filepath]\t\tselect file path, Default file: /var/log/auth.log\n"
+                printf "\t -n --nomal\t\t\tnomal show.\n"
+                printf "\t -a --process-and-service\tcheck service and process information.\n"
+                printf "\t -u --user-device\t\tcheck device information.\n"
                 ;;
 esac
