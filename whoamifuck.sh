@@ -26,8 +26,16 @@ SHADOW=`cat /etc/shadow | tail -10`
 ROOT=`awk -F: '$3==0{print $1}' /etc/passwd`
 TELNET=`awk '/$1|$6/{print $1}' /etc/shadow`
 SUDO=`more /etc/sudoers | grep -v "^#|^$" | grep "ALL=(ALL)"`
-#FW=`service --status-all`
-#JC=`ps aux`
+
+# [ ++ 5.0 Functions options ++ ]
+# 查找僵尸进程
+# ps -al | gawk '{print $2,$4}' | grep -e '^[Zz]'
+# 查看内存占用比
+# free | sed -n '2p' | gawk 'x = int(( $3 / $2 ) * 100) {print x}' | sed 's/$/%/'
+# 查看磁盘占用百分比
+# df -h /dev/sda1 | sed -n '/% \//p' | gawk '{ print $5 }'
+# 查看在线用户数
+# uptime | sed 's/user.*$//' | gawk '{print $NF}'
 
 # [ ++ Function ++ ]
 
@@ -88,6 +96,8 @@ printf "\e[1;31m ██║███╗██║██╔══██║██║
 printf "\e[1;31m ╚███╔███╔╝██║  ██║╚██████╔╝██║  ██║██║ ╚═╝ ██║██║    ██║     ╚██████╔╝╚██████╗██║  ██╗ \e[0m\n"
 printf "\e[1;31m  ╚══╝╚══╝ ╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═╝╚═╝     ╚═╝╚═╝    ╚═╝      ╚═════╝  ╚═════╝╚═╝  ╚═╝ \e[0m\n"
 printf "                        \t\t\t                                            by Enomothem \n"
+
+# [ ++ Function zone ++ ]
 
 op="${1}"
 case ${op} in
