@@ -122,9 +122,10 @@ case ${op} in
                 printf "\t -a --process-and-servic\t检查用户进程与开启服务状态\n"
 		;;
         -f | --file) FILE="${2}"
-                echo "你使用的文件是$FILE"
+                echo "你使用的文件是：`basename $FILE$AUTHLOG`"
                 printf "\e[1;31m                    [\t用户登入信息\t]                                    \e[0m\n"
                 user
+		echo
                 ;;
         -u | --user-device)     
                 printf "\e[1;31m                    [\t用户基本信息\t]                                    \e[0m\n"
@@ -198,6 +199,7 @@ case ${op} in
 
                 printf "\e[1;31m                    [\t用户登入信息\t]                                    \e[0m\n"
                 user
+		echo
                 ;;
         *)
                 printf "usage:  \n\n"
