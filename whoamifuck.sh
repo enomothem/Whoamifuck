@@ -10,8 +10,9 @@
 # [ ++ 标量变量声明区 ++ ]
 
 AUTHLOG=/var/log/auth.log # 默认访问的用户日志路径
-IP=`ifconfig eth0 | head -2 | tail -1 | awk '{print $2}'`
-ZW=`ifconfig eth0 | head -2 | tail -1 | awk '{print $4}'`
+ETH=`ifconfig -s | grep ^e | awk '{print $1}'`
+IP=`ifconfig $ETH | head -2 | tail -1 | awk '{print $2}'`
+ZW=`ifconfig $ETH | head -2 | tail -1 | awk '{print $4}'`
 GW=`route -n | tail -1 | awk '{print $1}'`
 HN=`hostname`
 DNS=`head -1 /etc/resolv.conf | awk '{print $2}'`
@@ -26,6 +27,7 @@ SHADOW=`cat /etc/shadow | tail -10`
 ROOT=`awk -F: '$3==0{print $1}' /etc/passwd`
 TELNET=`awk '/$1|$6/{print $1}' /etc/shadow`
 SUDO=`more /etc/sudoers | grep -v "^#|^$" | grep "ALL=(ALL)"`
+
 
 # [ ++ 5.0 Functions options ++ ]
 # 查找僵尸进程
@@ -121,8 +123,6 @@ case ${op} in
         -u | --user-device)     
                 printf "\e[1;31m                    [\t用户基本信息\t]                                    \e[0m\n"
                 echo
-
-
                 printf "%-21s|\t%-25s\t" "本机IP地址是" "$IP"
                 printf "%-17s|\t%s\n" "本机子网掩码是    " "$ZW"
                 printf "%-21s|\t%s\n" "本机网关是" "$GW"
