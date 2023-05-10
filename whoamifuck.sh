@@ -42,13 +42,9 @@ TB=$(df -h| awk '$NF=="/"{printf "%s\t\t",$5}')
 TC=$(top - bn1 | grep load | awk '{printf "%.2f%%\t\t\n",2$(NF2)}')
 
 # 查找僵尸进程
-# ps -al | gawk '{print $2,$4}' | grep -e '^[Zz]'
-# 查看内存占用比
-# free | sed -n '2p' | gawk 'x = int(( $3 / $2 ) * 100) {print x}' | sed 's/$/%/'
-# 查看磁盘占用百分比
-# df -h /dev/sda1 | sed -n '/% \//p' | gawk '{ print $5 }'
+TKILL=`ps -al | gawk '{print $2,$4}' | grep -e '^[Zz]'`
 # 查看在线用户数
-# uptime | sed 's/user.*$//' | gawk '{print $NF}'
+TUN=`uptime | sed 's/user.*$//' | gawk '{print $NF}'`
 
 # [ ++ Function user ++ ]
 
@@ -151,7 +147,8 @@ case ${op} in
                 echo
                 printf "%-21s|\t%-25s\t" "本机IP地址是" "$IP"
                 printf "%-17s|\t%s\n" "本机子网掩码是    " "$ZW"
-                printf "%-21s|\t%s\n" "本机网关是" "$GW"
+                printf "%-21s|\t%-25s\t" "本机网关是" "$GW"
+                printf "%-17s|\t%s\n" "当前在线用户      " "$TUN"
                 printf "%-22s|\t%s\n" "本机主机名是" "$HN"
                 printf "%-19s|\t%s\n" "本机DNS是" "$DNS"
                 printf "%-20s|\t%s\n" "系统版本" "$OS"
@@ -160,9 +157,9 @@ case ${op} in
 	-s | --os-status)
 		printf "\e[1;31m                    [\t系统状态信息\t]                                    \e[0m\n"
 		echo
-		printf "%s%s" "Memory:" "$A"
-		printf "%s%s" "Disk:" "$B"
-		printf "%s%s" "CPU:" "$C"
+		printf "%s%s" "Memory:" "$TA"
+		printf "%s%s" "Disk:" "$TB"
+		printf "%s%s" "CPU:" "$TC"
 		echo
 		;;
 	-a | --process-and-service)
@@ -182,7 +179,8 @@ case ${op} in
 
                 printf "%-21s|\t%-25s\t" "本机IP地址是" "$IP"
                 printf "%-17s|\t%s\n" "本机子网掩码是    " "$ZW"
-                printf "%-21s|\t%s\n" "本机网关是" "$GW"
+                printf "%-21s|\t%-25s\t" "本机网关是" "$GW"
+                printf "%-17s|\t%s\n" "当前在线用户      " "$TUN"
                 printf "%-22s|\t%s\n" "本机主机名是" "$HN"
                 printf "%-19s|\t%s\n" "本机DNS是" "$DNS"
                 printf "%-20s|\t%s\n" "系统版本" "$OS"
