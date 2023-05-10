@@ -2,10 +2,12 @@
 # 入侵检测报告工具-Whoamifuck4.0
 # Author:Enomothem
 # Time:2021年2月8日
-# update: 2021年6月3日 优化格式
-# update: 2021年6月6日 加入用户基本信息，发布3.0版本
-# update: 2022年6月3日 增加新功能
+# update: 2021年6月3日 优化格式，加入用户基本信息
+# update: 2021年6月6日 发布3.0版本
+# update: 2022年6月3日 增加新功能，加入应急响应基础功能，如查看用户、服务、文件修改、历史命令等等。
 # update: 2022年6月6日 发布4.0版本
+# update: 2023年6月3日 增加新功能，加入开放端口、优化服务器状态、查看僵尸进程、优化用户状态等。
+# update: 2023年6月6日 发布5.0版本
 
 # [ ++ 标量变量声明区 ++ ]
 
@@ -28,8 +30,17 @@ ROOT=`awk -F: '$3==0{print $1}' /etc/passwd`
 TELNET=`awk '/$1|$6/{print $1}' /etc/shadow`
 SUDO=`more /etc/sudoers | grep -v "^#|^$" | grep "ALL=(ALL)"`
 
-
 # [ ++ 5.0 Functions options ++ ]
+# 端口开放
+# netstat -plant | awk '{print $4}' | grep -oE '[0-9]+' | sort -un | paste -sd ',' # 列表显示
+PORT=`netstat -tunlp | awk '/^tcp/ {print $4,$7}; /^udp/ {print $4,$6}' | sed -r 's/.*:(.*)\/.*/\1/' | sort -un | awk '{cmd = "sudo lsof -i :" $1 " | awk '\''NR==2{print $1}'\''"; cmd | getline serviceName; close(cmd); print $1 "\t" serviceName}'`
+
+# 系统状态
+# 查看内存、磁盘、CPU状态
+TA=$(free -m | awk 'NR==2{printf "%.2f%%\t\t",$3*100/$2}' ;echo;)
+TB=$(df -h| awk '$NF=="/"{printf "%s\t\t",$5}')
+TC=$(top - bn1 | grep load | awk '{printf "%.2f%%\t\t\n",2$(NF2)}')
+
 # 查找僵尸进程
 # ps -al | gawk '{print $2,$4}' | grep -e '^[Zz]'
 # 查看内存占用比
@@ -126,6 +137,8 @@ case ${op} in
                 printf "\t -n --nomal\t\t\t基本输出模式\n"
                 printf "\t -u --user-device\t\t查看设备基本信息\n"
                 printf "\t -a --process-and-servic\t检查用户进程与开启服务状态\n"
+		printf "\t -p --port\t\t\t查看端口开放状态\n"
+		printf "\t -s --os-status\t\t\t查看系统状态信息\n"
 		;;
         -f | --file) FILE="${2}"
                 echo "你使用的文件是：`basename $FILE$AUTHLOG`"
@@ -143,6 +156,14 @@ case ${op} in
                 printf "%-19s|\t%s\n" "本机DNS是" "$DNS"
                 printf "%-20s|\t%s\n" "系统版本" "$OS"
                 echo
+		;;
+	-s | --os-status)
+		printf "\e[1;31m                    [\t系统状态信息\t]                                    \e[0m\n"
+		echo
+		printf "%s%s" "Memory:" "$A"
+		printf "%s%s" "Disk:" "$B"
+		printf "%s%s" "CPU:" "$C"
+		echo
 		;;
 	-a | --process-and-service)
 		printf "\e[1;31m                    [\t进程状态信息\t]                                    \e[0m\n"
@@ -207,6 +228,11 @@ case ${op} in
                 user
 		echo
                 ;;
+	-p | --port)
+		printf "\e[1;31m                    [\t显示开启端口\t]                                    \e[0m\n"
+		echo
+		printf "%s\n" "$PORT"
+		;;
         *)
 		logo
                 printf "usage:  \n\n"
@@ -216,5 +242,7 @@ case ${op} in
                 printf "\t -n --nomal\t\t\tnomal show.\n"
                 printf "\t -a --process-and-service\tcheck service and process information.\n"
                 printf "\t -u --user-device\t\tcheck device information.\n"
+		printf "\t -p --port\t\t\tshow port information.\n"
+		printf "\t -s --os-status\t\t\tshow os status information\n"
                 ;;
 esac
