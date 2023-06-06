@@ -96,8 +96,8 @@ function user
                 done
                 done
 
-                rm /tmp/valid.$$.log/tmp/$$.log $$.time/tmp/temp.$$.log 2>/dev/null
-                rm *.time
+                rm -f /tmp/valid.$$.log/tmp/$$.log $$.time/tmp/temp.$$.log 2>/dev/null
+                rm -f *.time
         else
                 printf "\n不存在默认文件,请指定该系统文件路径。\n\n"
         fi
