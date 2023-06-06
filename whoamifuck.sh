@@ -156,20 +156,20 @@ function help_en
 
 function os_name
 {
-if [ -e /etc/os-release ]; then
-    # Get the name of the current Linux distribution
-    os_name=$(grep PRETTY_NAME /etc/os-release | cut -d= -f2 | tr -d '"')
-    # Run the appropriate script based on the distribution name
-    if [[ "$os_name" == *"Debian"* ]]; then
-        OSNAME="Debian"
-    elif [[ "$os_name" == *"CentOS"* ]]; then
-        OSNAME="CentOS"
-    elif [[ "$os_name" == *"Kali"* ]]; then
-    	OSNAME="Kali"
-    else
-        OSNAME="Unknown distribution"
-    fi
-fi
+	if [ -e /etc/os-release ]; then
+	    # Get the name of the current Linux distribution
+	    os_name=$(grep PRETTY_NAME /etc/os-release | cut -d= -f2 | tr -d '"')
+	    # Run the appropriate script based on the distribution name
+	    if [[ "$os_name" == *"Debian"* ]]; then
+		OSNAME="Debian"
+	    elif [[ "$os_name" == *"CentOS"* ]]; then
+		OSNAME="CentOS"
+	    elif [[ "$os_name" == *"Kali"* ]]; then
+		OSNAME="Kali"
+	    else
+		OSNAME="Unknown distribution"
+	    fi
+	fi
 }
 
 
