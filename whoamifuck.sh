@@ -24,7 +24,7 @@ GW=`route -n | tail -1 | awk '{print $1}'`
 HN=`hostname`
 DNS=`head -1 /etc/resolv.conf | awk '{print $2}'`
 OS=`uname --kernel-name --kernel-release`
-HI=`cat ~/.bash_history | tail -10`
+# HI=`cat ~/.bash_history | tail -10` # 查看用户的历史命令
 H=`history 10`
 CRON=`crontab -l 2>/dev/null`
 M_FILE=`find -type f -mtime -3`
@@ -231,7 +231,7 @@ case ${op} in
                 echo
                 printf "\e[1;31m                    [\t用户历史命令\t]                                    \e[0m\n"
                 echo
-                printf "%s%s" "$HI,$H"
+                printf "%s%s" "$H"
                 echo
                 echo
                 printf "\e[1;31m                    [\t用户计划任务\t]                                    \e[0m\n"
