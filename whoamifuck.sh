@@ -24,8 +24,8 @@ GW=`route -n | tail -1 | awk '{print $1}'`
 HN=`hostname`
 DNS=`head -1 /etc/resolv.conf | awk '{print $2}'`
 OS=`uname --kernel-name --kernel-release`
-# HI=`cat ~/.bash_history | tail -10` # 查看用户的历史命令
-H=`history 10`
+HI=`cat ~/.*sh_history | tail -10` # 查看用户的历史命令，适用通配符的方式
+# H=`history 10` # 在脚本中，history不适用
 CRON=`crontab -l 2>/dev/null`
 M_FILE=`find -type f -mtime -3`
 C_FILE=`find -type f -ctime -3`
@@ -53,7 +53,7 @@ TUN=`uptime | sed 's/user.*$//' | gawk '{print $NF}'`
 
 # [ ++ Function user ++ ]
 
-function user()
+function user
 {
         
         if [ -e $AUTHLOG ]
@@ -107,7 +107,7 @@ function user()
 
 # [ ++ Function LOGO ++ ]
 
-function logo()
+function logo
 {
 
 	echo
@@ -124,7 +124,7 @@ function logo()
 
 # [ ++ Function HELP_CN ++ ]
 
-function help_cn()
+function help_cn
 {
 		
                 printf "usage:  \n\n"
@@ -138,7 +138,7 @@ function help_cn()
 		printf "\t -s --os-status\t\t\t查看系统状态信息\n"
 }
 
-function help_en()
+function help_en
 {
 		logo
                 printf "usage:  \n\n"
@@ -154,7 +154,7 @@ function help_en()
 
 # [ ++ Function OS_NAME ++ ]
 
-function os_name()
+function os_name
 {
 if [ -e /etc/os-release ]; then
     # Get the name of the current Linux distribution
@@ -173,7 +173,7 @@ fi
 
 # [ ++ Function BASE_INFOMATION ++ ]
 
-function base_info()
+function base_info
 {
 		os_name
                 printf "\e[1;31m                    [\t用户基本信息\t]                                    \e[0m\n"
@@ -231,7 +231,7 @@ case ${op} in
                 echo
                 printf "\e[1;31m                    [\t用户历史命令\t]                                    \e[0m\n"
                 echo
-                printf "%s" "$H"
+                printf "%s" "$HI"
                 echo
                 echo
                 printf "\e[1;31m                    [\t用户计划任务\t]                                    \e[0m\n"
