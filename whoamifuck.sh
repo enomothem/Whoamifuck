@@ -164,6 +164,8 @@ function os_name
 		OSNAME="Debian"
 	    elif [[ "$os_name" == *"CentOS"* ]]; then
 		OSNAME="CentOS"
+	    elif [[ "$os_name" == *"Ubuntu"* ]]; then
+		OSNAME="Ubuntu"
 	    elif [[ "$os_name" == *"Kali"* ]]; then
 		OSNAME="Kali"
 	    else
