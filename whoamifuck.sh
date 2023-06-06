@@ -9,6 +9,11 @@
 # update: 2023年6月3日 增加新功能，加入开放端口、优化服务器状态、查看僵尸进程、优化用户状态等。
 # update: 2023年6月6日 发布5.0版本
 
+# [ ++ 基本信息 ++ ]
+
+VER="2023.6.6@whoamifuck-version 5.0.0"
+
+
 # [ ++ 标量变量声明区 ++ ]
 
 AUTHLOG=/var/log/auth.log # 默认访问的用户日志路径
@@ -117,15 +122,11 @@ function logo()
 
 }
 
+# [ ++ Function HELP_CN ++ ]
 
-# [ ++ Function zone ++ ]
-
-op="${1}"
-case ${op} in
-        -v | --version) VER="2023.6.6@whoamifuck-version 5.0.0"
-                echo "$VER"
-                ;;
-	-h | --help)
+function help_cn()
+{
+		
                 printf "usage:  \n\n"
                 printf "\t -v --version\t\t\t版本信息\n "
                 printf "\t -h --help\t\t\t帮助指南\n"
@@ -135,14 +136,46 @@ case ${op} in
                 printf "\t -a --process-and-servic\t检查用户进程与开启服务状态\n"
 		printf "\t -p --port\t\t\t查看端口开放状态\n"
 		printf "\t -s --os-status\t\t\t查看系统状态信息\n"
-		;;
-        -f | --file) FILE="${2}"
-                echo "你使用的文件是：`basename $FILE$AUTHLOG`"
-                printf "\e[1;31m                    [\t用户登入信息\t]                                    \e[0m\n"
-                user
-		echo
-                ;;
-        -u | --user-device)     
+}
+
+function help_en()
+{
+		logo
+                printf "usage:  \n\n"
+                printf "\t -v --version\t\t\tshow version.\n "
+                printf "\t -h --help\t\t\tshow help guide.\n"
+                printf "\t -f --file [filepath]\t\tselect file path, Default file: /var/log/auth.log\n"
+                printf "\t -n --nomal\t\t\tnomal show.\n"
+                printf "\t -a --process-and-service\tcheck service and process information.\n"
+                printf "\t -u --user-device\t\tcheck device information.\n"
+		printf "\t -p --port\t\t\tshow port information.\n"
+		printf "\t -s --os-status\t\t\tshow os status information\n"
+}
+
+# [ ++ Function OS_NAME ++ ]
+
+function os_name()
+{
+if [ -e /etc/os-release ]; then
+    # Get the name of the current Linux distribution
+    os_name=$(grep PRETTY_NAME /etc/os-release | cut -d= -f2 | tr -d '"')
+    # Run the appropriate script based on the distribution name
+    if [[ "$os_name" == *"Debian"* ]]; then
+        OSNAME="Debian"
+    elif [[ "$os_name" == *"CentOS"* ]]; then
+        OSNAME="CentOS"
+    else
+        echo "Unknown distribution"
+    fi
+fi
+}
+
+
+# [ ++ Function BASE_INFOMATION ++ ]
+
+function base_info()
+{
+		os_name
                 printf "\e[1;31m                    [\t用户基本信息\t]                                    \e[0m\n"
                 echo
                 printf "%-21s|\t%-25s\t" "本机IP地址是" "$IP"
@@ -152,7 +185,28 @@ case ${op} in
                 printf "%-22s|\t%s\n" "本机主机名是" "$HN"
                 printf "%-19s|\t%s\n" "本机DNS是" "$DNS"
                 printf "%-20s|\t%s\n" "系统版本" "$OS"
+                printf "%-20s|\t%s\n" "系统内核" "$OSNAME"
                 echo
+}
+
+# [ ++ Function zone ++ ]
+
+op="${1}"
+case ${op} in
+        -v | --version)
+                echo "$VER"
+                ;;
+	-h | --help)
+		help_cn
+		;;
+        -f | --file) FILE="${2}"
+                echo "你使用的文件是：`basename $FILE$AUTHLOG`"
+                printf "\e[1;31m                    [\t用户登入信息\t]                                    \e[0m\n"
+                user
+		echo
+                ;;
+        -u | --user-device)     
+		base_info
 		;;
 	-s | --os-status)
 		printf "\e[1;31m                    [\t系统状态信息\t]                                    \e[0m\n"
@@ -173,17 +227,7 @@ case ${op} in
 		echo
 		;;
         -n | --nomal)
-                printf "\e[1;31m                    [\t用户基本信息\t]                                    \e[0m\n"
-                echo
-
-
-                printf "%-21s|\t%-25s\t" "本机IP地址是" "$IP"
-                printf "%-17s|\t%s\n" "本机子网掩码是    " "$ZW"
-                printf "%-21s|\t%-25s\t" "本机网关是" "$GW"
-                printf "%-17s|\t%s\n" "当前在线用户      " "$TUN"
-                printf "%-22s|\t%s\n" "本机主机名是" "$HN"
-                printf "%-19s|\t%s\n" "本机DNS是" "$DNS"
-                printf "%-20s|\t%s\n" "系统版本" "$OS"
+		base_info
                 echo
                 printf "\e[1;31m                    [\t用户历史命令\t]                                    \e[0m\n"
                 echo
@@ -232,15 +276,6 @@ case ${op} in
 		printf "%s\n" "$PORT"
 		;;
         *)
-		logo
-                printf "usage:  \n\n"
-                printf "\t -v --version\t\t\tshow version.\n "
-                printf "\t -h --help\t\t\tshow help guide.\n"
-                printf "\t -f --file [filepath]\t\tselect file path, Default file: /var/log/auth.log\n"
-                printf "\t -n --nomal\t\t\tnomal show.\n"
-                printf "\t -a --process-and-service\tcheck service and process information.\n"
-                printf "\t -u --user-device\t\tcheck device information.\n"
-		printf "\t -p --port\t\t\tshow port information.\n"
-		printf "\t -s --os-status\t\t\tshow os status information\n"
+		help_en
                 ;;
 esac
