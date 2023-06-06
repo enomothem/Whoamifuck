@@ -58,7 +58,7 @@ usage:
 ```
 ![](https://lit.enomothem.com/zhixinghe/20220604233640.png)
 
-## Cx 关注永恒之锋
+## Dx 关注永恒之锋
 <p align="center">
   <img src="https://lit.enomothem.com/zhixinghe/20220528141025.jfif">
 </p>
