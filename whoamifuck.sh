@@ -164,8 +164,10 @@ if [ -e /etc/os-release ]; then
         OSNAME="Debian"
     elif [[ "$os_name" == *"CentOS"* ]]; then
         OSNAME="CentOS"
+    elif [[ "$os_name" == *"Kali"* ]]; then
+    	OSNAME="Kali"
     else
-        echo "Unknown distribution"
+        OSNAME="Unknown distribution"
     fi
 fi
 }
