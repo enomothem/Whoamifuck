@@ -231,7 +231,7 @@ case ${op} in
                 echo
                 printf "\e[1;31m                    [\t用户历史命令\t]                                    \e[0m\n"
                 echo
-                printf "%s%s" "$H"
+                printf "%s" "$H"
                 echo
                 echo
                 printf "\e[1;31m                    [\t用户计划任务\t]                                    \e[0m\n"
