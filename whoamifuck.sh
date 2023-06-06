@@ -122,7 +122,7 @@ function logo()
 
 op="${1}"
 case ${op} in
-        -v | --version) VER="2022.6.8@whoamifuck-version 4.3"
+        -v | --version) VER="2023.6.6@whoamifuck-version 5.0.0"
                 echo "$VER"
                 ;;
 	-h | --help)
