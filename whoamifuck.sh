@@ -1,5 +1,5 @@
 #!/bin/bash
-# 入侵检测报告工具-Whoamifuck4.0
+# Linux入侵检测报告工具-Whoamifuck5.0.1
 # Author:Enomothem
 # Time:2021年2月8日
 # update: 2021年6月3日 优化格式，加入用户基本信息
@@ -8,15 +8,47 @@
 # update: 2022年6月6日 发布4.0版本
 # update: 2023年6月3日 增加新功能，加入开放端口、优化服务器状态、查看僵尸进程、优化用户状态等。
 # update: 2023年6月6日 发布5.0版本
+# update: 2023年8月14日 发布5.0.1版本，新增 『导出功能』 、优化 『用户登录日志』 、修复 『显示端口不存在用户导致错误』 
+#                       |__ 增加 『全量输出』 、优化 『标题栏』 代码  
 
 # [ ++ 基本信息 ++ ]
 
-VER="2023.6.6@whoamifuck-version 5.0.0"
+VER="2023.8.14@whoamifuck-version 5.0.1"
 
+# [ ++ 颜色变量预定义 ++ ]
+
+# 定义颜色和样式变量
+reset="\033[0m"
+bold="\033[1m"
+underline="\033[4m"
+inverse="\033[7m"
+
+# 定义前景色变量
+redx="\e[1;31m"
+black="\033[30m"
+red="\033[1;31m"
+green="\033[32m"
+yellow="\033[33m"
+blue="\033[1;34m"
+purple="\033[35m"
+cyan="\033[36m"
+white="\033[1;37m"
+
+# 定义背景色变量
+bg_black="\033[40m"
+bg_red="\033[41m"
+bg_green="\033[42m"
+bg_yellow="\033[43m"
+bg_blue="\033[44m"
+bg_purple="\033[45m"
+bg_cyan="\033[46m"
+bg_white="\033[47m"
 
 # [ ++ 标量变量声明区 ++ ]
 
-AUTHLOG=/var/log/auth.log # 默认访问的用户日志路径
+WHOAMIFUCK=`whoami`
+AUTHLOG="/var/log/auth.log" # 默认访问的用户日志路径
+SECURE="/var/log/secure" # Centos默认用户日志
 ETH=`ifconfig -s | grep ^e | awk '{print $1}'`
 IP=`ifconfig $ETH | head -2 | tail -1 | awk '{print $2}'`
 ZW=`ifconfig $ETH | head -2 | tail -1 | awk '{print $4}'`
@@ -28,6 +60,7 @@ HI=`cat ~/.*sh_history | tail -10` # 查看用户的历史命令，适用通配�
 # H=`history 10` # 在脚本中，history不适用
 CRON=`crontab -l 2>/dev/null`
 M_FILE=`find -type f -mtime -3`
+M_FILE_VAR=`find /var/ -type f -mtime -3 | xargs ls -la`
 C_FILE=`find -type f -ctime -3`
 USER=`cat /etc/passwd | tail -10`
 SHADOW=`cat /etc/shadow | tail -10`
@@ -35,10 +68,12 @@ ROOT=`awk -F: '$3==0{print $1}' /etc/passwd`
 TELNET=`awk '/$1|$6/{print $1}' /etc/shadow`
 SUDO=`more /etc/sudoers | grep -v "^#|^$" | grep "ALL=(ALL)"`
 
+
+
 # [ ++ 5.0 Functions options ++ ]
 # 端口开放
 # netstat -plant | awk '{print $4}' | grep -oE '[0-9]+' | sort -un | paste -sd ',' # 列表显示
-PORT=`netstat -tunlp | awk '/^tcp/ {print $4,$7}; /^udp/ {print $4,$6}' | sed -r 's/.*:(.*)\/.*/\1/' | sort -un | awk '{cmd = "sudo lsof -i :" $1 " | awk '\''NR==2{print $1}'\''"; cmd | getline serviceName; close(cmd); print $1 "\t" serviceName}'`
+PORT=`netstat -tunlp | awk '/^tcp/ {print $4,$7}; /^udp/ {print $4,$6}' | sed -r 's/.*:(.*)\/.*/\1/' | sort -un | awk '{cmd = "sudo lsof -w -i :" $1 " | awk '\''NR==2{print $1}'\''"; cmd | getline serviceName; close(cmd); print $1 "\t" serviceName}'`
 
 # 系统状态
 # 查看内存、磁盘、CPU状态
@@ -50,6 +85,17 @@ TC=$(top - bn1 | grep load | awk '{printf "%.2f%%\t\t\n",2$(NF2)}')
 TKILL=`ps -al | gawk '{print $2,$4}' | grep -e '^[Zz]'`
 # 查看在线用户数
 TUN=`uptime | sed 's/user.*$//' | gawk '{print $NF}'`
+
+
+# [ ++ 6.0 Functions options ++ ]
+
+# 更新用户登录相关，智能匹配系统内核给出相应的正则命令
+# 更新一键导出，应急更方便，取出日志到本地分析，自己的电脑工具多，效率高，环境更友好。
+
+
+
+# EnoCmd_ssh_v3
+#EnoCmd_ssh_v3=$($SECURE | grep "Failed password for invalid user" | awk '{print $13 " --> " $11}' | sort | uniq -c | sort -rn | awk 'BEGIN {print "\n# 攻击次数Top20 攻击者IP --> 枚举用户名\n"}{print "[+] 用户名不存在 "$0}' | head -20 &&  $SECURE | grep "Failed password for invalid user" | awk '{print $11 " --> " $13}' | sort | uniq -c | sort -rn | awk '{print $4}' | sort | uniq -c | awk 'BEGIN {print "\n# 攻击者IP次数TOP10 \n"}{print "[+] "$2" 攻击次数 "$1"次"}';echo && $SECURE | grep Accepted  | awk 'BEGIN {print "# 登录成功IP地址\n"}{print "时间:"$1"-"$2"-"$3"\t登录成功\t "$11" --> "$9 " 使用方式: "$7}';echo && $SECURE | grep "Failed password for" | grep -v invalid | awk 'BEGAN{print "# 对用户名爆破次数\n"}{print $11"—->"$9}'| uniq -c | sort -rn | awk 'BEGIN {print "# 对用户名进行密码爆破次数\n"}{print "攻击次数: " $1   " 详情:   "$2}' | head -20;echo)
 
 # [ ++ Function user ++ ]
 
@@ -112,15 +158,23 @@ function logo
 
 	echo
 	echo
-	printf "\e[1;31m ██╗    ██╗██╗  ██╗ ██████╗  █████╗ ███╗   ███╗██╗    ███████╗██╗   ██╗ ██████╗██╗  ██╗ \e[0m\n"
-	printf "\e[1;31m ██║    ██║██║  ██║██╔═══██╗██╔══██╗████╗ ████║██║    ██╔════╝██║   ██║██╔════╝██║ ██╔╝ \e[0m\n"
-	printf "\e[1;31m ██║ █╗ ██║███████║██║   ██║███████║██╔████╔██║██║    █████╗  ██║   ██║██║     █████╔╝  \e[0m\n"
-	printf "\e[1;31m ██║███╗██║██╔══██║██║   ██║██╔══██║██║╚██╔╝██║██║    ██╔══╝  ██║   ██║██║     ██╔═██╗  \e[0m\n"
-	printf "\e[1;31m ╚███╔███╔╝██║  ██║╚██████╔╝██║  ██║██║ ╚═╝ ██║██║    ██║     ╚██████╔╝╚██████╗██║  ██╗ \e[0m\n"
-	printf "\e[1;31m  ╚══╝╚══╝ ╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═╝╚═╝     ╚═╝╚═╝    ╚═╝      ╚═════╝  ╚═════╝╚═╝  ╚═╝ \e[0m\n"
-	printf "                        \t\t\t                                            by Enomothem \n"
+	printf "${red} ██╗    ██╗██╗  ██╗ ██████╗  █████╗ ███╗   ███╗██╗    ███████╗██╗   ██╗ ██████╗██╗  ██╗ ${reset}\n"
+	printf "${red} ██║    ██║██║  ██║██╔═══██╗██╔══██╗████╗ ████║██║    ██╔════╝██║   ██║██╔════╝██║ ██╔╝ ${reset}\n"
+	printf "${red} ██║ █╗ ██║███████║██║   ██║███████║██╔████╔██║██║    █████╗  ██║   ██║██║     █████╔╝  ${reset}\n"
+	printf "${red} ██║███╗██║██╔══██║██║   ██║██╔══██║██║╚██╔╝██║██║    ██╔══╝  ██║   ██║██║     ██╔═██╗  ${reset}\n"
+	printf "${red} ╚███╔███╔╝██║  ██║╚██████╔╝██║  ██║██║ ╚═╝ ██║██║    ██║     ╚██████╔╝╚██████╗██║  ██╗ ${reset}\n"
+	printf "${red}  ╚══╝╚══╝ ╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═╝╚═╝     ╚═╝╚═╝    ╚═╝      ╚═════╝  ╚═════╝╚═╝  ╚═╝ ${reset}\n"
+	printf "                        \t\t\t                                            by ${blue}Enomothem${reset} \n"
 
 }
+
+
+# [ ++ 标题栏定义区 ++ ]
+
+bar_user_logi=`printf "${red}                    [\t用户登录信息\t]                                    ${reset}\n"`
+bar_base_info=`printf "${red}                    [\t用户基本信息\t]                                    ${reset}\n"`
+bar_osys_stat=`printf "${red}                    [\t系统状态信息\t]                                    ${reset}\n"`
+
 
 # [ ++ Function HELP_CN ++ ]
 
@@ -130,12 +184,14 @@ function help_cn
                 printf "usage:  \n\n"
                 printf "\t -v --version\t\t\t版本信息\n "
                 printf "\t -h --help\t\t\t帮助指南\n"
-                printf "\t -f --file [filepath]\t\t选择需要查看用户信息的文件，默认文件: /var/log/auth.log\n"
+                printf "\t -l --login\t\t\t用户信息\n"
                 printf "\t -n --nomal\t\t\t基本输出模式\n"
+                printf "\t -a --all\t\t\t全量输出模式\n"
                 printf "\t -u --user-device\t\t查看设备基本信息\n"
-                printf "\t -a --process-and-servic\t检查用户进程与开启服务状态\n"
+                printf "\t -x --process-and-servic\t检查用户进程与开启服务状态\n"
 		printf "\t -p --port\t\t\t查看端口开放状态\n"
-		printf "\t -s --os-status\t\t\t查看系统状态信息\n"
+                printf "\t -s --os-status\t\t\t查看系统状态信息\n"
+		printf "\t -o --output\t\t\t导出全量输出模式文件\n"
 }
 
 function help_en
@@ -144,12 +200,14 @@ function help_en
                 printf "usage:  \n\n"
                 printf "\t -v --version\t\t\tshow version.\n "
                 printf "\t -h --help\t\t\tshow help guide.\n"
-                printf "\t -f --file [filepath]\t\tselect file path, Default file: /var/log/auth.log\n"
+                printf "\t -l --login \t\t\tuser login log.\n"
                 printf "\t -n --nomal\t\t\tnomal show.\n"
-                printf "\t -a --process-and-service\tcheck service and process information.\n"
+                printf "\t -a --all\t\t\tall show.\n"
+                printf "\t -x --process-and-service\tcheck service and process information.\n"
                 printf "\t -u --user-device\t\tcheck device information.\n"
 		printf "\t -p --port\t\t\tshow port information.\n"
-		printf "\t -s --os-status\t\t\tshow os status information\n"
+                printf "\t -s --os-status\t\t\tshow os status information\n"
+		printf "\t -o --output\t\t\toutput to file.\n"
 }
 
 # [ ++ Function OS_NAME ++ ]
@@ -174,22 +232,98 @@ function os_name
 	fi
 }
 
+# [  ++ Function User_Login pro ++ ]
+
+function login_pro
+{
+        if [ -e /etc/os-release ]; then
+            # Get the name of the current Linux distribution
+            os_name=$(grep PRETTY_NAME /etc/os-release | cut -d= -f2 | tr -d '"')
+            # Run the appropriate script based on the distribution name
+            if [[ "$os_name" == *"Debian"* ]]; then
+                if [ -f $AUTHLOG ]; then
+                    printf "%s\n" "$bar_user_logi"
+                    user
+                else
+                    echo $AUTHLOG"文件不存在"
+                fi
+            elif [[ "$os_name" == *"CentOS"* ]]; then
+		if [ -f $SECURE_FILE ]; then
+                    printf "%s\n" "$bar_user_logi"
+  		    cat /var/log/secure | grep "Failed password for invalid user" | awk '{print $13 " --> " $11}' | sort | uniq -c | sort -rn | awk 'BEGIN {print "\n# 攻击次数Top20 攻击者IP --> 枚举用户名\n"}{print "[+] 用户名不存在 "$0}' | head -20 && cat /var/log/secure | grep "Failed password for invalid user" | awk '{print $11 " --> " $13}' | sort | uniq -c | sort -rn | awk '{print $4}' | sort | uniq -c | awk 'BEGIN {print "\n# 攻击者IP次数TOP10 \n"}{print "[+] "$2" 攻击次数 "$1"次"}';echo && cat /var/log/secure | grep Accepted  | awk 'BEGIN {print "# 登录成功IP地址\n"}{print "时间:"$1"-"$2"-"$3"\t登录成功\t "$11" --> "$9 " 使用方式: "$7}';echo && cat /var/log/secure | grep "Failed password for" | grep -v invalid | awk 'BEGAN{print "# 对用户名爆破次数\n"}{print $11"—->"$9}'| uniq -c | sort -rn | awk 'BEGIN {print "# 对用户名进行密码爆破次数\n"}{print "攻击次数: " $1   " 详情:   "$2}' | head -20;echo
+	        else
+    		    echo $SECURE_FILE"文件不存在"
+	        fi
+            elif [[ "$os_name" == *"Ubuntu"* ]]; then
+                if [ -f $AUTHLOG ]; then
+                    printf "%s\n" "$bar_user_logi"
+                    user
+                else
+                    echo $AUTHLOG"文件不存在"
+                fi
+            elif [[ "$os_name" == *"Kali"* ]]; then
+                if [ -f $AUTHLOG ]; then
+                    printf "%s\n" "$bar_user_logi"
+                    user
+                else
+                    echo $AUTHLOG"文件不存在"
+                fi
+            else
+                OSNAME="Unknown distribution"
+           fi
+        fi
+}
+
 
 # [ ++ Function BASE_INFOMATION ++ ]
+## 用户基本信息
 
 function base_info
 {
 		os_name
-                printf "\e[1;31m                    [\t用户基本信息\t]                                    \e[0m\n"
+		IP_C=`echo -e "${cyan}$IP${reset}"`
+		HN_C=`echo -e "${yellow}$HN${reset}「 ${white}$WHOAMIFUCK${reset} 」"`
+		OSNAME_C=`echo -e "${bg_purple}$OSNAME${reset}"`
+		
+                
+		printf "%s\n" "$bar_base_info"
                 echo
-                printf "%-21s|\t%-25s\t" "本机IP地址是" "$IP"
-                printf "%-17s|\t%s\n" "本机子网掩码是    " "$ZW"
+                printf "%-21s|\t%-25s\t\t" "本机IP地址是" "$IP_C"
+                printf "%-21s|\t%s\n" "本机子网掩码是    " "$ZW"
                 printf "%-21s|\t%-25s\t" "本机网关是" "$GW"
                 printf "%-17s|\t%s\n" "当前在线用户      " "$TUN"
-                printf "%-22s|\t%s\n" "本机主机名是" "$HN"
+                printf "%-22s|\t%s\n" "本机主机名是" "$HN_C"
                 printf "%-19s|\t%s\n" "本机DNS是" "$DNS"
                 printf "%-20s|\t%s\n" "系统版本" "$OS"
-                printf "%-20s|\t%s\n" "系统内核" "$OSNAME"
+                printf "%-20s|\t%s\n" "系统内核" "$OSNAME_C"
+                echo
+}
+
+# [ ++ Function OS_STATUS_INFORMATION ++ ]
+## 系统状态信息
+
+function os_stat
+{
+                echo $bar_osys_stat
+                echo
+                printf "%s%s" "Memory:" "$TA"
+                printf "%s%s" "Disk:" "$TB"
+                printf "%s%s" "CPU:" "$TC"
+                echo
+}
+
+# [ ++ Function PROCESS_SERVICE_INFORMATION ++ ]
+## 进程与服务信息
+
+function proc_serv
+{
+                printf "${red}                    [\t进程状态信息\t]                                    ${reset}\n"
+                echo
+                printf "%s" "`ps aux`"
+                echo
+                printf "${red}                    [\t服务状态信息\t]                                    ${reset}\n"
+                echo
+                printf "%s" "`service --status-all`"
                 echo
 }
 
@@ -200,57 +334,48 @@ case ${op} in
         -v | --version)
                 echo "$VER"
                 ;;
+        -a | --all) 
+                base_info
+                login_pro
+                ;;
 	-h | --help)
 		help_cn
 		;;
-        -f | --file) FILE="${2}"
-                echo "你使用的文件是：`basename $FILE$AUTHLOG`"
-                printf "\e[1;31m                    [\t用户登入信息\t]                                    \e[0m\n"
-                user
-		echo
+        -l | --login) FILE="${2}"
+                login_pro
                 ;;
         -u | --user-device)     
 		base_info
 		;;
 	-s | --os-status)
-		printf "\e[1;31m                    [\t系统状态信息\t]                                    \e[0m\n"
-		echo
-		printf "%s%s" "Memory:" "$TA"
-		printf "%s%s" "Disk:" "$TB"
-		printf "%s%s" "CPU:" "$TC"
-		echo
+                os_stat
 		;;
-	-a | --process-and-service)
-		printf "\e[1;31m                    [\t进程状态信息\t]                                    \e[0m\n"
-		echo
-		printf "%s" "`ps aux`"
-		echo
-		printf "\e[1;31m                    [\t服务状态信息\t]                                    \e[0m\n"
-		echo
-		printf "%s" "`service --status-all`"
-		echo
+	-x | --process-and-service)
+                proc_serv
 		;;
         -n | --nomal)
 		base_info
                 echo
-                printf "\e[1;31m                    [\t用户历史命令\t]                                    \e[0m\n"
+                printf "${red}                    [\t用户历史命令\t]                                    ${reset}\n"
                 echo
                 printf "%s" "$HI"
                 echo
                 echo
-                printf "\e[1;31m                    [\t用户计划任务\t]                                    \e[0m\n"
+                printf "${red}                    [\t用户计划任务\t]                                    ${reset}\n"
                 echo
                 printf "%s" "$CRON"
                 echo
                 echo
-                printf "\e[1;31m                    [\t文件信息排查\t]                                    \e[0m\n"
+                printf "${red}                    [\t文件信息排查\t]                                    ${reset}\n"
                 echo
                 echo "[+] 最近三天更改的文件"
                 printf "%s\n\n" "$M_FILE"
                 echo "[+] 最近三天创建的文件"
                 printf "%s\n\n" "$C_FILE"
+                echo "[+] /var下最近三天更改的文件"
+                printf "%s\n\n" "$M_FILE_VAR"
                 echo
-                printf "\e[1;31m                    [\t用户信息排查\t]                                    \e[0m\n"
+                printf "${red}                    [\t用户信息排查\t]                                    ${reset}\n"
                 echo
                 echo "[+] /etc/passwd最新10个用户"
                 echo
@@ -269,16 +394,22 @@ case ${op} in
                 echo "[+] 是否拥有SUDO权限的普通用户"
                 printf "%s\n" "$SUDO"
                 echo
-
-                printf "\e[1;31m                    [\t用户登入信息\t]                                    \e[0m\n"
-                user
+                # Login_pro
+		login_pro
 		echo
                 ;;
 	-p | --port)
-		printf "\e[1;31m                    [\t显示开启端口\t]                                    \e[0m\n"
+		printf "${red}                    [\t显示开启端口\t]                                    ${reset}\n"
 		echo
 		printf "%s\n" "$PORT"
 		;;
+        -o | --output)
+                if [ -z "$1" ]; then
+                    ./"$0"> output.txt
+                else
+                    ./"$0"> "$2"
+                fi
+                ;;
         *)
 		help_en
                 ;;
