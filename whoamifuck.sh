@@ -498,7 +498,7 @@ case ${op} in
                 if [ -z "$1" ]; then
                     ./"$0"> output.txt
                 else
-                    ./"$0"> "$2"
+                    ./"$0"> -n "$2"
                 fi
                 ;;
         -v | --version)
