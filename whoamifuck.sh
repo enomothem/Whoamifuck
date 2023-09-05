@@ -1,5 +1,5 @@
 #!/bin/bash
-# Linux入侵检测报告工具-Whoamifuck5.0.1
+# Linux入侵检测报告工具-Whoamifuck5.1.0
 # Author:Enomothem
 # Time:2021年2月8日
 # update: 2021年6月3日 优化格式，加入用户基本信息
@@ -12,6 +12,9 @@
 #                       |__ 增加 『全量输出』 、优化 『标题栏』 代码  
 # update: 2023年8月16日 发布5.0.2版本，优化 『用户基本信息』 、修复  『某些环境DNS显示异常』 、 加速  『模块化』
 #                       |__ 增加 『secure文件可选』 、增加  『颜色定义区』
+# update: 2023年9月5日 发布5.1.0，优化用户登录日志代码逻辑。进一步完善debian正则。
+#                       |__ 增加 『auth.log文件可选』 、增加  『虚拟机判断』
+
 
 # [ ++ 基本信息 ++ ]
 
@@ -51,8 +54,8 @@ bg_white="\033[47m"
 # ;; File Statement
 
 AUTHLOG_FILE="/var/log/auth.log" # 默认访问的用户日志路径
-SECURE_FILE="/var/log/secure" # Centos默认用户日志
-RESOLV_FILE="/etc/resolv.conf" # DNS文件
+SECURE_FILE="/var/log/secure" 	 # Centos默认用户日志
+RESOLV_FILE="/etc/resolv.conf" 	 # DNS文件
 
 
 
@@ -78,6 +81,7 @@ SHADOW=`cat /etc/shadow | tail -10`
 ROOT=`awk -F: '$3==0{print $1}' /etc/passwd`
 TELNET=`awk '/$1|$6/{print $1}' /etc/shadow`
 SUDO=`more /etc/sudoers | grep -v "^#|^$" | grep "ALL=(ALL)"`
+VM=`lscpu | grep "Hypervisor" | awk '{print $3}'`
 
 
 
@@ -109,6 +113,8 @@ TUN=`uptime | sed 's/user.*$//' | gawk '{print $NF}'`
 #EnoCmd_ssh_v3=$($SECURE | grep "Failed password for invalid user" | awk '{print $13 " --> " $11}' | sort | uniq -c | sort -rn | awk 'BEGIN {print "\n# 攻击次数Top20 攻击者IP --> 枚举用户名\n"}{print "[+] 用户名不存在 "$0}' | head -20 &&  $SECURE | grep "Failed password for invalid user" | awk '{print $11 " --> " $13}' | sort | uniq -c | sort -rn | awk '{print $4}' | sort | uniq -c | awk 'BEGIN {print "\n# 攻击者IP次数TOP10 \n"}{print "[+] "$2" 攻击次数 "$1"次"}';echo && $SECURE | grep Accepted  | awk 'BEGIN {print "# 登录成功IP地址\n"}{print "时间:"$1"-"$2"-"$3"\t登录成功\t "$11" --> "$9 " 使用方式: "$7}';echo && $SECURE | grep "Failed password for" | grep -v invalid | awk 'BEGAN{print "# 对用户名爆破次数\n"}{print $11"—->"$9}'| uniq -c | sort -rn | awk 'BEGIN {print "# 对用户名进行密码爆破次数\n"}{print "攻击次数: " $1   " 详情:   "$2}' | head -20;echo)
 
 # [ ++ Function user ++ ]
+
+# 维护中
 
 function user
 {
@@ -160,6 +166,25 @@ function user
         fi
 }
 
+function user_debian
+{
+
+
+        echo -e "${bg_red}\n『 用户登录 』${reset}\n"
+        cat $AUTH_S  | grep Accepted | awk '{gsub("T"," ",$1); split($1,a,"."); print "时间:"substr(a[1],1)"\t登录成功\t "$9" --> "$7 " \t使用方式: "$5}';echo
+        echo -e "${bg_red}\n『 用户登出 』${reset}\n"
+        cat $AUTH_S  | grep Accepted | awk '{gsub("T"," ",$1); split($1,a,"."); print "时间:"substr(a[1],1)"\t登录成功\t "$9" --> "$7 " \t使用方式: "$5}';echo
+        echo -e "${bg_red}\n『 攻击次数Top20 攻击者IP --> 枚举用户名 』${reset}\n"
+        cat $AUTH_S | grep "Failed password for invalid user" | awk '{print $13 " --> " $11}' | sort | uniq -c | sort -rn | awk '{print "[+] 用户名不存在 "$0}' | head -20 
+        echo -e "${bg_red}\n『 攻击者IP次数TOP10 』${reset}\n"
+        cat $AUTH_S | grep "Failed password for invalid user" | awk '{print $11 " --> " $13}' | sort | uniq -c | sort -rn | awk '{print $4}' | sort | uniq -c | awk '{print "[+] "$2" 攻击次数 "$1"次"}';echo 
+        echo -e "${bg_red}\n『 登录成功IP地址 』${reset}\n"
+        cat $AUTH_S | grep "Accepted"  | awk '{print "时间:"$1"-"$2"-"$3"\t登录成功\t "$11" --> "$9 " 使用方式: "$7}';echo 
+        echo -e "${bg_red}\n『 对用户名进行密码爆破次数 』${reset}\n"
+        cat $AUTH_S | grep "Failed password for" | grep -v invalid | awk '{print $11"—->"$9}'| uniq -c | sort -rn | awk '{print "[+] 攻击次数: " $1   " 详情:   "$2}' | head -20;echo
+}
+
+
 function user_centos
 {
 
@@ -192,7 +217,7 @@ function logo
     printf "${red} ██║███╗██║██╔══██║██║   ██║██╔══██║██║╚██╔╝██║██║    ██╔══╝  ██║   ██║██║     ██╔═██╗  ${reset}\n"
     printf "${red} ╚███╔███╔╝██║  ██║╚██████╔╝██║  ██║██║ ╚═╝ ██║██║    ██║     ╚██████╔╝╚██████╗██║  ██╗ ${reset}\n"
     printf "${red}  ╚══╝╚══╝ ╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═╝╚═╝     ╚═╝╚═╝    ╚═╝      ╚═════╝  ╚═════╝╚═╝  ╚═╝ ${reset}\n"
-    printf "                        \t\t\t                                            by ${blue}Enomothem${reset} \n"
+    printf "                        \t\t\t                                             by ${blue}Enomothem${reset}\n"
 
 }
 
@@ -229,8 +254,6 @@ function help_cn
         printf "\t -o --output\t\t\t导出全量输出模式文件\n"
 }
 
-
-
 function help_en
 {
         logo
@@ -247,8 +270,9 @@ function help_en
         printf "\t -o --output\t\t\toutput to file.\n"
 }
 
-# [ ++ Function zone ++ ]
 # ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+# [ ++ Function zone ++ ]
+        # Run the appropriate script based on the distribution name
 
 # [ ++ Function OS_NAME ++ ]
 
@@ -256,18 +280,18 @@ function os_name
 {
     if [ -e /etc/os-release ]; then
         # Get the name of the current Linux distribution
+        # 如果不存在这个文件呢？待改进 TODO
         os_name=$(grep PRETTY_NAME /etc/os-release | cut -d= -f2 | tr -d '"')
-        # Run the appropriate script based on the distribution name
         if [[ "$os_name" == *"Debian"* ]]; then
-        OSNAME="Debian"
+            OSNAME="Debian"
         elif [[ "$os_name" == *"CentOS"* ]]; then
-        OSNAME="CentOS"
+            OSNAME="CentOS"
         elif [[ "$os_name" == *"Ubuntu"* ]]; then
-        OSNAME="Ubuntu"
+            OSNAME="Ubuntu"
         elif [[ "$os_name" == *"Kali"* ]]; then
-        OSNAME="Kali"
+            OSNAME="Kali"
         else
-        OSNAME="Unknown distribution"
+            OSNAME="Unknown distribution"
         fi
     fi
 }
@@ -276,48 +300,55 @@ function os_name
 
 function fk_userlogin
 {
-echo $SECURE_FILE 
-            if [ -e /etc/os-release ]; then
-            # Get the name of the current Linux distribution
-            os_name=$(grep PRETTY_NAME /etc/os-release | cut -d= -f2 | tr -d '"')
-            # Run the appropriate script based on the distribution name
+    printf "%s\n" "$bar_user_logi"
+    if [ -f "$FILE" ]; then
+        if [[ "$FILE" == *"secure"* ]]; then
+            SECURE_S=$FILE
+            user_centos "SECURE_S"
+        else
+            AUTH_S=$FILE
+            user_debian "AUTH_S"
+        fi
+    else
+        if [ -e /etc/os-release ]; then
+        # Get the name of the current Linux distribution
+        os_name=$(grep PRETTY_NAME /etc/os-release | cut -d= -f2 | tr -d '"')
+        # Run the appropriate script based on the distribution name
             if [[ "$os_name" == *"Debian"* ]]; then
                 if [ -f $AUTHLOG_FILE ]; then
-                    printf "%s\n" "$bar_user_logi"
-                    user
+                    AUTH_S=$AUTHLOG_FILE
+                    user_debian "$AUTH_S"
                 else
                     echo $AUTHLOG_FILE"文件不存在"
                 fi
             elif [[ "$os_name" == *"CentOS"* ]]; then
-                printf "%s\n" "$bar_user_logi"
-                    if [ -f "$FILE" ]; then
-            SECURE_S=$FILE
-            user_centos "SECURE_S"
-            elif [ -f "$SECURE_FILE" ]; then
-                        SECURE_S=$SECURE_FILE
-                        user_centos "$SECURE_S" 
-                    else
-                    echo "$SECURE_FILE文件不存在"
-                    fi
-
+                if [ -f "$SECURE_FILE" ]; then
+                    SECURE_S=$SECURE_FILE
+                    user_centos "$SECURE_S" 
+                else
+                    echo $SECURE_FILE"文件不存在"
+                fi
             elif [[ "$os_name" == *"Ubuntu"* ]]; then
                 if [ -f $AUTHLOG_FILE ]; then
-                    printf "%s\n" "$bar_user_logi"
-                    user
+                    AUTH_S=$AUTHLOG_FILE
+                    user_debian "$AUTH_S"
                 else
                     echo $AUTHLOG_FILE"文件不存在"
                 fi
             elif [[ "$os_name" == *"Kali"* ]]; then
                 if [ -f $AUTHLOG_FILE ]; then
-                    printf "%s\n" "$bar_user_logi"
-                    user
+                    AUTH_S=$AUTHLOG_FILE
+                    user_debian "$AUTH_S"
                 else
                     echo $AUTHLOG_FILE"文件不存在"
                 fi
             else
-                OSNAME="Unknown distribution"
-           fi
+                echo "内核未知版本，默认采用RedHat系列。"
+                SECURE_S=$SECURE_FILE
+                user_centos "SECURE_S"
+            fi
         fi
+    fi
 }
 
 
@@ -326,26 +357,26 @@ echo $SECURE_FILE
 
 function fk_baseinfo
 {
-        os_name
-        IP_C=`echo -e "${cyan}$IP${reset}"`
-        HN_C=`echo -e "${yellow}$HN${reset}「 ${white}$WHOAMIFUCK${reset} 」"`
-        OSNAME_C=`echo -e "${bg_purple}$OSNAME${reset}"`
-        TUN_C=`echo -e "${white}$TUN${reset}"`
-        M_TIME_C=`echo -e "${green}$M_TIME${reset}"`
-                
-        printf "%s\n" "$bar_base_info"
-        echo
-        printf "%-21s|\t%-25s\t\t" "本机IP地址是" "$IP_C"
-        printf "%-21s|\t%s\n" "本机子网掩码是    " "$ZW"
-        printf "%-21s|\t%-25s\t" "本机网关是" "$GW"
-        printf "%-17s|\t%s\n" "当前在线用户      " "$TUN_C"
-        printf "%-22s|\t%s\n" "本机主机名是" "$HN_C"
-        printf "%-19s|\t%s\n" "本机DNS是" "$DNS"
-        printf "%-20s|\t%s\n" "系统版本" "$OS"
-        printf "%-20s|\t%s\n" "系统内核" "$OSNAME_C"
-        echo "------------------------------------------------------------------------------------------------------"
-        printf "%s%s" "此刻唯一时间戳[本地]: " "$M_TIME_C"
-        echo
+                os_name
+                IP_C=`echo -e "${cyan}$IP${reset}"`
+                HN_C=`echo -e "${yellow}$HN${reset}「 ${white}$WHOAMIFUCK${reset} 」"`
+                OSNAME_C=`echo -e "${bg_purple}$OSNAME${reset}「 ${blue}$VM${reset} 」"`
+                TUN_C=`echo -e "${white}$TUN${reset}"`
+                M_TIME_C=`echo -e "${green}$M_TIME${reset}"`
+                        
+                printf "%s\n" "$bar_base_info"
+                echo
+                printf "%-21s|\t%-25s\t\t" "本机IP地址是" "$IP_C"
+                printf "%-21s|\t%s\n" "本机子网掩码是    " "$ZW"
+                printf "%-21s|\t%-25s\t" "本机网关是" "$GW"
+                printf "%-17s|\t%s\n" "当前在线用户      " "$TUN_C"
+                printf "%-22s|\t%s\n" "本机主机名是" "$HN_C"
+                printf "%-19s|\t%s\n" "本机DNS是" "$DNS"
+                printf "%-20s|\t%s\n" "系统版本" "$OS"
+                printf "%-20s|\t%s\n" "系统内核" "$OSNAME_C"
+                echo "------------------------------------------------------------------------------------------------------"
+                printf "%s%s" "此刻唯一时间戳[本地]: " "$M_TIME_C"
+                echo
 }
 
 # [ ++ Function OS_STATUS_INFORMATION ++ ]
@@ -364,7 +395,7 @@ function fk_devicestatus
 # [ ++ Function PROCESS_SERVICE_INFORMATION ++ ]
 ## 进程与服务信息
 
-function proc_serv
+function fk_procserv
 {
                 
                 echo $bar_proc_port
@@ -458,7 +489,6 @@ function fk_userinfo
                 echo
 }
 
-
 # [ ++ OPTIONS PARAMETE ++ ]
 
 op="${1}"
@@ -469,7 +499,7 @@ case ${op} in
                 ;;
         -a | --all) 
                 fk_baseinfo     # 基本消息
-                fk_status       # 基本状态
+                fk_devicestatus # 基本状态
                 fk_userlogin    # 登录日志
                 ;;
         -l | --login) FILE="$2"
@@ -482,7 +512,7 @@ case ${op} in
                 fk_devicestatus
                 ;;
         -x | --process-and-service)
-                proc_serv
+                fk_procserv
                 ;;
         -n | --nomal)
                 fk_baseinfo
@@ -496,9 +526,9 @@ case ${op} in
                 ;;
         -o | --output)
                 if [ -z "$1" ]; then
-                    ./"$0"> output.txt
+                    ./"$0" -n> output.txt
                 else
-                    ./"$0"> -n "$2"
+                    ./"$0" -n> "$2"
                 fi
                 ;;
         -v | --version)
