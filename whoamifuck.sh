@@ -14,7 +14,7 @@
 #                       |__ 增加 『secure文件可选』 、增加  『颜色定义区』
 # update: 2023年9月5日 发布5.1.0，优化用户登录日志代码逻辑。进一步完善debian正则。
 #                       |__ 增加 『auth.log文件可选』 、增加  『虚拟机判断』
-
+# update: 2023年9月15日 发布5.1.19，优化 『虚拟机判断的兼容能力』@Gu0st
 
 # [ ++ 基本信息 ++ ]
 
@@ -81,8 +81,8 @@ SHADOW=`cat /etc/shadow | tail -10`
 ROOT=`awk -F: '$3==0{print $1}' /etc/passwd`
 TELNET=`awk '/$1|$6/{print $1}' /etc/shadow`
 SUDO=`more /etc/sudoers | grep -v "^#|^$" | grep "ALL=(ALL)"`
-VM=`lscpu | grep "Hypervisor" | awk '{print $3}'`
-
+# VM=`lscpu | grep "Hypervisor" | awk '{print $3}'` # 5.1.19修复各服务器存在的差异
+VM=`lscpu | grep "Hypervisor\|Virtualization\|超管理器厂商" | awk '{print $2}'`
 
 
 # [ ++ 5.0 Functions options ++ ]
