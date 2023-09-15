@@ -82,7 +82,8 @@ ROOT=`awk -F: '$3==0{print $1}' /etc/passwd`
 TELNET=`awk '/$1|$6/{print $1}' /etc/shadow`
 SUDO=`more /etc/sudoers | grep -v "^#|^$" | grep "ALL=(ALL)"`
 # VM=`lscpu | grep "Hypervisor" | awk '{print $3}'` # 5.1.19修复各服务器存在的差异
-VM=`lscpu | grep "Hypervisor\|Virtualization\|超管理器厂商" | awk '{print $2}'`
+# VM=`lscpu | grep "Hypervisor\|Virtualization\|超管理器厂商" | awk '{print $2}'`   # 修复bug
+VM=`lscpu | grep "Hyper.*:\|Virtu\|超管理器厂商" | grep -oP "(?<=:)\s*\K.*" | paste -sd,`
 
 
 # [ ++ 5.0 Functions options ++ ]
