@@ -18,7 +18,7 @@
 
 # [ ++ 基本信息 ++ ]
 
-VER="2023.8.14@whoamifuck-version 5.2.0"
+VER="2023.9.15@whoamifuck-version 5.2.0"
 
 # [ ++ 颜色变量预定义 ++ ]
 
