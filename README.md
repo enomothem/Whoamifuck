@@ -70,7 +70,9 @@ usage:
 ./whoamifuck -l
 ```
 会列举出攻击次数的攻击者枚举的用户名、攻击者IP TOP10、成功登录的IP地址和对用户名进行爆破的次数
+
 ![image](https://github.com/enomothem/Whoamifuck/assets/45089051/7b13f4d2-d063-4b4d-9399-5b06408e99ff)
+
 ![image](https://github.com/enomothem/Whoamifuck/assets/45089051/ae0d0d63-d300-4eb5-9e88-6395de5542a2)
 ### 系统基本信息的优化
 相比之前，优化了一些信息的突出，更加美观，增加了虚拟机判断，时间戳，用于取证中进行定位时间线和设备类型。
@@ -78,10 +80,12 @@ usage:
 ./whoamifuck -u
 ```
 ![image](https://github.com/enomothem/Whoamifuck/assets/45089051/6917bb8d-ccf0-4c6a-a7a3-bb84e9e745ee)
+
 ![image](https://github.com/enomothem/Whoamifuck/assets/45089051/188fdd50-5523-42ad-8bd2-486b55a72e95)
 
 ### 增加对Root用户的判断
 该程序需要root权限才能获取较为完整的信息，否则会发生一些未预期的错误，所以增加了对root的判断，保证程序的可用性。
+
 ![image](https://github.com/enomothem/Whoamifuck/assets/45089051/dbbf9a7f-74b1-4df6-8aff-30810b0a6d5a)
 
 
