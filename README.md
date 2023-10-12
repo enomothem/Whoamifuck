@@ -50,14 +50,38 @@ usage:
 
 	 -v --version			版本信息
  	 -h --help			帮助指南
-	 -f --file [filepath]		选择需要查看用户信息的文件，默认文件: /var/log/auth.log
+	 -l --login [FILEPATH]		用户登录信息
 	 -n --nomal			基本输出模式
+	 -a --all			全量输出模式
 	 -u --user-device		查看设备基本信息
-	 -p --port                      查看端口开放状态
-	 -a --process-and-servic	检查用户进程与开启服务状态
-	 -s --os-status                 查看系统状态信息
+	 -x --process-and-servic	检查用户进程与开启服务状态
+	 -p --port			查看端口开放状态
+	 -s --os-status			查看系统状态信息
+	 -o --output			导出全量输出模式文件
 ```
-![](https://lit.enomothem.com/zhixinghe/20220604233640.png)
+![image](https://github.com/enomothem/Whoamifuck/assets/45089051/e52200c2-21ed-461a-b329-490e01aa8def)
+### 关于用户登录排查的优化
+使用 `-l` 参数显示系统的用户登录信息。
+该参数取代之前`-f`参数，对比`-f`，优化了以下功能：
+1. 首先判断是否存在文件参数，能够在当前系统分析不同系统的文件类型。如用户指定了具体的文件路径，那么将分析文件名是auth.log还是secure，请注意从其它系统导出的日志文件名是否正确。
+2. 用户没有指定具体的文件，那么会判断操作系统是红帽系还是debian系，如果是红帽系的系统则使用secure默认路径，debian系列则使用auth.log文件默认路径。
+3. 如果用户没有指定具体的文件，系统也没有识别正确，如遇到阉割版的操作系统，则默认使用红帽系列的判断方法执行，则可指定具体文件的方法。
+```
+./whoamifuck -l
+```
+会列举出攻击次数的攻击者枚举的用户名、攻击者IP TOP10、成功登录的IP地址和对用户名进行爆破的次数
+![image](https://github.com/enomothem/Whoamifuck/assets/45089051/7b13f4d2-d063-4b4d-9399-5b06408e99ff)
+![image](https://github.com/enomothem/Whoamifuck/assets/45089051/ae0d0d63-d300-4eb5-9e88-6395de5542a2)
+### 系统基本信息的优化
+相比之前，优化了一些信息的突出，更加美观，增加了虚拟机判断，时间戳，用于取证中进行定位时间线和设备类型。
+```
+./whoamifuck -u
+```
+![image](https://github.com/enomothem/Whoamifuck/assets/45089051/6917bb8d-ccf0-4c6a-a7a3-bb84e9e745ee)
+### 增加对Root用户的判断
+该程序需要root权限才能获取较为完整的信息，否则会发生一些未预期的错误，所以增加了对root的判断，保证程序的可用性。
+![image](https://github.com/enomothem/Whoamifuck/assets/45089051/dbbf9a7f-74b1-4df6-8aff-30810b0a6d5a)
+
 
 ## Dx 关注永恒之锋
 <p align="center">
