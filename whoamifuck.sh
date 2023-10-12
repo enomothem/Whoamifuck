@@ -49,6 +49,13 @@ bg_purple="\033[45m"
 bg_cyan="\033[46m"
 bg_white="\033[47m"
 
+
+# [ ROOT Check ]
+if [ "$EUID" -ne 0 ]; then
+    printf "${redx}[-] This script must be run as root${reset}\n"
+    exit 1
+fi
+
 # [ ++ 标量变量声明区 ++ ]
 
 # ;; File Statement
@@ -245,7 +252,7 @@ function help_cn
         printf "usage:  \n\n"
         printf "\t -v --version\t\t\t版本信息\n "
         printf "\t -h --help\t\t\t帮助指南\n"
-        printf "\t -l --login [FILEPATH]\t\t\t用户登录信息\n"
+        printf "\t -l --login [FILEPATH]\t\t用户登录信息\n"
         printf "\t -n --nomal\t\t\t基本输出模式\n"
         printf "\t -a --all\t\t\t全量输出模式\n"
         printf "\t -u --user-device\t\t查看设备基本信息\n"
