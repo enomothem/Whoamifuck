@@ -78,6 +78,8 @@ usage:
 ./whoamifuck -u
 ```
 ![image](https://github.com/enomothem/Whoamifuck/assets/45089051/6917bb8d-ccf0-4c6a-a7a3-bb84e9e745ee)
+![image](https://github.com/enomothem/Whoamifuck/assets/45089051/188fdd50-5523-42ad-8bd2-486b55a72e95)
+
 ### 增加对Root用户的判断
 该程序需要root权限才能获取较为完整的信息，否则会发生一些未预期的错误，所以增加了对root的判断，保证程序的可用性。
 ![image](https://github.com/enomothem/Whoamifuck/assets/45089051/dbbf9a7f-74b1-4df6-8aff-30810b0a6d5a)
