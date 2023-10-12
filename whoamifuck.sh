@@ -1,5 +1,5 @@
 #!/bin/bash
-# Linux入侵检测报告工具-Whoamifuck5.2.0
+# Linux入侵检测报告工具-Whoamifuck5.2.1
 # Author:Enomothem
 # Time:2021年2月8日
 # update: 2021年6月3日 优化格式，加入用户基本信息
@@ -20,7 +20,7 @@
 
 # [ ++ 基本信息 ++ ]
 
-VER="2023.9.15@whoamifuck-version 5.2.0"
+VER="2023.10.12@whoamifuck-version 5.2.1"
 
 # [ ++ 颜色变量预定义 ++ ]
 
