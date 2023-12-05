@@ -536,7 +536,7 @@ case ${op} in
                 fk_portstatus
                 ;;
         -o | --output)
-                if [ -z "$1" ]; then
+                if [ -z "$2" ]; then
                     ./"$0" -n> output.txt
                 else
                     ./"$0" -n> "$2"
