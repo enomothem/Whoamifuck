@@ -95,6 +95,35 @@ usage:
 
 ![image](https://github.com/enomothem/Whoamifuck/assets/45089051/dbbf9a7f-74b1-4df6-8aff-30810b0a6d5a)
 
+### 新特性🎉：webshell查杀
+增加了对webshell的查杀，目前仅支持PHP和JSP。
+使用方法：
+1. 不指定目录，默认查找常见的web根目录。
+```
+./whoamifuck -w
+```
+2. 指定路径，深度查找指定的目录，力度更大。
+```
+./whoamifuck -w /root
+```
+![image](https://github.com/enomothem/Whoamifuck/assets/45089051/16d2bbed-66c7-4983-bba7-d56ea7b86235)
+### 新特性🎉：漏洞检测
+使用漏洞检测模块`-r/--risk`
+```shell
+./whoamifuck -r
+```
+增加了漏洞检测模块，目前只支持了redis的检测
+未授权则表示未开启密码机制，当然实际情况还需判断，仅作为参考。
+如开启密码机制，会将找到的密码与弱口令字典TOP20进行匹配，如找到则显示出来，反正显示`*****`，该模块不记录在log中。
+![image](https://github.com/enomothem/Whoamifuck/assets/45089051/68e41b96-a5a3-40f7-bc61-43a5ec00a19e)
+
+### 重构代码结构，执行速度加快4000倍🎿
+由于功能的增加，变量变多，程序执行速度明显变慢，将变量按需求移入函数中，执行速度更加流畅！
+优化前
+![image](https://github.com/enomothem/Whoamifuck/assets/45089051/e93fee42-0a0c-4634-9454-d0fe17de684d)
+优化后
+![image](https://github.com/enomothem/Whoamifuck/assets/45089051/fe88780d-7c51-466b-9f90-8b43a49c753c)
+
 
 ## Dx 关注永恒之锋
 <p align="center">
