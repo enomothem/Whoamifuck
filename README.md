@@ -1,4 +1,4 @@
-# 司稽
+![image](https://github.com/enomothem/Whoamifuck/assets/45089051/8b93c36e-abd0-4708-9e3e-818e05d09358)# 司稽
 
 中文 | [English](https://github.com/enomothem/Whoamifuck/blob/main/README-EN.md) 
 
@@ -68,7 +68,10 @@ usage:
 	 -x --process-and-servic	检查用户进程与开启服务状态
 	 -p --port			查看端口开放状态
 	 -s --os-status			查看系统状态信息
-	 -o --output			导出全量输出模式文件
+	 -w --webshell [PATH]		查找可能存在的webshell文件
+	 -r --risk			查看系统可能存在的漏洞
+	 -b --baseline			基线安全评估
+	 -o --output [FILENAME]		导出全量输出模式文件
 ```
 ![image](https://github.com/enomothem/Whoamifuck/assets/45089051/e52200c2-21ed-461a-b329-490e01aa8def)
 ### 关于用户登录排查的优化
