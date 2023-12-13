@@ -1,4 +1,4 @@
-![image](https://github.com/enomothem/Whoamifuck/assets/45089051/8b93c36e-abd0-4708-9e3e-818e05d09358)# 司稽
+# 司稽
 
 中文 | [English](https://github.com/enomothem/Whoamifuck/blob/main/README-EN.md) 
 
