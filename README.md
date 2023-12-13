@@ -73,7 +73,8 @@ usage:
 	 -b --baseline			基线安全评估
 	 -o --output [FILENAME]		导出全量输出模式文件
 ```
-![image](https://github.com/enomothem/Whoamifuck/assets/45089051/e52200c2-21ed-461a-b329-490e01aa8def)
+![image](https://github.com/enomothem/Whoamifuck/assets/45089051/2a291854-2efa-485c-bd75-fe71a56d5b65)
+
 ### 关于用户登录排查的优化
 使用 `-l` 参数显示系统的用户登录信息。
 该参数取代之前`-f`参数，对比`-f`，优化了以下功能：
