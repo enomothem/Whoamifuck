@@ -7,7 +7,8 @@
 <p>该工具目前实现的功能基本满足了应急响应的基本需求，后续将加入更多的入侵检测点，并完善代码。如有新的功能建议，可提issue，欢迎关注永恒之锋战队公众号。</p>
 <p>为什么不使用python，因为python依赖多，版本差异大，shell原生支持，除个别少数shell语法不同，大部分unix，linux基本都支持bash shell。</p>
 
-<p>凡是bug提交者，赋予漏洞编号，并在github更新追加贡献者</p>
+> [!tip]
+> 凡是bug提交者，赋予漏洞编号，并在github更新追加贡献者</p>
 
 <p align="center"><img src="https://github.com/AppFlowy-IO/appflowy/blob/main/doc/imgs/howtostar.gif" alt="AppFlowy Github - how to star the repo" width="100%" /></p>
 
