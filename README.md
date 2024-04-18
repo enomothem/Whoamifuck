@@ -157,7 +157,7 @@ whomifuck -c # 检测
 
 
 ### 新特性🎉：日志分析-SQL注入专业分析
-由于sql注入分析起来非常的繁琐，索性直接自动化，而且做CTF题目也是非常的给力哦~  
+sql注入分析起来非常的繁琐，索性直接自动化，而且做CTF题目也是非常的给力哦~  
 ![image](https://github.com/enomothem/Whoamifuck/assets/45089051/f6168455-f520-4d9a-bf59-4a505ae411af)
 
 
