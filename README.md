@@ -38,7 +38,7 @@
 - [x] 计划任务信息
 - [x] 开启端口信息
 - [x] 系统状态监控
-- [ ] 分析web日志
+- [x] 分析web日志
 - [x] 支持基线检查
 - [ ] 内存马查杀
 - [ ] 挖矿病毒查杀
@@ -46,9 +46,10 @@
 - [x] 常见漏洞自查
 - [ ] 后门文件查杀
 - [ ] 僵尸进程清理
-- [ ] 开机自启动项
-- [ ] 攻击痕迹发现
-- [ ] 生成多格式报告 -> 客户看了直说好
+- [x] 站点存活探测
+- [x] 开机自启动项
+- [x] 攻击痕迹发现
+- [x] 生成多格式报告 -> 客户看了直说好
 
 ## ES_T0003 使用
 ### 下载
@@ -133,6 +134,31 @@ usage:
 ![image](https://github.com/enomothem/Whoamifuck/assets/45089051/e93fee42-0a0c-4634-9454-d0fe17de684d)
 优化后
 ![image](https://github.com/enomothem/Whoamifuck/assets/45089051/fe88780d-7c51-466b-9f90-8b43a49c753c)
+
+### 新特性🎉：Html格式输出，呕心沥血几百次优化，细节感人，人性化体验，简洁舒服
+在shell中查看文本文件非常的困难，导致分析过程不利于用眼的保护，所以更新了html的格式。
+
+看这简洁明了的设计
+![image](https://github.com/enomothem/Whoamifuck/assets/45089051/416dec83-51ad-4941-bbca-f749559ec609)
+钛合金金属的豪华按钮+突出的计数器
+![image](https://github.com/enomothem/Whoamifuck/assets/45089051/e7717a47-d067-4270-8809-abd196183d7b)
+
+### 新特性🎉：~~站点扫描~~ 站点存活分析
+大家可能第一反应把这当作攻击方的工具，那可大错，在应急过程中，免不了检测网页是否存在或存活状态，再配合端口检测，可查看页面的开启状态。
+```
+whoamifuck -p # 先查看是否存在http server端口
+```
+然后检测页面情况
+```
+whomifuck -c # 检测
+```
+当然，为了批量操作，也可以指定文件，这里演示检测永恒之锋实验室官方和我的博客。
+![image](https://github.com/enomothem/Whoamifuck/assets/45089051/c03294a5-9acb-41b7-b5bd-7f3207a73b94)
+
+
+### 新特性🎉：日志分析-SQL注入专业分析
+由于sql注入分析起来非常的繁琐，索性直接自动化，而且做CTF题目也是非常的给力哦~  
+![image](https://github.com/enomothem/Whoamifuck/assets/45089051/f6168455-f520-4d9a-bf59-4a505ae411af)
 
 
 ## ES_T0004 关注永恒之锋
