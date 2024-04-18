@@ -26,6 +26,13 @@
 # update: 2023年12月7日 发布5.3.1，修复 『多网卡bug』、修复 『没有gawk命令显示异常』@Agreement
 # update: 2023年12月8日 发布5.3.2，新增 『webshell jsp免杀规则』、优化 『代码缩进』、新增 『Redis漏洞检测』、优化 『程序执行速度』
 # update: 2023年12月13日 发布5.4.0，新增 『基线检查』、优化 『help』、修复 『bar显示问题』、优化 『输出结果更加合理』、修复『sudoer文件不存在显示问题』@lockly
+# update: 2024年2月5日 发布5.4.1-alpha，新增 『web探测』、新增 『终端代理』
+# update: 2024年4月12日 发布5.5.1-alpha, 新增『html格式输出』
+# update: 2024年4月16日 发布5.5.2-alpha, 优化『html格式输出，增加全文检索，增加金属质感按钮缩放详细信息显示，增加高亮高危风险命令或字段』
+# update: 2024年4月17日 发布5.5.3-alpha, 优化『html格式输出，优化使用体验，增加计数器』
+# update: 2024年4月18日 发布5.5.4-alpha, 新增『html风险排查，风险将持续更新』
+# update: 2024年4月18日 发布5.6.0-RC, 新增『SQL注入专业分析』 额，这个嘛，做CTF题也是非常nice
+
 
 
 # --------------------------------------
@@ -63,15 +70,23 @@ function color
     bg_purple="\033[45m"
     bg_cyan="\033[46m"
     bg_white="\033[47m"
-}
 
+
+# [ ++ 权限检查 ++ ]
 if [ "$EUID" -ne 0 ]; then
     printf "${redx}[-] This script must be run as root${reset}\n"
     exit 1
 fi
 
+# [ ++ 命令检查 ++ ]
+if ! which curl &> /dev/null; then
+    printf "${redx}[-] curl 命令不存在将导致web存活模块无法使用。${reset}\n"
+    exit 1
+fi
+}
+
 # [ ++ 基本信息 ++ ]
-VER="2023.12.14@whoamifuck-version 5.4.0"
+VER="2024.4.18@whoamifuck-version 5.6.0"
 WHOAMIFUCK=`whoami`
 
 # --------------------------------------
@@ -111,7 +126,10 @@ function help_cn
         printf "\t -w --webshell [PATH]\t\t查找可能存在的webshell文件\n"
         printf "\t -r --risk\t\t\t查看系统可能存在的漏洞\n"
         printf "\t -b --baseline\t\t\t基线安全评估\n"
+        printf "\t -c --httpstatuscode [URL|FILE]\t页面存活探测\n"
+        printf "\t -i --sqli-analysis [FILE]\t日志分析-SQL注入专业分析\n"
         printf "\t -o --output [FILENAME]\t\t导出全量输出模式文件\n"
+        printf "\t -m --output-html [FILENAME]\t导出全量输出模式文件\n"
 
 }
 
@@ -131,7 +149,10 @@ function help_en
         printf "\t -w --webshell [PATH]\t\tFind the webshell file.\n"
         printf "\t -r --risk\t\t\tCheck os vulneribility.\n"
         printf "\t -b --baseline\t\t\tBaseline security assessment\n"
+        printf "\t -c --httpstatuscode [URL|FILE]\tHttp status code scan.\n"
+        printf "\t -i --sqli-analysis [FILE]\tLog Analysis - Professional Analysis of SQL Injection\n"
         printf "\t -o --output [FILENAME]\t\tOutput to file.\n"
+        printf "\t -m --output-html [FILENAME]\tOutput to html file.\n"
         
 }
 
@@ -207,9 +228,9 @@ function user_debian
     cat $AUTH_S  | grep Accepted | awk '{gsub("T"," ",$1); split($1,a,"."); print "时间:"substr(a[1],1)"\t登录成功\t "$9" --> "$7 " \t使用方式: "$5}';echo
     echo -e "${bg_red}\n『 用户登出 』${reset}\n"
     cat $AUTH_S  | grep Accepted | awk '{gsub("T"," ",$1); split($1,a,"."); print "时间:"substr(a[1],1)"\t登录成功\t "$9" --> "$7 " \t使用方式: "$5}';echo
-    echo -e "${bg_red}\n『 攻击次数Top20 攻击者IP --> 枚举用户名 』${reset}\n"
+    echo -e "${bg_red}\n『 攻击次数 攻击者IP --> 枚举用户名 』${reset}\n"
     cat $AUTH_S | grep "Failed password for invalid user" | awk '{print $13 " --> " $11}' | sort | uniq -c | sort -rn | awk '{print "[+] 用户名不存在 "$0}' | head -20 
-    echo -e "${bg_red}\n『 攻击者IP次数TOP10 』${reset}\n"
+    echo -e "${bg_red}\n『 攻击者IP次数 』${reset}\n"
     cat $AUTH_S | grep "Failed password for invalid user" | awk '{print $11 " --> " $13}' | sort | uniq -c | sort -rn | awk '{print $4}' | sort | uniq -c | awk '{print "[+] "$2" 攻击次数 "$1"次"}';echo 
     echo -e "${bg_red}\n『 登录成功IP地址 』${reset}\n"
     cat $AUTH_S | grep "Accepted"  | awk '{print "时间:"$1"-"$2"-"$3"\t登录成功\t "$11" --> "$9 " 使用方式: "$7}';echo 
@@ -219,10 +240,10 @@ function user_debian
 
 function user_centos
 {
-    echo -e "${bg_red}\n『 攻击次数Top20 攻击者IP --> 枚举用户名 』${reset}\n"
+    echo -e "${bg_red}\n『 攻击次数TOP 攻击者IP --> 枚举用户名 』${reset}\n"
     cat $SECURE_S | grep "Failed password for invalid user" | awk '{print $13 " --> " $11}' | sort | uniq -c | sort -rn | awk '{print "[+] 用户名不存在 "$0}' | head -20 
-    echo -e "${bg_red}\n『 攻击者IP次数TOP10 』${reset}\n"
-    cat $SECURE_S | grep "Failed password for invalid user" | awk '{print $11 " --> " $13}' | sort | uniq -c | sort -rn | awk '{print $4}' | sort | uniq -c | awk '{print "[+] "$2" 攻击次数 "$1"次"}';echo 
+    echo -e "${bg_red}\n『 攻击者IP次数TOP 』${reset}\n"
+    cat /var/log/secure | grep "Failed password for invalid user" | awk '{print $11 " --> " $13}' | sort | uniq -c | sort -rn | awk '{print $4}' | sort | uniq -c | sort -k1rn | awk '{print "[+] "$2" 攻击次数 "$1"次"}';echo
     echo -e "${bg_red}\n『 登录成功IP地址 』${reset}\n"
     cat $SECURE_S | grep "Accepted"  | awk '{print "时间:"$1"-"$2"-"$3"\t登录成功\t "$11" --> "$9 " 使用方式: "$7}';echo 
     echo -e "${bg_red}\n『 对用户名进行密码爆破次数 』${reset}\n"
@@ -258,7 +279,10 @@ function bar
     bar_web_shell=`printf "${red}%50s${reset}" "[ webshell查找 ]"`        
     bar_vuln_find=`printf "${red}%50s${reset}" "[ 常见漏洞评估 ]"`         
     bar_base_line=`printf "${red}%50s${reset}" "[ 基线安全评估 ]"`
-    bar_auto_fuck=`printf "${red}%50s${reset}" "[ 一键溯源 ]"`
+    bar_http_scan=`printf "${red}%50s${reset}" "[ 存活页面探测 ]"`
+    bar_repo_rest=`printf "${red}%50s${reset}" "[ 生成应急报告 ]"`
+    bar_sqli_anal=`printf "${red}%50s${reset}" "[ 日志分析-SQLi ]"`
+    bar_auto_fuck=`printf "${red}%50s${reset}" "[ Whoamifuck ]"`
 }
 
 # [ ++ Function OS_NAME ++ ]
@@ -388,19 +412,25 @@ function fk_baseinfo
     TUN_C=`echo -e "${white}$TUN${reset}"`
     M_TIME_C=`echo -e "${green}$M_TIME${reset}"`
     bar
-    printf "%s\n" "$bar_base_info"
-    echo
-    printf "%-21s|\t%-25s\t\t" "本机IP地址是" "$IP_C"
-    printf "%-21s|\t%s\n" "本机子网掩码是    " "$ZW"
-    printf "%-21s|\t%-25s\t" "本机网关是" "$GW"
-    printf "%-17s|\t%s\n" "当前在线用户      " "$TUN_C"
-    printf "%-22s|\t%s\n" "本机主机名是" "$HN_C"
-    printf "%-19s|\t%s\n" "本机DNS是" "$DNS"
-    printf "%-20s|\t%s\n" "系统版本" "$OS"
-    printf "%-20s|\t%s\n" "系统内核" "$OSNAME_C"
-    echo "------------------------------------------------------------------------------------------------------"
-    printf "%s%s" "此刻唯一时间戳[本地]: " "$M_TIME_C"
-    echo
+
+
+    if [ -z $show ]; then
+        printf "%s\n" "$bar_base_info"
+        echo
+        printf "%-21s|\t%-25s\t\t" "本机IP地址是" "$IP_C"
+        printf "%-21s|\t%s\n" "本机子网掩码是    " "$ZW"
+        printf "%-21s|\t%-25s\t" "本机网关是" "$GW"
+        printf "%-17s|\t%s\n" "当前在线用户      " "$TUN_C"
+        printf "%-22s|\t%s\n" "本机主机名是" "$HN_C"
+        printf "%-19s|\t%s\n" "本机DNS是" "$DNS"
+        printf "%-20s|\t%s\n" "系统版本" "$OS"
+        printf "%-20s|\t%s\n" "系统内核" "$OSNAME_C"
+        echo "------------------------------------------------------------------------------------------------------"
+        printf "%s%s" "此刻唯一时间戳[本地]: " "$M_TIME_C"
+        echo
+    else
+        noprint=$show
+    fi
 }
 
 # [ ++ Function OS_STATUS_INFORMATION ++ ]
@@ -412,12 +442,16 @@ function fk_devicestatus
     TB=$(df -h| awk '$NF=="/"{printf "%s\t\t",$5}')
     TC=$(top - bn1 | grep load | awk '{printf "%.2f%%\t\t\n",2$(NF2)}')
     bar
-    printf "%s\n" "$bar_osys_stat"
-    echo
-    printf "%s%s" "Memory:" "$TA"
-    printf "%s%s" "Disk:" "$TB"
-    printf "%s%s" "CPU:" "$TC"
-    echo
+    if [[ -z $show ]]; then
+        printf "%s\n" "$bar_osys_stat"
+        echo
+        printf "%s%s" "Memory:" "$TA"
+        printf "%s%s" "Disk:" "$TB"
+        printf "%s%s" "CPU:" "$TC"
+        echo
+    else
+        noprint=$show
+    fi
 }
 
 # [ ++ Function PROCESS_SERVICE_INFORMATION ++ ]
@@ -452,7 +486,7 @@ function fk_portstatus
 function fk_history
 {
     # 脚本无法执行history命令
-    HI=`cat ~/.*sh_history | tail -10` # 查看用户的历史命令，适用通配符的方式
+    HI=`cat ~/.*sh_history | tail -10` # 查看用户的历史命令，使用通配符的方式
 
     bar
     echo
@@ -531,7 +565,7 @@ function fk_userinfo
     echo "[+] 是否拥有SUDO权限的普通用户"
     printf "%s\n" "$SUDO"
     echo
-    fk_userlogi
+    fk_userlogin
     echo
 }
 
@@ -539,7 +573,7 @@ function fk_userinfo
 ## webshell检测
 function fk_wsfinder
 {
-    WEBSHELL_RULE_PHP='array_map\(|pcntl_exec\(|explode(\(|proc_open\(|popen\(|assert\(|phpspy|c99sh|milw0rm|eval?\(|\(gunerpress|\(base64_decoolcode|spider_bc|shell_exec\(|passthru\(|base64_decode\s?\(|gzuncompress\s?\(|gzinflate|\(\$\$\w+|call_user_func\(|call_user_func_array\(|preg_replace_callback\(|preg_replace\(|register_shutdown_function\(|register_tick_function\(|mb_ereg_replace_callback\(|filter_var\(|ob_start\(|usort\(|uksort\(|uasort\(|GzinFlate\s?\(|\$\w+\(\d+\)\.\$\w+\(\d+\)\.|\$\w+=str_replace\(|eval\/\*.*\*\/\('
+    WEBSHELL_RULE_PHP='array_map\(|pcntl_exec\(|proc_open\(|popen\(|assert\(|phpspy|c99sh|milw0rm|eval?\(|\(gunerpress|\(base64_decoolcode|spider_bc|shell_exec\(|passthru\(|base64_decode\s?\(|gzuncompress\s?\(|gzinflate|\(\$\$\w+|call_user_func\(|call_user_func_array\(|preg_replace_callback\(|preg_replace\(|register_shutdown_function\(|register_tick_function\(|mb_ereg_replace_callback\(|filter_var\(|ob_start\(|usort\(|uksort\(|uasort\(|GzinFlate\s?\(|\$\w+\(\d+\)\.\$\w+\(\d+\)\.|\$\w+=str_replace\(|eval\/\*.*\*\/\('
     WEBSHELL_RULE_PHP_1='^(\xff\xd8|\x89\x50|GIF89a|GIF87a|BM|\x00\x00\x01\x00\x01)[\s\S]*<\?\s*php'
     WEBSHELL_RULE_PHP_2='\b(assert|eval|system|exec|shell_exec|passthru|popen|proc_open|pcntl_exec)\b[\/*\s]*\(+[\/*\s]*((\$_(GET|POST|REQUEST|COOKIE)\[.{0,25})|(base64_decode|gzinflate|gzuncompress|gzdecode|str_rot13)[\s\(]*(\$_(GET|POST|REQUEST|COOKIE)\[.{0,25}))'
     WEBSHELL_RULE_PHP_3='\$\s*(\w+)\s*=[\s\(\{]*(\$_(GET|POST|REQUEST|COOKIE)\[.{0,25});[\s\S]{0,200}\b(assert|eval|system|exec|shell_exec|passthru|popen|proc_open|pcntl_exec)\b[\/*\s]*\(+[\s"\/*]*(\$\s*\1|((base64_decode|gzinflate|gzuncompress|gzdecode|str_rot13)[\s\("]*\$\s*\1))'
@@ -598,7 +632,7 @@ function fk_wsfinder
     fi
 
     echo
-    sed "s/\x1B\[[0-9;]*[JKmsu]//g" output/webshell.log >> /output/webshell.txt
+    sed "s/\x1B\[[0-9;]*[JKmsu]//g" output/webshell.log >> output/webshell.txt
     rm -f output/webshell.log
 }
 
@@ -840,6 +874,132 @@ function fk_baseline
     echo
 }
 
+
+# [ ++ Function HTTP_STATUS_CODE ++ ]
+## 扫描web页面存活
+function fk_http_scan
+{
+    color
+    bar
+    echo
+    printf "%s\n" "$bar_http_scan"
+    echo
+    mkdir -p output
+    useragent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36"
+    if [ -f "$LIST" ]; then
+        url_list=$LIST
+        while IFS= read -r url_list; do
+            response=$(curl -k -A "${useragent}" --connect-timeout 10 --silent "${url_list}")
+            http_code=$(curl -k -A "${useragent}" --connect-timeout 10 --write-out "%{http_code}" --silent --output /dev/null "${url_list}")
+            title=$(echo "$response" | grep -oP '<title>\K(.*?)(?=<)')
+            bytes=$(echo -n "$response" | wc -c)
+            echo -e "[INFO] ${url_list} [${http_code}] [${bytes}] [${purple}${title}${reset}]" | tee -a output/http_info.txt
+        done < "$url_list"
+        echo
+    else
+        url=$LIST
+        response=$(curl -k -A "${useragent}" --connect-timeout 10 --silent "${url}")
+        http_code=$(curl -k -A "${useragent}" --connect-timeout 10 --write-out "%{http_code}" --silent --output /dev/null "${url}")
+        title=$(echo "$response" | grep -oP '<title>\K(.*?)(?=<)')
+        bytes=$(echo -n "$response" | wc -c)
+        echo -e "[INFO] ${url} [${http_code}] [${bytes}] [${purple}${title}${reset}]" | tee -a output/http_info.txt
+        echo
+    fi
+
+}
+
+# [ ++ Function TERMINAL_PROXY ++ ]
+## 终端代理
+function fk_terminal_proxy
+{
+    color 
+    # 设置代理端口
+    PORT=7897
+    STAT=$INPUT
+    if [ -z "$STAT" ]; then
+        echo "Usage: $0 on|off"
+        echo $STAT
+        exit 1
+    fi
+
+    if [ "$STAT" = "on" ]; then
+        echo 'export https_proxy=http://127.0.0.1:7897'> ~/.clash
+        echo 'export http_proxy=http://127.0.0.1:7897' >> ~/.clash
+        echo 'export all_proxy=socks5://127.0.0.1:7897' >> ~/.clash
+        source ~/.clash
+        echo -e ${green}"Proxy enabled"${reset}
+        curl cip.cc
+               ping google.com -c 3
+    elif [ "$STAT" = "off" ]; then
+        unset https_proxy
+        unset http_proxy
+        unset all_proxy
+        echo -e ${redx}"Proxy disabled"${reset}
+        curl cip.cc
+        > ~/.clash
+        source ~/.clash
+    else
+        echo "Invalid option. Usage: $0 on|off"
+        exit 1
+    fi
+}
+
+
+# [ ++ Function SQL_INJECTION_ANALYSIS ++ ]
+## 日志分析-SQL注入分析专项
+function fk_sqlianalysis
+{
+    FILE=$1
+    echo "[+] sql注入盲注'>'判断类"
+    sed -n -E 's/.*,([0-9]+),1\)\)>([0-9]+).*HTTP\/1.1" (404|200).*/\1 \2 \3/p' $FILE | awk '($3 == 404 && ($1 not in max || $2 > max[$1])) || ($3 == 200 && ($1 not in min || $2 < min[$1])) {max[$1] = ($3 == 404 ? $2 : max[$1]); min[$1] = ($3 == 200 ? $2 : min[$1]);} END {for (i in max) if ((i in max) && (i in min) && (max[i] - min[i] == 1)) print max[i]}' | while read -r line;do printf "\x$(printf '%x' "$line")"; done
+    echo;echo "[+] sql注入盲注'!='判断类"
+    sed -n -E 's/.*,([0-9]+),1\)\)!=([0-9]+).*HTTP\/1.1" (404|200).*/\2/p' $FILE | while read -r line;do printf "\x$(printf '%x' "$line")"; done
+    echo;echo "[+] sql注入盲注time延时类"
+    delay=$(sed -n -E "s/.*sleep\(([0-9]+)\).*HTTP\/1.1\" 200.*/\1/p" $FILE) ; sed -n -E "s/.*([0-9][0-9])\/([A-Z][a-z]+)\/([12]0[0-9]+):([0-9]+:[0-9]+:[0-9]+).*\)=[a-z0-9A-Z]+\('(.?)'\).*sleep\(([0-9]+)\).*HTTP\/1.1\" 200.*/\3-\2-\1 \4 \5 \6/p" $FILE | awk 'BEGIN{m=split("Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec",a," ")} {for(i=1;i<=m;i++) {if(index($0,a[i])) {gsub(a[i],i,$0)}}} {print}'  | awk '{split($2, a, ":"); t=mktime($1 " " a[1] " " a[2] " " a[3]); diff=t-prev; if (diff<$delay) print prev_line; prev_line=$3; prev=t}' | awk '{printf "%s", $0}'
+    echo;echo
+}
+function fk_weblog_sqlianalysis
+{
+
+    color
+    bar
+    printf "%s\n" "$bar_sqli_anal"
+
+
+    if [ -z $ACCESS_PATH ]; then
+        apache="/var/log/apache*/access.log"
+        nginx="/var/log/nginx/access.log"
+        echo
+        echo "[+] check /var/log/apache*/access.log"
+        echo
+        if [ -f $apache ]; then
+            fk_sqlianalysis "$apache"
+        else
+            echo "未找到该文件"
+        fi
+        echo
+        echo "[+] check /var/log/nginx/access.log"
+        echo
+        if [ -f $nginx ]; then
+            fk_sqlianalysis "$nginx"
+        else
+            echo "未找到该文件"
+        fi
+    else    
+        echo
+        echo "[+] check $ACCESS_PATH"
+        echo
+        if [ -f $ACCESS_PATH ]; then
+            fk_sqlianalysis "$ACCESS_PATH"
+        else
+            echo "未找到该文件"
+        fi
+    fi
+
+
+}
+
+
 # [ ++ Function AUTO_FUCK ++ ]
 ## 彩蛋：一键溯源（不是） 溯源思路
 function fk_autofuck
@@ -858,6 +1018,740 @@ function fk_autofuck
 
 }
 
+
+
+# [ ++ Function REPORT_HTML ++ ]
+## 打印报告 - html
+
+function fk_reporthtml
+{
+    bar
+    printf "%s\n" "$bar_repo_rest"
+
+    current_time=$(date "+%Y%m%d%H%M%S")
+    event_date=$(date "+%Y年%m月%d日 %H:%M:%S")
+
+    if [ -z $REPORT_NAME ]; then
+        html_name="report-${current_time}.html"
+    else
+        html_name=$REPORT_NAME
+    fi
+    
+    show=0
+    # import
+    fk_baseinfo "$show"
+    fk_devicestatus "$show"
+
+    # Port and process
+    network_info=$(netstat -anltu)
+    portsvt_info=$(netstat -tunlp | awk '/^tcp/ {print $4,$7}; /^udp/ {print $4,$6}' | sed -r 's/.*:(.*)\/.*/\1/' | sort -un | awk '{cmd = "sudo lsof -w -i :" $1 " | awk '\''NR==2{print $1}'\''"; cmd | getline serviceName; close(cmd); print $1 "\t" serviceName}')
+    process_info=$(ps aux)
+
+    # user
+
+    user_info=$(cat /etc/passwd)
+    pass_info=$(cat /etc/shadow)
+    grop_info=$(cat /etc/group)
+
+    # whoamifuck
+
+    histcmd_info=$(cat ~/.*sh_history)
+    crontab_info=$(crontab -l 2>/dev/null)
+    initpid_info=$(systemctl list-unit-files --type=service)
+
+
+    # user
+    mkdir -p output
+    userinfo=userlogin.txt
+    fk_userlogin > output/$userinfo
+    sed "s/\x1B\[[0-9;]*[JKmsu]//g" output/$userinfo > output/userlogin_info.txt
+    rm -f output/$userinfo
+    userlogin=$(cat output/userlogin_info.txt)
+    
+    # 僵尸进程进程
+    kill_process=$(ps -al | awk '{print $2,$4}' | grep -e '^[Zz]')
+
+    if [ -z "$kill_process" ]; then
+        kill_process="无"
+    fi
+
+    # redis
+    redis_risk=$(find / -name "redis.conf" -exec grep --color=none -H "# requirepass " {} \; 2>/dev/null)
+
+    if [ -z "$redis_risk" ]; then
+        redis_risk="无"
+    fi
+
+    # CVE-2018-15473 / 这里采用了先探测命令是否存在，提高健壮性 呜呼
+    if  which ssh &> /dev/null; then
+        ssh_version=$(ssh -V 2>&1 | awk 'match($0, /OpenSSH_([0-9]+\.[0-9]+)/, m) { print m[1] }')
+        version_major=${ssh_version%%.*}    # 这个语法第一次学，有点意思  意思是不要包括点及后面的
+        version_minor=${ssh_version#*.}     # 不要包括点前面的
+        if [[ "$version_major" -gt 7 ]] || ([[ "$version_major" -eq 7 ]] && [[ "$version_minor" -gt 7 ]]); then
+            openssh_risk="OpenSSH版本 $ssh_version 不受漏洞影响"
+        else
+            openssh_risk="OpenSSH版本 $ssh_version 受漏洞影响"
+        fi
+    else
+        openssh_risk="无"
+    fi
+
+    cat << EOF > output/$html_name
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>应急响应报告</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                margin: 0;
+                padding: 0;
+                background-color: #f4f4f4;
+                color: #333;
+            }
+            .container {
+                max-width: 800px;
+                margin: 20px auto;
+                padding: 20px;
+                background-color: #fff;
+                border-radius: 5px;
+                box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            }
+            h1 {
+                text-align: center;
+                color: #162bca;
+            }
+            h2 {
+                color: #000000;
+            }
+            .section {
+                margin-bottom: 20px;
+            }
+            .section-title {
+                border-bottom: 1px solid #ccc;
+                padding-bottom: 10px;
+                margin-bottom: 10px;
+            }
+            .section-content {
+                padding-left: 20px;
+            }
+            #searchForm {
+                margin-bottom: 20px;
+            }
+            .copyright {
+                color: #666;
+                font-size: 12px;
+                text-align: center;
+                margin-top: 10px;
+                margin-bottom: 1px;
+            }
+            .line {
+                margin-top: 10px;
+                border-top: 1px solid #ccc;
+            }
+            .section-content select {
+                margin-bottom: 10px;
+            }
+            .bold {
+                font-weight: bold;
+            }
+            /* 样式 */
+            table {
+                width: calc(100% - 40px); /* 减去左右各 20px 的留边 */
+                border-collapse: collapse;
+                margin-left: 20px; /* 左留边 20px */
+                margin-right: 20px; /* 右留边 20px */
+            }
+            th, td {
+                border: 1px solid #ddd;
+                padding: 8px;
+                text-align: left;
+            }
+            th {
+                background-color: #f2f2f2;
+            }
+            .code-block {
+                background-color: #f4f4f4;
+                border: 1px solid #ddd;
+                border-left: 3px solid #4CAF50;
+                padding: 10px;
+                margin: 10px 0;
+                overflow-x: auto;
+                white-space: nowrap; /* 防止换行 */
+            }
+            .rush-code{
+                background: linear-gradient(to bottom, #D5DEE7 0%, #E8EBF2 50%, #E2E7ED 100%), linear-gradient(to bottom, rgba(0,0,0,0.02) 50%, rgba(255,255,255,0.02) 61%, rgba(0,0,0,0.02) 73%), linear-gradient(33deg, rgba(255,255,255,0.20) 0%, rgba(0,0,0,0.20) 100%); background-blend-mode: normal,color-burn;
+                border: 1px solid #b70303;
+                border-left: 3px solid #4808ae;
+                padding: 10px;
+                margin: 10px 0;
+                overflow-x: auto;
+                white-space: nowrap; /* 防止换行 */
+            }
+            .rusha {
+                color: rgb(217, 72, 15); /* 设置链接文字颜色为蓝色 */
+                text-decoration: none; /* 去除链接下划线 */
+                /* 其他样式 */
+            }
+            .code-block pre {
+                margin: 0;
+            }
+            .code-block-container {
+                overflow: hidden;
+                max-height: 92px; /* 初始高度为一行 */
+                transition: max-height 0.6s ease; /* 添加过渡效果 */
+            }
+            .toggle-button {
+                cursor: pointer;
+                color: rgb(0, 0, 0);
+                border-width: 1px;
+                font-size: 12px;
+                border-style: solid;
+                border-color: #D2D4D4 #6B778C #6B778C #D2D4D4;
+                padding: 3px 5px 3px 5px;
+                margin-bottom: 3px;
+                background: linear-gradient(to bottom, #D5DEE7 0%, #E8EBF2 50%, #E2E7ED 100%), linear-gradient(to bottom, rgba(0,0,0,0.02) 50%, rgba(255,255,255,0.02) 61%, rgba(0,0,0,0.02) 73%), linear-gradient(33deg, rgba(255,255,255,0.20) 0%, rgba(0,0,0,0.20) 100%); background-blend-mode: normal,color-burn;
+            }
+            .toggle-button:hover {
+                color: #FF7F00;
+                
+            }
+            .highlighted-command {
+                background-color: yellow;
+            }
+            .highlighted-info {
+                font-weight: bold;
+                margin-bottom: 10px;
+            }
+            .highlighted-number {
+                color: red;
+            }
+            li {
+                font-size: 14px; 
+            }
+            .container {
+                position: relative;
+            }
+
+            #searchForm {
+                position: absolute;
+                top: 0;
+                right: 0;
+            }
+
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>应急响应报告</h1>
+                <!-- 搜索表单 -->
+                <div id="searchFormContainer">
+                    <form id="searchForm" onmouseleave="hideSearchBox()">
+                        <input type="text" id="searchInput" name="searchInput" placeholder="请输入关键字" onkeypress="handleKeyPress(event)">
+                        <button type="button" id="searchButton" class="toggle-button" onclick="searchText()">搜索</button>
+                    </form>
+                    <!-- 横线 -->
+                    <div id="searchLine" onclick="scrollToTop()"></div>
+                </div>
+                <!-- 其他页面内容 -->
+            <!-- 横线 -->
+            <div id="searchLine" onclick="scrollToTop()"></div>
+
+            <!-- 匹配结果容器 -->
+            <div id="searchResult" class="rush-code"></div>
+
+            <div class="section">
+                <h2 class="section-title">T0001 事件概要</h2>
+                <div class="section-content">
+                    <p><strong>事件日期：</strong> $event_date</p>
+                    <label for="eventType"><strong>事件类型：</strong></label>
+                        <select id="eventType" onchange="updateDescriptionAndSuggestion()">
+                            <option value="网络攻击" selected>网络攻击</option>
+                            <option value="web攻击">web攻击</option>
+                            <option value="数据泄露">数据泄露</option>
+                            <option value="恶意软件">恶意软件</option>
+                            <option value="网页篡改">网页篡改</option>
+                            <option value="挖矿病毒">挖矿病毒</option>
+                            <option value="勒索病毒">勒索病毒</option>
+                            <option value="社工钓鱼">社工钓鱼</option>
+                            <!-- 其他事件类型选项 -->
+                        </select>
+                    <br>
+                    <span class="bold">事件描述：</span>
+                    <span id="eventDescription"></span>
+                </div>
+            </div>
+            <div class="section">
+                <h2 class="section-title">T0002 调查结果</h2>
+                <div class="section-content">
+                    <p><strong>受影响系统：</strong> 内部服务器</p>
+                    <span class="bold">攻击方式：</span>
+                    <span id="eventAttackTypes"></span>
+                    <p><strong>攻击者身份：</strong> 未知</p>
+                    <p><strong>攻击源IP地址：</strong> <input type="text" id="attackerIP" value="192.168.0.1"></p>
+                    <p class="highlighted-info" id="highlightedCommandsInfo"></p>
+                    <p class="highlighted-info" id="highlightedUsersInfo"></p>
+                    <p class="highlighted-info" id="total"></p>
+                </div>
+            </div>
+            <div class="section">
+                <h2 class="section-title">T0003 响应措施</h2>
+                <div class="section-content">
+                    <p><strong>应急响应团队：</strong> <input type="text" id="team" value="Eonian Sharp Team"></p>
+                    <p><strong>处理步骤：</strong></p>
+
+                    <h5>临时处置</h5>
+
+                    <ul>
+                        <li>物理隔离 - 禁用网卡，线路隔离</li>
+                        <li>访问控制 - 限制端口，对用户、权限、文件的访问控制</li>
+                        <li>更新病毒库、开启防火墙、关闭高危端口、打补丁</li>
+                    </ul>
+                    <h5>应急分析</h5>
+                    <ul>
+                        <li>分析攻击流量信息</li>
+                        <li>阻止攻击流量</li>
+                        <li>定位攻击源</li>
+                        <li>确定感染范围</li>
+                        <li>加强网络安全配置</li>
+                    </ul>
+                    <h5>应急排查</h5>
+                    <ul>
+                        <li>端口</li>
+                        <li>进程</li>
+                        <li>网络外联</li>
+                        <li>用户</li>
+                        <li>计划任务</li>
+                        <li>开机启动项</li>
+                        <li>敏感目录</li>
+                        <li>历史命令</li>
+                        <li>系统/Web日志</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="section">
+                <h2 class="section-title">T0004 取证内容</h2>
+                <div class="section-content">
+                    <p class="bold">系统信息：</p>
+                    <table id="infoTable">
+                        <tr>
+                            <th>名称</th>
+                            <th>详细信息</th>
+                        </tr>
+                        <tr>
+                            <td>本机IP地址</td>
+                            <td>$IP</td>
+                        </tr>
+                        <tr>
+                            <td>本机子网掩码</td>
+                            <td>$ZW</td>
+                        </tr>
+                        <tr>
+                            <td>本机网关</td>
+                            <td>$GW</td>
+                        </tr>
+                        <tr>
+                            <td>当前在线用户</td>
+                            <td>$TUN</td>
+                        </tr>
+                        <tr>
+                            <td>本机主机名</td>
+                            <td>$HN</td>
+                        </tr>
+                        <tr>
+                            <td>本机DNS</td>
+                            <td>$DNS</td>
+                        </tr>
+                        <tr>
+                            <td>系统版本</td>
+                            <td>$OS</td>
+                        </tr>
+                        <tr>
+                            <td>系统内核</td>
+                            <td>$OSNAME</td>
+                        </tr>
+                        <tr>
+                            <td>时间戳[本地]</td>
+                            <td>$M_TIME</td>
+                        </tr>
+                    </table>
+                    <p class="bold">系统状态：</p>
+                    <table id="infoTable">
+                        <tr>
+                            <th>名称</th>
+                            <th>详细信息</th>
+                        </tr>
+                        <tr>
+                            <td>内存</td>
+                            <td>$TA</d>
+                        </tr>
+                        <tr>
+                            <td>磁盘</td>
+                            <td>$TB</d>
+                        </tr>
+                        <tr>
+                            <td>CPU</td>
+                            <td>$TC</d>
+                        </tr>
+                    </table>
+                    <p class="bold">风险排查：</p>
+                    <table id="infoTable">
+                        <tr>
+                            <th>名称</th>
+                            <th>详细信息</th>
+                        </tr>
+                        <tr>
+                            <td>僵尸进程</td>
+                            <td>$kill_process</d>
+                        </tr>
+                        <tr>
+                            <td>Redis未授权检测</td>
+                            <td>$redis_risk</d>
+                        </tr>
+                        <tr>
+                            <td>CVE-2018-15473(OpenSSH用户名枚举)</td>
+                            <td>$openssh_risk</d>
+                        </tr>
+                    </table>
+                    <p class="bold">进程、端口服务、网络外联：</p>
+                    <h5>进程</h5>
+                    <div id="processInfoBlockParent" class="code-block-container">
+                        <button class="toggle-button" onclick="toggleBlock('processInfoBlock')">收起/展开</button>
+                        <div class="code-block" id="processInfoBlock">
+                        <pre>$process_info</pre>
+                        </div>
+                    </div>
+                    <h5>端口-服务</h5>
+                    <div id="portserviceInfoBlockParent" class="code-block-container">
+                        <span class="toggle-button" onclick="toggleBlock('portserviceInfoBlock')">收起/展开</span>
+                        <div class="code-block" id="portserviceInfoBlock">
+                        <pre>$portsvt_info</pre>
+                        </div>
+                    </div>
+                    <h5>网络</h5>
+                    <div id="networkInfoBlockParent" class="code-block-container">
+                        <span class="toggle-button" onclick="toggleBlock('networkInfoBlock')">收起/展开</span>
+                        <div class="code-block" id="networkInfoBlock">
+                        <pre>$network_info</pre>
+                        </div>
+                    </div>
+                    <p class="bold">用户：</p>
+                    <h5>/etc/passwd</h5>
+                    <div id="userInfoBlockParent" class="code-block-container">
+                        <span class="toggle-button" onclick="toggleBlock('userInfoBlock')">收起/展开</span>
+                        <div class="code-block" id="userInfoBlock">
+                        <pre id=passwdContent>$user_info</pre>
+                        </div>
+                    </div>
+                    <h5>/etc/shadow</h5>
+                    <div id="passInfoBlockParent" class="code-block-container">
+                        <span class="toggle-button" onclick="toggleBlock('passInfoBlock')">收起/展开</span>
+                        <div class="code-block" id="passInfoBlock">
+                        <pre>$pass_info</pre>
+                        </div>
+                    </div>
+                    <h5>/etc/group</h5>
+                    <div id="groupInfoBlockParent" class="code-block-container">
+                        <span class="toggle-button" onclick="toggleBlock('groupInfoBlock')">收起/展开</span>
+                        <div class="code-block" id="groupInfoBlock">
+                        <pre>$grop_info</pre>
+                        </div>
+                    </div>
+                    <p class="bold">历史命令：</p>
+                    <div id="historyInfoBlockParent" class="code-block-container">
+                        <span class="toggle-button" onclick="toggleBlock('historyInfoBlock')">收起/展开</span>
+                        <div class="code-block" id="historyInfoBlock">
+                        <pre id="commandHistory">$histcmd_info
+                        </pre>
+                        </div>
+                    </div>
+                    <p class="bold">计划任务：</p>
+                    <div id="crontabInfoBlockParent" class="code-block-container">
+                        <span class="toggle-button" onclick="toggleBlock('crontabInfoBlock')">收起/展开</span>
+                        <div class="code-block" id="crontabInfoBlock">
+                        <pre>$crontab_info</pre>
+                        </div>
+                    </div>
+                    <p class="bold">启动项：</p>
+                    <div id="initpidInfoBlockParent" class="code-block-container">
+                        <span class="toggle-button" onclick="toggleBlock('initpidInfoBlock')">收起/展开</span>
+                        <div class="code-block" id="initpidInfoBlock">
+                        <pre>$initpid_info</pre>
+                        </div>
+                    </div>    
+                    <p class="bold">用户登录排查：</p> 
+                    <div id="testInfoBlockParent" class="code-block-container">
+                        <span class="toggle-button" onclick="toggleBlock('testInfoBlock')">收起/展开</span>
+                        <div class="code-block" id="testInfoBlock">
+                        <pre>$userlogin</pre>
+                        </div>
+                    </div>        
+                </div>
+            </div>
+            <div class="section">
+                <h2 class="section-title">T0005 总结与建议</h2>
+                <div class="section-content">
+                    <p><strong>总结：</strong> 成功防止了进一步损害，但系统仍需进一步检查和加固。</p>
+                    <span class="bold">事件描述：</span>
+                    <span id="repairSuggestion"></span>
+                </div>
+            </div>
+        
+            <!-- 技术支持和版权声明 -->
+            <div class="line"></div>
+            <div class="copyright">
+                Supported by: 永恒之锋实验室 - whoamifuck v5.5.0<br>
+                Copyright © 2024 Eonian Sharp Security Team
+            </div>
+        </div>
+        
+        <script>
+            // 该我正则上场啦，原谅我一生放浪不羁爱自由，checkit~~~now~
+            var totalHighlightedCommands = 0; // 用于统计命令标记的全局计数器
+            var totalHighlightedUsers = 0; // 用于统计用户标记的全局计数器
+
+            // 标记命令
+            function highlightCommands() {
+                var preElement = document.getElementById('commandHistory');
+                var lines = preElement.textContent.split('\n');
+
+                var keywords = ['curl', 'wget', 'useradd', 'ping', 'rm', 'chmod', 'nc', 'exec'];
+
+                var regex = new RegExp('(' + keywords.join('|') + ')', 'g');
+                var counter = 0; // 命令计数器
+
+                for (var i = 0; i < lines.length; i++) {
+                    var line = lines[i];
+                    var matches = line.match(regex); // 获取匹配项数组
+
+                    if (matches) {
+                        counter += matches.length; // 增加计数器数量
+                        lines[i] = line.replace(regex, '<span class="highlighted-command">$&</span>');
+                    }
+                }
+
+                preElement.innerHTML = lines.join('\n');
+
+                totalHighlightedCommands += counter; // 累加到全局计数器
+
+                return counter; // 返回当前函数的计数器结果
+            }
+            window.addEventListener('load', function() {
+                highlightCommands();
+            });
+
+            // 标记权限为 0 的用户
+            function highlightUsers() {
+                var preElement = document.getElementById('passwdContent');
+                var lines = preElement.textContent.split('\n');
+
+                var regex = /(\S+:x:0:\d+?)/g;
+                var counter = 0; // 用户计数器
+
+                for (var i = 0; i < lines.length; i++) {
+                    var line = lines[i];
+                    var matches = line.match(regex); // 获取匹配项数组
+
+                    if (matches) {
+                        counter += matches.length; // 增加计数器数量
+                        lines[i] = line.replace(regex, '<span class="highlighted-command">$&</span>');
+                    }
+                }
+
+                preElement.innerHTML = lines.join('\n');
+
+                totalHighlightedUsers += counter; // 累加到全局计数器
+
+                return counter; // 返回当前函数的计数器结果
+            }
+
+            // 在页面加载完成后执行标记命令的函数
+            window.addEventListener('load', function() {
+                totalHighlightedCommands += highlightCommands();
+                totalHighlightedUsers += highlightUsers();
+                total = totalHighlightedCommands + totalHighlightedUsers;
+                // 在页面中显示标记的总数
+                document.getElementById('highlightedCommandsInfo').innerHTML= '可疑命令计数: <span class="highlighted-number">' + totalHighlightedCommands + '</span>';
+                document.getElementById('highlightedUsersInfo').innerHTML = '可疑用户计数: <span class="highlighted-number">' + totalHighlightedUsers + '</span>';
+                document.getElementById('total').innerHTML = '可疑标记总数: <span class="highlighted-number">' + total + '</span>';
+                highlightUsers();
+            });
+
+        </script>
+
+        <script>
+            // 回车也管
+            function handleKeyPress(event) {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    if (searchText !== '') {
+                        searchText();
+                    } else {
+                        // var resultContainer = document.getElementById('searchResult');
+                        // resultContainer.innerHTML = '<p>未输入搜索文本。</p>';
+                    }
+                }
+            }
+            // 加载
+
+            // 页面加载完成时执行
+            document.addEventListener('DOMContentLoaded', function() {
+                // 获取结果容器
+                var resultContainer = document.getElementById('searchResult');
+
+                // 初始状态下结果容器不显示
+                resultContainer.style.display = 'none';
+
+                // 获取搜索按钮
+                var searchButton = document.getElementById('searchButton');
+
+                // 点击搜索按钮时执行搜索函数
+                searchButton.addEventListener('click', function() {
+                    searchText();
+                });
+            });
+            // 搜索文本
+            function searchText() {
+                var searchText = document.getElementById('searchInput').value;
+                if (searchText === '' ||  searchText === ' ') {
+                    searchText = 'Eno&Eoniansharp';
+                }
+                var sections = document.querySelectorAll('.section-content'); // 获取所有包含内容的部分
+                var searchRegex = new RegExp(searchText, 'gi');         // 正则的模式，别不认识 g就算全局， i就是忽略大小写
+                var matchFound = false;
+        
+                var resultContainer = document.getElementById('searchResult');
+                resultContainer.innerHTML = ''; // 清空搜索结果容器
+        
+                var matchesPositions = []; // 保存匹配项的位置
+        
+                sections.forEach(function(section) {
+                    var content = section.innerText;
+                    var lines = content.split('\n'); // 拆分成行
+                    lines.forEach(function(line, index) {
+                        if (line.match(searchRegex)) {
+                            matchFound = true;
+                            var matchLine = document.createElement('p');
+                            matchLine.innerHTML = line;
+                            var matchLink = document.createElement('a');
+                            matchLink.innerHTML = '  rush';
+                            matchLink.href = '#'; // 设置链接的 href 为 '#'，以便点击时不跳转
+                            matchLink.classList.add('rusha');
+                            matchLink.onclick = function() {
+                                scrollToPosition(section); // 点击链接时调用 scrollToPosition 函数跳转到相应位置
+                                return false; // 阻止默认行为
+                            };
+                            matchLine.appendChild(matchLink);
+                            resultContainer.appendChild(matchLine);
+
+                            // 保存匹配项的父元素（.section-content）
+                            matchesPositions.push(section);
+                        }
+                    });
+                }); 
+        
+                if (matchFound) {
+                    resultContainer.style.display = 'block'; // 显示结果容器
+                    resultContainer.classList.add('rush-code'); // 添加匹配时的样式类
+                } else {
+                    resultContainer.classList.remove('rush-code'); // 移除匹配时的样式类
+                    resultContainer.innerHTML = '<p></p>'; // 在结果容器中显示提示信息
+                }
+            }
+        
+            function scrollToPosition(element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'start' }); // 页面滚动到指定元素可见的位置
+            }
+
+
+            // 展开、收起、展开、收起、展开、收起
+            function toggleBlock(id) {
+                var block = document.getElementById(id).parentElement;
+                var currentHeight = block.clientHeight;
+                var targetHeight = block.scrollHeight;
+
+                if (currentHeight === targetHeight) {
+                    block.style.maxHeight = '92px';
+                } else {
+                    block.style.maxHeight = targetHeight + 'px';
+                }
+            }   
+        </script>
+
+
+        <script>
+            window.onload = function() {
+                updateDescriptionAndSuggestion(); // 页面加载时调用函数更新描述和建议
+            };
+            function updateDescriptionAndSuggestion() {
+                var eventType = document.getElementById('eventType').value;
+                var eventDescription = '';
+                var repairSuggestion = '';
+                var eventAttackTypes = '';
+
+                switch (eventType) {
+                    case '网络攻击':
+                        eventDescription = '公司内部网络遭受DDoS攻击，计算机资源被占用造成网络服务不可用。';
+                        repairSuggestion = '封锁攻击源IP地址，增加防火墙规则，更新安全策略。';
+                        eventAttackTypes = 'DDoS攻击';
+                        break;
+                    case 'web攻击':
+                        eventDescription = '公司官网遭受SQL注入攻击，用户个人信息被泄露。';
+                        repairSuggestion = '修复SQL注入漏洞，增加用户输入校验。';
+                        eventAttackTypes = 'SQL注入';
+                        break;
+                    case '数据泄露':
+                        eventDescription = '公司数据库遭受数据泄露，用户个人信息外泄。';
+                        repairSuggestion = '修复数据库漏洞，加强数据加密措施。';
+                        eventAttackTypes = '数据库攻击';
+                        break;
+                    case '恶意软件':
+                        eventDescription = '公司部分计算机感染勒索软件，文件被加密勒索。';
+                        repairSuggestion = '隔离感染计算机，更新杀毒软件，恢复文件备份。';
+                        eventAttackTypes = '勒索软件';
+                        break;
+                    case '网页篡改':
+                        eventDescription = '公司官网首页被篡改，显示恶意广告链接。';
+                        repairSuggestion = '恢复网站备份，增强网站安全防护措施。';
+                        eventAttackTypes = '网站篡改';
+                        break;
+                    case '挖矿病毒':
+                        eventDescription = '公司服务器感染挖矿病毒，CPU资源被挖矿程序占用。';
+                        repairSuggestion = '清除挖矿病毒，增加系统安全监控。';
+                        eventAttackTypes = '挖矿病毒';
+                        break;
+                    case '勒索病毒':
+                        eventDescription = '公司部分计算机感染勒索病毒，文件被加密勒索。';
+                        repairSuggestion = '隔离感染计算机，更新杀毒软件，恢复文件备份。';
+                        eventAttackTypes = '勒索病毒';
+                        break;
+                    case '社工钓鱼':
+                        eventDescription = '公司员工收到钓鱼邮件，泄露公司内部账号密码。';
+                        repairSuggestion = '加强员工网络安全意识培训，设置安全邮件过滤规则。';
+                        eventAttackTypes = '社工攻击';
+                        break;
+                    default:
+                        eventDescription = '未知事件类型';
+                        repairSuggestion = '建议增加对未知事件类型的处理方案。';
+                        eventAttackTypes = '未知攻击类型';
+                }
+
+                document.getElementById('eventDescription').innerText = eventDescription;
+                document.getElementById('repairSuggestion').innerText = repairSuggestion;
+                document.getElementById('eventAttackTypes').innerText = eventAttackTypes;
+                // window.addEventListener('load', function() {
+                //     updateDescriptionAndSuggestion();   
+                // });
+            }
+        </script>
+    </body>
+    </html> 
+EOF
+    echo "打印html报告成功。"
+}
 # [ ++ OPTIONS PARAMETE ++ ]
 
 op="${1}"
@@ -905,14 +1799,26 @@ case ${op} in
             fi
             rm -f output.txt $2
             ;;
+    -m | --output-html) REPORT_NAME="$2"
+            fk_reporthtml "$REPORT_NAME"
+            ;;
     -w | --webshell) WEBSHELL_PATH="$2"
             fk_wsfinder "$WEBSHELL_PATH"
+            ;;
+    -i | --sqli-analysis) ACCESS_PATH="$2"
+            fk_weblog_sqlianalysis "$ACCESS_PATH"
             ;;
     -r | --risk)
             fk_vulcheck
             ;;
     -b | --baseline)
             fk_baseline
+            ;;
+    -c | --httpstatuscode) LIST="$2"
+            fk_http_scan "$LIST"
+            ;;
+    -t | --terminalproxy) INPUT="$2"
+            fk_terminal_proxy "$INPUT"
             ;;
     -y | --whoamifuck)
             fk_autofuck
@@ -928,9 +1834,6 @@ esac
 # --------------------------------------
 #        | Futher |             
 # --------------------------------------
-
-# 查找僵尸进程
-# TKILL=`ps -al | awk '{print $2,$4}' | grep -e '^[Zz]'`
 
 # 软链接排查
 # alias
