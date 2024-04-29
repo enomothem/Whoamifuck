@@ -1,9 +1,10 @@
+中文 | [English](https://github.com/enomothem/Whoamifuck/blob/main/README-EN.md) 
+
 # 司稽
 > [!note]
 > **司稽，察留连不时去者** ——《周礼·司稽》  
 > 司稽作为地官的属官，其职责就是确保市场的正常运行和人员的有序流动，对于那些违反规定、扰乱市场秩序的行为进行及时的制止和处罚。
 
-中文 | [English](https://github.com/enomothem/Whoamifuck/blob/main/README-EN.md) 
 
 ## ES_T0001 介绍
 <p>Whoamifuck（司稽，先秦时抓小偷滴官员），永恒之锋发布的第一款开源工具，这是一款由shell编写的检测入侵用户的工具，经过功能的更新，已经不仅限于检查用户的登入信息。</p>
