@@ -1,4 +1,7 @@
 # 司稽
+> [!note]
+> **司稽，察留连不时去者** ——《周礼·司稽》
+> 司稽作为地官的属官，其职责就是确保市场的正常运行和人员的有序流动，对于那些违反规定、扰乱市场秩序的行为进行及时的制止和处罚。
 
 中文 | [English](https://github.com/enomothem/Whoamifuck/blob/main/README-EN.md) 
 
