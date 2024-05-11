@@ -32,6 +32,7 @@
 # update: 2024年4月17日 发布5.5.3-alpha, 优化『html格式输出，优化使用体验，增加计数器』
 # update: 2024年4月18日 发布5.5.4-alpha, 新增『html风险排查，风险将持续更新』
 # update: 2024年4月18日 发布5.6.0-RC, 新增『SQL注入专业分析』 额，这个嘛，做CTF题也是非常nice
+# update：2024年5月11日 发布5.6.1，修复『html被转义而打乱格式的问题』@dajjboom
 
 
 
@@ -1045,7 +1046,7 @@ function fk_reporthtml
     # Port and process
     network_info=$(netstat -anltu)
     portsvt_info=$(netstat -tunlp | awk '/^tcp/ {print $4,$7}; /^udp/ {print $4,$6}' | sed -r 's/.*:(.*)\/.*/\1/' | sort -un | awk '{cmd = "sudo lsof -w -i :" $1 " | awk '\''NR==2{print $1}'\''"; cmd | getline serviceName; close(cmd); print $1 "\t" serviceName}')
-    process_info=$(ps aux)
+    process_info=$(ps aux | sed -e 's/</\&lt;/g; s/>/\&gt;/g')
 
     # user
 
