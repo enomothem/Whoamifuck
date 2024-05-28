@@ -139,9 +139,9 @@ usage:
 
 ### 重构代码结构，执行速度加快4000倍🎿
 由于功能的增加，变量变多，程序执行速度明显变慢，将变量按需求移入函数中，执行速度更加流畅！
-优化前
+优化前  
 ![image](https://github.com/enomothem/Whoamifuck/assets/45089051/e93fee42-0a0c-4634-9454-d0fe17de684d)
-优化后
+优化后  
 ![image](https://github.com/enomothem/Whoamifuck/assets/45089051/fe88780d-7c51-466b-9f90-8b43a49c753c)
 
 ### 新特性🎉：Html格式输出，呕心沥血几百次优化，细节感人，人性化体验，简洁舒服
