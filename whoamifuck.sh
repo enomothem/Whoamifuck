@@ -1,5 +1,5 @@
 #!/bin/bash
-# Linux入侵检测报告工具-Whoamifuck
+# Linux入侵检测报告工具-Whoamifuck[司稽]
 # Author: Enomothem
 # Time: 2021年2月8日
 
@@ -7,40 +7,54 @@
 #        | Update log |             
 # --------------------------------------
 
-# update: 2021年6月3日 优化格式，加入用户基本信息
-# update: 2021年6月6日 发布3.0版本
-# update: 2022年6月3日 增加新功能，加入应急响应基础功能，如查看用户、服务、文件修改、历史命令等等。
-# update: 2022年6月6日 发布4.0版本
-# update: 2023年6月3日 增加新功能，加入开放端口、优化服务器状态、查看僵尸进程、优化用户状态等。
-# update: 2023年6月6日 发布5.0版本
-# update: 2023年8月14日 发布5.0.1版本，新增 『导出功能』 、优化 『用户登录日志』 、修复 『显示端口不存在用户导致错误』 
-#                       |__ 增加 『全量输出』 、优化 『标题栏』 代码  
-# update: 2023年8月16日 发布5.0.2版本，优化 『用户基本信息』 、修复  『某些环境DNS显示异常』 、 加速  『模块化』
-#                       |__ 增加 『secure文件可选』 、增加  『颜色定义区』
-# update: 2023年9月5日 发布5.1.0，优化用户登录日志代码逻辑。进一步完善debian正则。
-#                       |__ 增加 『auth.log文件可选』 、增加  『虚拟机判断』
-# update: 2023年9月15日 发布5.1.19，优化 『虚拟机判断的兼容能力』@Gu0st
-# update: 2023年9月15日 发布5.2.0，优化 修复对虚拟判断的bug
-# update: 2023年10月12日 发布5.2.1，增加对root用户的判断，修复一些小bug
-# update: 2023年12月5日 发布5.3.0，修复 『导出bug』、新增 『webshell查杀』、新增 『漏洞检查』   100Star啦 ^.^
-# update: 2023年12月7日 发布5.3.1，修复 『多网卡bug』、修复 『没有gawk命令显示异常』@Agreement
-# update: 2023年12月8日 发布5.3.2，新增 『webshell jsp免杀规则』、优化 『代码缩进』、新增 『Redis漏洞检测』、优化 『程序执行速度』
-# update: 2023年12月13日 发布5.4.0，新增 『基线检查』、优化 『help』、修复 『bar显示问题』、优化 『输出结果更加合理』、修复『sudoer文件不存在显示问题』@lockly
-# update: 2024年2月5日 发布5.4.1-alpha，新增 『web探测』、新增 『终端代理』
-# update: 2024年4月12日 发布5.5.1-alpha, 新增『html格式输出』
-# update: 2024年4月16日 发布5.5.2-alpha, 优化『html格式输出，增加全文检索，增加金属质感按钮缩放详细信息显示，增加高亮高危风险命令或字段』
-# update: 2024年4月17日 发布5.5.3-alpha, 优化『html格式输出，优化使用体验，增加计数器』
-# update: 2024年4月18日 发布5.5.4-alpha, 新增『html风险排查，风险将持续更新』
-# update: 2024年4月18日 发布5.6.0-RC, 新增『SQL注入专业分析』 额，这个嘛，做CTF题也是非常nice
-# update：2024年5月11日 发布5.6.1，修复『html被转义而打乱格式的问题』@dajjboom
+#       |—— Update: 2021年6月3日 优化格式，加入用户基本信息
+#       |—— Update: 2021年6月6日 发布3.0版本
+#       |—— Update: 2022年6月3日 增加新功能，加入应急响应基础功能，如查看用户、服务、文件修改、历史命令等等。
+#       |—— Update: 2022年6月6日 发布4.0版本
+#       |—— Update: 2023年6月3日 增加新功能，加入开放端口、优化服务器状态、查看僵尸进程、优化用户状态等。
+#       |—— Update: 2023年6月6日 发布5.0版本
+#       |—— Update: 2023年8月14日 发布5.0.1版本，新增 『导出功能』 、优化 『用户登录日志』 、修复 『显示端口不存在用户导致错误』 
+#       |                         |__ 增加 『全量输出』 、优化 『标题栏』 代码  
+#       |—— Update: 2023年8月16日 发布5.0.2版本，优化 『用户基本信息』 、修复  『某些环境DNS显示异常』 、 加速  『模块化』
+#       |                         |__ 增加 『secure文件可选』 、增加  『颜色定义区』
+#       |—— Update: 2023年9月5日 发布5.1.0，优化用户登录日志代码逻辑。进一步完善debian正则。
+#       |                         |__ 增加 『auth.log文件可选』 、增加  『虚拟机判断』
+#       |—— Update: 2023年9月15日 发布5.1.19，优化 『虚拟机判断的兼容能力』@Gu0st
+#       |—— Update: 2023年9月15日 发布5.2.0，优化 修复对虚拟判断的bug
+#       |—— Update: 2023年10月12日 发布5.2.1，增加对root用户的判断，修复一些小bug
+#       |—— Update: 2023年12月5日 发布5.3.0，修复 『导出bug』、新增 『webshell查杀』、新增 『漏洞检查』   100Star啦 ^.^
+#       |—— Update: 2023年12月7日 发布5.3.1，修复 『多网卡bug』、修复 『没有gawk命令显示异常』@Agreement
+#       |—— Update: 2023年12月8日 发布5.3.2，新增 『webshell jsp免杀规则』、优化 『代码缩进』、新增 『Redis漏洞检测』、优化 『程序执行速度』
+#       |—— Update: 2023年12月13日 发布5.4.0，新增 『基线检查』、优化 『help』、修复 『bar显示问题』、优化 『输出结果更加合理』
+#       |                         |__ 修复『sudoer文件不存在显示问题』@lockly
+#       |—— Update: 2024年2月05日 发布5.4.1-alpha，新增 『web探测』、新增 『终端代理』
+#       |—— Update: 2024年4月12日 发布5.5.1-alpha, 新增『html格式输出』
+#       |—— Update: 2024年4月16日 发布5.5.2-alpha, 优化『html格式输出，增加全文检索，增加金属质感按钮缩放详细信息显示，增加高亮高危风险命令或字段』
+#       |—— Update: 2024年4月17日 发布5.5.3-alpha, 优化『html格式输出，优化使用体验，增加计数器』
+#       |—— Update: 2024年4月18日 发布5.5.4-alpha, 新增『html风险排查，风险将持续更新』
+#       |—— Update: 2024年4月18日 发布5.6.0-RC, 新增『SQL注入专业分析』 额，这个嘛，做CTF题也是非常nice
+#       |—— Update: 2024年5月11日 发布5.6.1-RC，修复『html被转义而打乱格式的问题』@dajjboom
+#       |—— Update: 2024年5月27日 发布5.7.0-alpha，新增『rookit查杀』，新增『定时启动脚本』
+#       |—— Update: 2024年5月28日 发布5.7.1-alpha，优化『文本导出格式』，优化『状态模块化』
+#       |—— Update: 2024年5月29日 发布5.7.2-alpha，优化『用户登录模块』，新增『』
 
+# --------------------------------------
+#        | Whoamifuck |             
+# --------------------------------------
+
+
+# [ ++ 基本信息 ++ ]
+VER="2024.5.28@whoamifuck-version 5.7.0"
+WHOAMIFUCK=`whoami`
+
+# [ ++ 默认路径 ++ ]
+AUTHLOG_FILE="/var/log/auth.log" # Ubuntu Path
+SECURE_FILE="/var/log/secure" 	 # RedHat Path
 
 
 # --------------------------------------
-#        | Root Check |             
+#        | Function |             
 # --------------------------------------
-
-
 
 # [ ++ Function COLOR ++ ]
 function color
@@ -72,28 +86,7 @@ function color
     bg_cyan="\033[46m"
     bg_white="\033[47m"
 
-
-# [ ++ 权限检查 ++ ]
-if [ "$EUID" -ne 0 ]; then
-    printf "${redx}[-] This script must be run as root${reset}\n"
-    exit 1
-fi
-
-# [ ++ 命令检查 ++ ]
-if ! which curl &> /dev/null; then
-    printf "${redx}[-] curl 命令不存在将导致web存活模块无法使用。${reset}\n"
-    exit 1
-fi
 }
-
-# [ ++ 基本信息 ++ ]
-VER="2024.4.18@whoamifuck-version 5.6.0"
-WHOAMIFUCK=`whoami`
-
-# --------------------------------------
-#        | Function |             
-# --------------------------------------
-
 
 # [ ++ Function LOGO ++ ]
 function logo
@@ -126,14 +119,17 @@ function help_cn
         printf "\t -s --os-status\t\t\t查看系统状态信息\n"
         printf "\t -w --webshell [PATH]\t\t查找可能存在的webshell文件\n"
         printf "\t -r --risk\t\t\t查看系统可能存在的漏洞\n"
+        printf "\t -k --rookitcheck\t\t检测系统可能存在的后门\n"
         printf "\t -b --baseline\t\t\t基线安全评估\n"
         printf "\t -c --httpstatuscode [URL|FILE]\t页面存活探测\n"
         printf "\t -i --sqli-analysis [FILE]\t日志分析-SQL注入专业分析\n"
+        printf "\t -e --cron-run [0-23|c]\t\t加入到定时运行计划\n" 
         printf "\t -o --output [FILENAME]\t\t导出全量输出模式文件\n"
         printf "\t -m --output-html [FILENAME]\t导出全量输出模式文件\n"
 
 }
 
+# [ ++ Function HELP_EN ++ ]
 function help_en
 {
         logo
@@ -149,22 +145,16 @@ function help_en
         printf "\t -s --os-status\t\t\tShow os status information.\n"
         printf "\t -w --webshell [PATH]\t\tFind the webshell file.\n"
         printf "\t -r --risk\t\t\tCheck os vulneribility.\n"
-        printf "\t -b --baseline\t\t\tBaseline security assessment\n"
+        printf "\t -k --rookitcheck\t\tCheck os rookit.\n"
+        printf "\t -b --baseline\t\t\tBaseline security assessment.\n"
         printf "\t -c --httpstatuscode [URL|FILE]\tHttp status code scan.\n"
-        printf "\t -i --sqli-analysis [FILE]\tLog Analysis - Professional Analysis of SQL Injection\n"
+        printf "\t -i --sqli-analysis [FILE]\tLog Analysis - Professional Analysis of SQL Injection.\n"
+        printf "\t -e --cron-run [0-23|c]\t\tAdd to crontab to run regularly.\n" 
         printf "\t -o --output [FILENAME]\t\tOutput to file.\n"
         printf "\t -m --output-html [FILENAME]\tOutput to html file.\n"
         
 }
 
-
-# --------------------------------------
-#        | File variables |             
-# --------------------------------------
-
-
-AUTHLOG_FILE="/var/log/auth.log" # 默认访问的用户日志路径
-SECURE_FILE="/var/log/secure" 	 # Centos默认用户日志
 
 # --------------------------------------
 #        | Uers Functions |             
@@ -226,9 +216,9 @@ function user
 function user_debian
 {
     echo -e "${bg_red}\n『 用户登录 』${reset}\n"
-    cat $AUTH_S  | grep Accepted | awk '{gsub("T"," ",$1); split($1,a,"."); print "时间:"substr(a[1],1)"\t登录成功\t "$9" --> "$7 " \t使用方式: "$5}';echo
+    cat $AUTH_S | grep "session opened"  | awk '{print $1 " " $2, $3, "用户登录", $11}' | tail -20;echo
     echo -e "${bg_red}\n『 用户登出 』${reset}\n"
-    cat $AUTH_S  | grep Accepted | awk '{gsub("T"," ",$1); split($1,a,"."); print "时间:"substr(a[1],1)"\t登录成功\t "$9" --> "$7 " \t使用方式: "$5}';echo
+    cat $AUTH_S | grep "session closed"  | awk '{print $1 " " $2, $3, "用户登出", $11}' | tail -20;echo
     echo -e "${bg_red}\n『 攻击次数 攻击者IP --> 枚举用户名 』${reset}\n"
     cat $AUTH_S | grep "Failed password for invalid user" | awk '{print $13 " --> " $11}' | sort | uniq -c | sort -rn | awk '{print "[+] 用户名不存在 "$0}' | head -20 
     echo -e "${bg_red}\n『 攻击者IP次数 』${reset}\n"
@@ -263,7 +253,7 @@ function user_centos_defi
 # --------------------------------------
 
 
-# [ ++ 标题栏定义区 ++ ]
+# [ ++ Function bar ++ ]
 function bar
 {
     color
@@ -281,13 +271,22 @@ function bar
     bar_vuln_find=`printf "${red}%50s${reset}" "[ 常见漏洞评估 ]"`         
     bar_base_line=`printf "${red}%50s${reset}" "[ 基线安全评估 ]"`
     bar_http_scan=`printf "${red}%50s${reset}" "[ 存活页面探测 ]"`
+    bar_find_rkit=`printf "${red}%50s${reset}" "[ rootkit查杀 ]"`
     bar_repo_rest=`printf "${red}%50s${reset}" "[ 生成应急报告 ]"`
     bar_sqli_anal=`printf "${red}%50s${reset}" "[ 日志分析-SQLi ]"`
     bar_auto_fuck=`printf "${red}%50s${reset}" "[ Whoamifuck ]"`
 }
 
+# [ ++ Message status ++ ]
+function stats
+{
+    color
+    SUC="[${green}SUCCESS${reset}]"
+    WAR="[${orange}WARNING${reset}]"
+    ERR="[${redx}ERROR${reset}]"
+}
+
 # [ ++ Function OS_NAME ++ ]
-# * Run the appropriate script based on the distribution name
 function os_name
 {
     if [ -e /etc/os-release ]; then
@@ -310,6 +309,45 @@ function os_name
             OSNAME="Unknown distribution"
             OSTYPE="T_RedHat"   # 未知情况默认红帽系，centos的阉割版还是多的
         fi
+    fi
+}
+
+# [ ++ Check Command ++ ]
+function fk_command
+{
+    stats
+    if ! which curl &> /dev/null; then
+        printf "$WAR curl 命令不存在将导致web存活模块无法使用。\n"
+    fi
+}
+function i
+{
+    color
+    os_name
+    # os
+    if [[ $OSTYPE == "T_Debian" ]]; then
+        OS_APP="apt-get"
+    else
+        OS_APP="yum"
+    fi
+    local package=$1
+    if ! command -v "$package" &> /dev/null; then
+        printf "$package   ${redx} uninstalled ${reset} \n"
+        read -p "是否安装 $package？ (Y/n): " choice
+        choice=${choice:-y}
+        case "$choice" in
+            y|Y )
+                echo "正在安装 $package..."
+                sudo $OS_APP update
+                sudo $OS_APP install -y "$package"
+                ;;
+            * )
+                printf "exit\n"
+                exit 1
+                ;;
+        esac
+    else
+        printf "$package   ${green} installed ${reset} \n"
     fi
 }
 
@@ -503,6 +541,12 @@ function fk_history
 function fk_crontab
 {
     CRON=`crontab -l 2>/dev/null`
+    # /var/spool/cron/'
+    # /etc/cron.d/'
+    # /etc/cron.daily/'
+    # /etc/cron.weekly/'
+    # /etc/cron.hourly/'
+    # /etc/cron.monthly/'
     bar
     echo
     printf "%s\n" "$bar_cron_task"            
@@ -516,19 +560,24 @@ function fk_crontab
 function fk_filemove
 {
     M_FILE=`find -type f -mtime -3`
-    M_FILE_VAR=`find /var/ -type f -mtime -3 | xargs ls -la`
+    M_FILE_VAR=`find /var/ -type f -mtime -3 | xargs ls -la 2>/dev/null`
     C_FILE=`find -type f -ctime -3`
     echo
     bar
-    printf "%s\n" "$bar_file_move"
-    echo
-    echo "[+] 最近三天更改的文件"
-    printf "%s\n\n" "$M_FILE"
-    echo "[+] 最近三天创建的文件"
-    printf "%s\n\n" "$C_FILE"
-    echo "[+] /var下最近三天更改的文件"
-    printf "%s\n\n" "$M_FILE_VAR"
-    echo
+
+    if [ -z $show ]; then
+        printf "%s\n" "$bar_file_move"
+        echo
+        echo "[+] 最近三天更改的文件"
+        printf "%s\n\n" "$M_FILE"
+        echo "[+] 最近三天创建的文件"
+        printf "%s\n\n" "$C_FILE"
+        echo "[+] /var下最近三天更改的文件"
+        printf "%s\n\n" "$M_FILE_VAR"
+        echo
+    else
+        noprint=$show
+    fi
 }
 
 # [ ++ Function USER_INFORMSTION ++ ]
@@ -875,7 +924,6 @@ function fk_baseline
     echo
 }
 
-
 # [ ++ Function HTTP_STATUS_CODE ++ ]
 ## 扫描web页面存活
 function fk_http_scan
@@ -945,6 +993,37 @@ function fk_terminal_proxy
     fi
 }
 
+# [ ++ Function ROOTKIT_ANALYSIS ++ ]
+## Rookit后门查杀
+function fk_rookit_analysis
+{
+
+    color
+    bar
+
+    echo
+    printf "%s\n" "$bar_find_rkit"
+    echo  
+    # ----------------------------------------------------------------------
+    
+    i "chkrookit"
+    i "rkhunter"
+
+    mkdir -p "./output"
+
+    # 运行 chkrootkit 并保存结果
+    CHKROOTKIT_RESULTS="./output/chkrootkit_results.txt"
+    echo "正在运行 chkrootkit..."
+    sudo chkrootkit > "$CHKROOTKIT_RESULTS"
+    echo "chkrootkit 扫描结果已保存到 $CHKROOTKIT_RESULTS"
+
+    # 运行 rkhunter 并保存结果
+    RKHUNTER_RESULTS="./output/rkhunter_results.txt"
+    echo "正在运行 rkhunter..."
+    sudo rkhunter --check --sk > "$RKHUNTER_RESULTS"
+    echo "rkhunter 扫描结果已保存到 $RKHUNTER_RESULTS"
+}
+
 
 # [ ++ Function SQL_INJECTION_ANALYSIS ++ ]
 ## 日志分析-SQL注入分析专项
@@ -959,6 +1038,7 @@ function fk_sqlianalysis
     delay=$(sed -n -E "s/.*sleep\(([0-9]+)\).*HTTP\/1.1\" 200.*/\1/p" $FILE) ; sed -n -E "s/.*([0-9][0-9])\/([A-Z][a-z]+)\/([12]0[0-9]+):([0-9]+:[0-9]+:[0-9]+).*\)=[a-z0-9A-Z]+\('(.?)'\).*sleep\(([0-9]+)\).*HTTP\/1.1\" 200.*/\3-\2-\1 \4 \5 \6/p" $FILE | awk 'BEGIN{m=split("Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec",a," ")} {for(i=1;i<=m;i++) {if(index($0,a[i])) {gsub(a[i],i,$0)}}} {print}'  | awk '{split($2, a, ":"); t=mktime($1 " " a[1] " " a[2] " " a[3]); diff=t-prev; if (diff<$delay) print prev_line; prev_line=$3; prev=t}' | awk '{printf "%s", $0}'
     echo;echo
 }
+
 function fk_weblog_sqlianalysis
 {
 
@@ -1019,7 +1099,45 @@ function fk_autofuck
 
 }
 
+# [ ++ Function AUTO_RUN ++ ]
+## 定时运行
+function fk_auto_run
+{
+    color
+    stats
+    # path
+    SCRIPT_DIR=$(cd "$(dirname "$0")"; pwd)
+    DIR="${SCRIPT_DIR}/$(basename "$0")"
 
+    if [[ -z "$HOUR" ]]; then
+        hour=0
+    else
+        if [[ "$HOUR" == "c" ]]; then
+            crontab -l 2>/dev/null | grep -v $DIR | crontab -
+            echo "清除成功"
+            printf "\n-------------crontab--------------\n"
+            crontab -l
+            exit 1
+        else
+            hour=$HOUR
+        fi
+    fi
+
+    # 0-23时
+    if ! [[ "$hour" =~ ^[0-9]+$ ]] || [ "$hour" -lt 0 ] || [ "$hour" -gt 23 ]; then
+        printf "$ERROR 请填写范围0到23小时之间的整数。\n"
+        exit 1
+    fi
+
+    # 设置 cron 作业
+    (crontab -l 2>/dev/null; echo "0 $hour * * * $DIR -b") | crontab -
+
+    echo "Whoamifuck的计划任务日志模块将在每天 $hour:00 执行一次。"
+
+    printf "\n-------------crontab--------------\n"
+    crontab -l
+
+}
 
 # [ ++ Function REPORT_HTML ++ ]
 ## 打印报告 - html
@@ -1060,7 +1178,6 @@ function fk_reporthtml
     crontab_info=$(crontab -l 2>/dev/null)
     initpid_info=$(systemctl list-unit-files --type=service)
 
-
     # user
     mkdir -p output
     userinfo=userlogin.txt
@@ -1068,6 +1185,9 @@ function fk_reporthtml
     sed "s/\x1B\[[0-9;]*[JKmsu]//g" output/$userinfo > output/userlogin_info.txt
     rm -f output/$userinfo
     userlogin=$(cat output/userlogin_info.txt)
+
+    # file_info
+    fk_filemove "$show"
     
     # 僵尸进程进程
     kill_process=$(ps -al | awk '{print $2,$4}' | grep -e '^[Zz]')
@@ -1489,6 +1609,17 @@ function fk_reporthtml
                         <div class="code-block" id="testInfoBlock">
                         <pre>$userlogin</pre>
                         </div>
+                    </div>                            
+                    <p class="bold">近期文件操作：</p> 
+                    <div id="fileInfoBlockParent" class="code-block-container">
+                        <span class="toggle-button" onclick="toggleBlock('fileInfoBlock')">收起/展开</span>
+                        <div class="code-block" id="fileInfoBlock">
+                        <pre>
+                            $M_FILE
+                            $M_FILE_VAR
+                            $C_FILE
+                        </pre>
+                        </div>
                     </div>        
                 </div>
             </div>
@@ -1504,7 +1635,7 @@ function fk_reporthtml
             <!-- 技术支持和版权声明 -->
             <div class="line"></div>
             <div class="copyright">
-                Supported by: 永恒之锋实验室 - whoamifuck v5.5.0<br>
+                Supported by: 永恒之锋实验室 - $VER<br>
                 Copyright © 2024 Eonian Sharp Security Team
             </div>
         </div>
@@ -1753,84 +1884,128 @@ function fk_reporthtml
 EOF
     echo "打印html报告成功。"
 }
+
+# [ ++ OPTIONS OUTPUT ++ ]
+
+function fk_output
+{
+    color
+    stats
+    FILENAME=$OUT_NAME
+    OUTPUT="output"
+    mkdir -p $OUTPUT
+    current_time=$(date "+%Y%m%d%H%M%S")
+    OUTPUT_DEFAULT=$OUTPUT/${current_time}_output.txt
+    OUTPUT_OPTIONS=$OUTPUT/${current_time}_$FILENAME
+
+    if [ -z "$FILENAME" ]; then
+        ./"$0" -n > output.txt
+        sed "s/\x1B\[[0-9;]*[JKmsu]//g" output.txt > $OUTPUT_DEFAULT
+        printf "\n$SUC 导出结果成功。路径：$OUTPUT_DEFAULT\n"
+        rm -f output.txt
+    else
+        ./"$0" -n > "$FILENAME"
+        sed "s/\x1B\[[0-9;]*[JKmsu]//g" $FILENAME > $OUTPUT_OPTIONS
+        printf "\n$SUC 导出结果成功。路径：$OUTPUT_OPTIONS\n"
+        rm -f $FILENAME
+    fi
+}
+
 # [ ++ OPTIONS PARAMETE ++ ]
 
-op="${1}"
-case ${op} in
-
-    -h | --help)
+function fk_options
+{
+    op="${1}"
+    case ${op} in
+        -h | --help)
             help_cn
             ;;
-    -a | --all) 
+        -a | --all) 
             fk_baseinfo     # 基本消息
             fk_devicestatus # 基本状态
             fk_userlogin    # 登录日志
             ;;
-    -l | --login) FILE="$2"
+        -e | --auto-run) HOUR="$2"
+            fk_auto_run "$HOUR"
+            ;;
+        -l | --login) FILE="$2"
             fk_userlogin "$FILE" "$SECURE_FILE"
             ;;
-    -u | --user-device)     
+        -u | --user-device)     
             fk_baseinfo
             ;;
-    -s | --os-status)
+        -s | --os-status)
             fk_devicestatus
             ;;
-    -x | --process-and-service)
+        -x | --process-and-service)
             fk_procserv
             ;;
-    -n | --nomal)
+        -n | --nomal)
             fk_baseinfo
             fk_history
             fk_crontab
             fk_filemove
             fk_userinfo
             ;;
-    -p | --port)
+        -p | --port)
             fk_portstatus
             ;;
-    -o | --output)
-            mkdir -p output
-            current_time=$(date "+%Y%m%d%H%M%S")
-            if [ -z "$2" ]; then
-                ./"$0" -n > output.txt
-                sed "s/\x1B\[[0-9;]*[JKmsu]//g" output.txt > output/${current_time}_output.txt
-            else
-                ./"$0" -n > "$2"
-                sed "s/\x1B\[[0-9;]*[JKmsu]//g" $2 > output/${current_time}_$2
-            fi
-            rm -f output.txt $2
+        -o | --output) OUT_NAME="$2"
+            fk_output "$OUT_NAME"
             ;;
-    -m | --output-html) REPORT_NAME="$2"
+        -m | --output-html) REPORT_NAME="$2"
             fk_reporthtml "$REPORT_NAME"
             ;;
-    -w | --webshell) WEBSHELL_PATH="$2"
+        -w | --webshell) WEBSHELL_PATH="$2"
             fk_wsfinder "$WEBSHELL_PATH"
             ;;
-    -i | --sqli-analysis) ACCESS_PATH="$2"
+        -i | --sqli-analysis) ACCESS_PATH="$2"
             fk_weblog_sqlianalysis "$ACCESS_PATH"
             ;;
-    -r | --risk)
+        -r | --risk)
             fk_vulcheck
             ;;
-    -b | --baseline)
+        -k | --rootkitcheck)
+            fk_rookit_analysis
+            ;;
+        -b | --baseline)
             fk_baseline
             ;;
-    -c | --httpstatuscode) LIST="$2"
+        -c | --httpstatuscode) LIST="$2"
             fk_http_scan "$LIST"
             ;;
-    -t | --terminalproxy) INPUT="$2"
+        -t | --terminalproxy) INPUT="$2"
             fk_terminal_proxy "$INPUT"
             ;;
-    -y | --whoamifuck)
+        -y | --whoamifuck)
             fk_autofuck
             ;;
-    -v | --version)
+        -v | --version)
             echo "$VER"
             ;;
-    *)
-        help_en
-        ;;
-esac
+        *)
+            help_en
+            ;;
+    esac
+}
+
+# --------------------------------------
+#        | Whoamifuck Main |             
+# --------------------------------------
+
+function fk_main
+{
+    color
+    if [ "$EUID" -ne 0 ]; then
+        printf "${redx}[-] This script must be run as root${reset}\n"
+        exit 1
+    else
+        fk_command
+        fk_options "$@"
+    fi
+}
+
+fk_main "$@"
 
 # --------------------------------------
 #        | Futher |             
@@ -1846,6 +2021,8 @@ esac
 
 # SSH软链接排查
 # netstat -anpt
+# netstat -ntpl 2>/dev/null |grep -v ':22 '| awk '{if (NR>2){print $7}}' | sed 's|/.*||'
+# /proc/[pid]/exe 有没有sshd
 
 
 # SSH Public key BackDoor
@@ -1853,3 +2030,6 @@ esac
 # stat /root/.ssh/authorized_keys
 # stat ~/.ssh/authorized_keys 是针对当前用户生效
 
+
+
+# 计划任务完善 cron
