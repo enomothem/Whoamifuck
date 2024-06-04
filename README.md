@@ -172,6 +172,12 @@ sql注入分析起来非常的繁琐，索性直接自动化，而且做CTF题�
 由于crontab命令并不能查看完整的计划任务，完善了计划任务的一些目录，进行遍历。
 ![image](https://github.com/enomothem/Whoamifuck/assets/45089051/afa478f7-7135-4311-8628-47bc7154502a)
 
+### 新功能🎉：定时启动脚本生成报告
+```
+./whoamifuck -e [0-23]  # 填入0到23其中一个时间点，默认为0时
+./whoamifuck -e c	# 清空所有whoamifuck定时任务
+```
+![image](https://github.com/enomothem/Whoamifuck/assets/45089051/4c4ff3cd-73f9-4111-b69f-d4992b1ef59c)
 
 ## ES_T0004 关注永恒之锋
 <p align="center">
