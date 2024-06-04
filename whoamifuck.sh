@@ -4,47 +4,54 @@
 # Time: 2021年2月8日
 
 # --------------------------------------
-#        | Update log |             
+#        | Update log |
 # --------------------------------------
 
-#       |—— Update: 2021年6月3日 优化格式，加入用户基本信息
-#       |—— Update: 2021年6月6日 发布3.0版本
-#       |—— Update: 2022年6月3日 增加新功能，加入应急响应基础功能，如查看用户、服务、文件修改、历史命令等等。
-#       |—— Update: 2022年6月6日 发布4.0版本
-#       |—— Update: 2023年6月3日 增加新功能，加入开放端口、优化服务器状态、查看僵尸进程、优化用户状态等。
-#       |—— Update: 2023年6月6日 发布5.0版本
-#       |—— Update: 2023年8月14日 发布5.0.1版本，新增 『导出功能』 、优化 『用户登录日志』 、修复 『显示端口不存在用户导致错误』 
-#       |                         |__ 增加 『全量输出』 、优化 『标题栏』 代码  
-#       |—— Update: 2023年8月16日 发布5.0.2版本，优化 『用户基本信息』 、修复  『某些环境DNS显示异常』 、 加速  『模块化』
+
+#       |—— Update: 2021年02月08日 Whoamifuck v1.0 检测用户入侵信息
+#       |—— Update: 2021年02月08日 Whoamifuck v2.0 优化格式
+#       |—— Update: 2021年06月03日 优化格式，加入用户基本信息
+#       |—— Update: 2021年06月06日 >> 发布3.0版本
+#       |—— Update: 2022年06月03日 增加新功能，加入应急响应基础功能，如查看用户、服务、文件修改、历史命令等等。
+#       |—— Update: 2022年06月06日 >> 发布4.0版本
+#       |—— Update: 2023年06月03日 增加新功能，加入开放端口、优化服务器状态、查看僵尸进程、优化用户状态等。
+#       |—— Update: 2023年06月06日 >> 发布5.0版本
+#       |—— Update: 2023年08月14日 发布5.0.1版本，新增 『导出功能』 、优化 『用户登录日志』 、修复 『显示端口不存在用户导致错误』
+#       |                         |__ 增加 『全量输出』 、优化 『标题栏』 代码
+#       |—— Update: 2023年08月16日 发布5.0.2版本，优化 『用户基本信息』 、修复  『某些环境DNS显示异常』 、 加速  『模块化』
 #       |                         |__ 增加 『secure文件可选』 、增加  『颜色定义区』
-#       |—— Update: 2023年9月5日 发布5.1.0，优化用户登录日志代码逻辑。进一步完善debian正则。
+#       |—— Update: 2023年09月05日 发布5.1.0，优化用户登录日志代码逻辑。进一步完善debian正则。
 #       |                         |__ 增加 『auth.log文件可选』 、增加  『虚拟机判断』
-#       |—— Update: 2023年9月15日 发布5.1.19，优化 『虚拟机判断的兼容能力』@Gu0st
-#       |—— Update: 2023年9月15日 发布5.2.0，优化 修复对虚拟判断的bug
+#       |—— Update: 2023年09月15日 发布5.1.19，优化 『虚拟机判断的兼容能力』@Gu0st
+#       |—— Update: 2023年09月15日 发布5.2.0，优化 修复对虚拟判断的bug
 #       |—— Update: 2023年10月12日 发布5.2.1，增加对root用户的判断，修复一些小bug
-#       |—— Update: 2023年12月5日 发布5.3.0，修复 『导出bug』、新增 『webshell查杀』、新增 『漏洞检查』   100Star啦 ^.^
-#       |—— Update: 2023年12月7日 发布5.3.1，修复 『多网卡bug』、修复 『没有gawk命令显示异常』@Agreement
-#       |—— Update: 2023年12月8日 发布5.3.2，新增 『webshell jsp免杀规则』、优化 『代码缩进』、新增 『Redis漏洞检测』、优化 『程序执行速度』
+#       |—— Update: 2023年12月05日 发布5.3.0，修复 『导出bug』、新增 『webshell查杀』、新增 『漏洞检查』   100Star啦 ^.^
+#       |—— Update: 2023年12月07日 发布5.3.1，修复 『多网卡bug』、修复 『没有gawk命令显示异常』@Agreement
+#       |—— Update: 2023年12月08日 发布5.3.2，新增 『webshell jsp免杀规则』、优化 『代码缩进』、新增 『Redis漏洞检测』、优化 『程序执行速度』
 #       |—— Update: 2023年12月13日 发布5.4.0，新增 『基线检查』、优化 『help』、修复 『bar显示问题』、优化 『输出结果更加合理』
 #       |                         |__ 修复『sudoer文件不存在显示问题』@lockly
-#       |—— Update: 2024年2月05日 发布5.4.1-alpha，新增 『web探测』、新增 『终端代理』
-#       |—— Update: 2024年4月12日 发布5.5.1-alpha, 新增『html格式输出』
-#       |—— Update: 2024年4月16日 发布5.5.2-alpha, 优化『html格式输出，增加全文检索，增加金属质感按钮缩放详细信息显示，增加高亮高危风险命令或字段』
-#       |—— Update: 2024年4月17日 发布5.5.3-alpha, 优化『html格式输出，优化使用体验，增加计数器』
-#       |—— Update: 2024年4月18日 发布5.5.4-alpha, 新增『html风险排查，风险将持续更新』
-#       |—— Update: 2024年4月18日 发布5.6.0-RC, 新增『SQL注入专业分析』 额，这个嘛，做CTF题也是非常nice
-#       |—— Update: 2024年5月11日 发布5.6.1-RC，修复『html被转义而打乱格式的问题』@dajjboom
-#       |—— Update: 2024年5月27日 发布5.7.0-alpha，新增『rookit查杀』，新增『定时启动脚本』
-#       |—— Update: 2024年5月28日 发布5.7.1-alpha，优化『文本导出格式』，优化『状态模块化』
-#       |—— Update: 2024年5月29日 发布5.7.2-alpha，优化『用户登录模块』，新增『』
+#       |—— Update: 2024年02月05日 发布5.4.1-alpha，新增 『web探测』、新增 『终端代理』
+#       |—— Update: 2024年04月12日 发布5.5.1-alpha, 新增『html格式输出』
+#       |—— Update: 2024年04月16日 发布5.5.2-alpha, 优化『html格式输出，增加全文检索，增加金属质感按钮缩放详细信息显示，增加高亮高危风险命令或字段』
+#       |—— Update: 2024年04月17日 发布5.5.3-alpha, 优化『html格式输出，优化使用体验，增加计数器』
+#       |—— Update: 2024年04月18日 发布5.5.4-alpha, 新增『html风险排查，风险将持续更新』
+#       |—— Update: 2024年04月18日 发布5.6.0-RC, 新增『SQL注入专业分析』 额，这个嘛，做CTF题也是非常nice
+#       |—— Update: 2024年05月11日 发布5.6.1-alpha，修复『html被转义而打乱格式的问题』@dajjboom
+#       |—— Update: 2024年05月27日 发布5.7.0-alpha，新增『rookit查杀』，新增『定时启动脚本』
+#       |—— Update: 2024年05月28日 发布5.7.1-alpha，优化『文本导出格式』，优化『状态模块化』
+#       |—— Update: 2024年05月29日 发布5.7.2-alpha，优化『用户登录模块』，新增『SSH软链接排查』
+#       |—— Update: 2024年06月02日 发布5.8.0-alpha，新增『SSH后门排查』，优化『Html输出格式问题』，优化『Html计划任务排查项』
+#       |—— Update: 2024年06月03日 >> 发布6.0版本
+#       |—— Update: 2024年06月06日 增加新功能，针对后门类进行更新、加入自动化任务自动发现威胁并查杀，持续防护，和其他优化。
+
 
 # --------------------------------------
-#        | Whoamifuck |             
+#        | Whoamifuck |
 # --------------------------------------
 
 
 # [ ++ 基本信息 ++ ]
-VER="2024.5.28@whoamifuck-version 5.7.0"
+VER="2024.6.6@whoamifuck-version 6.0.0"
 WHOAMIFUCK=`whoami`
 
 # [ ++ 默认路径 ++ ]
@@ -53,12 +60,12 @@ SECURE_FILE="/var/log/secure" 	 # RedHat Path
 
 
 # --------------------------------------
-#        | Function |             
+#        | Function |
 # --------------------------------------
 
 # [ ++ Function COLOR ++ ]
 function color
-{   
+{
     # 定义颜色和样式变量
     reset="\033[0m"
     bold="\033[1m"
@@ -106,7 +113,7 @@ function logo
 
 # [ ++ Function HELP_CN ++ ]
 function help_cn
-{    
+{
         printf "usage:  \n\n"
         printf "\t -v --version\t\t\t版本信息\n "
         printf "\t -h --help\t\t\t帮助指南\n"
@@ -123,7 +130,7 @@ function help_cn
         printf "\t -b --baseline\t\t\t基线安全评估\n"
         printf "\t -c --httpstatuscode [URL|FILE]\t页面存活探测\n"
         printf "\t -i --sqli-analysis [FILE]\t日志分析-SQL注入专业分析\n"
-        printf "\t -e --cron-run [0-23|c]\t\t加入到定时运行计划\n" 
+        printf "\t -e --auto-run [0-23|c]\t\t加入到定时运行计划\n"
         printf "\t -o --output [FILENAME]\t\t导出全量输出模式文件\n"
         printf "\t -m --output-html [FILENAME]\t导出全量输出模式文件\n"
 
@@ -149,15 +156,15 @@ function help_en
         printf "\t -b --baseline\t\t\tBaseline security assessment.\n"
         printf "\t -c --httpstatuscode [URL|FILE]\tHttp status code scan.\n"
         printf "\t -i --sqli-analysis [FILE]\tLog Analysis - Professional Analysis of SQL Injection.\n"
-        printf "\t -e --cron-run [0-23|c]\t\tAdd to crontab to run regularly.\n" 
+        printf "\t -e --auto-run [0-23|c]\t\tAdd to crontab to run regularly.\n"
         printf "\t -o --output [FILENAME]\t\tOutput to file.\n"
         printf "\t -m --output-html [FILENAME]\tOutput to html file.\n"
-        
+
 }
 
 
 # --------------------------------------
-#        | Uers Functions |             
+#        | Uers Functions |
 # --------------------------------------
 
 
@@ -165,9 +172,9 @@ function help_en
 
 function user
 {
-    
+
     if [ -e $AUTHLOG_FILE ]
-    then            
+    then
             echo
             T='11'
             LOG=/tmp/valid.$$.log
@@ -220,11 +227,11 @@ function user_debian
     echo -e "${bg_red}\n『 用户登出 』${reset}\n"
     cat $AUTH_S | grep "session closed"  | awk '{print $1 " " $2, $3, "用户登出", $11}' | tail -20;echo
     echo -e "${bg_red}\n『 攻击次数 攻击者IP --> 枚举用户名 』${reset}\n"
-    cat $AUTH_S | grep "Failed password for invalid user" | awk '{print $13 " --> " $11}' | sort | uniq -c | sort -rn | awk '{print "[+] 用户名不存在 "$0}' | head -20 
+    cat $AUTH_S | grep "Failed password for invalid user" | awk '{print $13 " --> " $11}' | sort | uniq -c | sort -rn | awk '{print "[+] 用户名不存在 "$0}' | head -20
     echo -e "${bg_red}\n『 攻击者IP次数 』${reset}\n"
-    cat $AUTH_S | grep "Failed password for invalid user" | awk '{print $11 " --> " $13}' | sort | uniq -c | sort -rn | awk '{print $4}' | sort | uniq -c | awk '{print "[+] "$2" 攻击次数 "$1"次"}';echo 
+    cat $AUTH_S | grep "Failed password for invalid user" | awk '{print $11 " --> " $13}' | sort | uniq -c | sort -rn | awk '{print $4}' | sort | uniq -c | awk '{print "[+] "$2" 攻击次数 "$1"次"}';echo
     echo -e "${bg_red}\n『 登录成功IP地址 』${reset}\n"
-    cat $AUTH_S | grep "Accepted"  | awk '{print "时间:"$1"-"$2"-"$3"\t登录成功\t "$11" --> "$9 " 使用方式: "$7}';echo 
+    cat $AUTH_S | grep "Accepted"  | awk '{print "时间:"$1"-"$2"-"$3"\t登录成功\t "$11" --> "$9 " 使用方式: "$7}';echo
     echo -e "${bg_red}\n『 对用户名进行密码爆破次数 』${reset}\n"
     cat $AUTH_S | grep "Failed password for" | grep -v invalid | awk '{print $11"—->"$9}'| uniq -c | sort -rn | awk '{print "[+] 攻击次数: " $1   " 详情:   "$2}' | head -20;echo
 }
@@ -232,11 +239,11 @@ function user_debian
 function user_centos
 {
     echo -e "${bg_red}\n『 攻击次数TOP 攻击者IP --> 枚举用户名 』${reset}\n"
-    cat $SECURE_S | grep "Failed password for invalid user" | awk '{print $13 " --> " $11}' | sort | uniq -c | sort -rn | awk '{print "[+] 用户名不存在 "$0}' | head -20 
+    cat $SECURE_S | grep "Failed password for invalid user" | awk '{print $13 " --> " $11}' | sort | uniq -c | sort -rn | awk '{print "[+] 用户名不存在 "$0}' | head -20
     echo -e "${bg_red}\n『 攻击者IP次数TOP 』${reset}\n"
     cat /var/log/secure | grep "Failed password for invalid user" | awk '{print $11 " --> " $13}' | sort | uniq -c | sort -rn | awk '{print $4}' | sort | uniq -c | sort -k1rn | awk '{print "[+] "$2" 攻击次数 "$1"次"}';echo
     echo -e "${bg_red}\n『 登录成功IP地址 』${reset}\n"
-    cat $SECURE_S | grep "Accepted"  | awk '{print "时间:"$1"-"$2"-"$3"\t登录成功\t "$11" --> "$9 " 使用方式: "$7}';echo 
+    cat $SECURE_S | grep "Accepted"  | awk '{print "时间:"$1"-"$2"-"$3"\t登录成功\t "$11" --> "$9 " 使用方式: "$7}';echo
     echo -e "${bg_red}\n『 对用户名进行密码爆破次数 』${reset}\n"
     cat $SECURE_S | grep "Failed password for" | grep -v invalid | awk '{print $11"—->"$9}'| uniq -c | sort -rn | awk '{print "[+] 攻击次数: " $1   " 详情:   "$2}' | head -20;echo
 }
@@ -249,7 +256,7 @@ function user_centos_defi
 
 
 # --------------------------------------
-#        | Fuck module Functions |             
+#        | Fuck module Functions |
 # --------------------------------------
 
 
@@ -262,13 +269,13 @@ function bar
     bar_logs_hist=`printf "${red}%50s${reset}" "[ 用户历史命令 ]"`
     bar_user_info=`printf "${red}%50s${reset}" "[ 用户信息排查 ]"`
     bar_cron_task=`printf "${red}%50s${reset}" "[ 用户计划任务 ]"`
-    bar_osys_stat=`printf "${red}%50s${reset}" "[ 系统状态信息 ]"`     
-    bar_port_open=`printf "${red}%50s${reset}" "[ 显示开启端口 ]"`     
-    bar_proc_port=`printf "${red}%50s${reset}" "[ 进程状态信息 ]"` 
-    bar_proc_serv=`printf "${red}%50s${reset}" "[ 服务状态信息 ]"`           
-    bar_file_move=`printf "${red}%50s${reset}" "[ 文件信息排查 ]"`    
-    bar_web_shell=`printf "${red}%50s${reset}" "[ webshell查找 ]"`        
-    bar_vuln_find=`printf "${red}%50s${reset}" "[ 常见漏洞评估 ]"`         
+    bar_osys_stat=`printf "${red}%50s${reset}" "[ 系统状态信息 ]"`
+    bar_port_open=`printf "${red}%50s${reset}" "[ 显示开启端口 ]"`
+    bar_proc_port=`printf "${red}%50s${reset}" "[ 进程状态信息 ]"`
+    bar_proc_serv=`printf "${red}%50s${reset}" "[ 服务状态信息 ]"`
+    bar_file_move=`printf "${red}%50s${reset}" "[ 文件信息排查 ]"`
+    bar_web_shell=`printf "${red}%50s${reset}" "[ webshell查找 ]"`
+    bar_vuln_find=`printf "${red}%50s${reset}" "[ 常见漏洞评估 ]"`
     bar_base_line=`printf "${red}%50s${reset}" "[ 基线安全评估 ]"`
     bar_http_scan=`printf "${red}%50s${reset}" "[ 存活页面探测 ]"`
     bar_find_rkit=`printf "${red}%50s${reset}" "[ rootkit查杀 ]"`
@@ -379,7 +386,7 @@ function fk_userlogin
             elif [[ "$os_name" == *"CentOS"* ]]; then
                 if [ -f "$SECURE_FILE" ]; then
                     SECURE_S=$SECURE_FILE
-                    user_centos "$SECURE_S" 
+                    user_centos "$SECURE_S"
                 else
                     echo $SECURE_FILE"文件不存在"
                 fi
@@ -408,7 +415,6 @@ function fk_userlogin
 
 # [ ++ Function BASE_INFOMATION ++ ]
 ## 用户基本信息
-
 function fk_baseinfo
 {
 
@@ -479,7 +485,7 @@ function fk_devicestatus
     # 查看内存、磁盘、CPU状态
     TA=$(free -m | awk 'NR==2{printf "%.2f%%\t\t",$3*100/$2}' ;echo;)
     TB=$(df -h| awk '$NF=="/"{printf "%s\t\t",$5}')
-    TC=$(top - bn1 | grep load | awk '{printf "%.2f%%\t\t\n",2$(NF2)}')
+    TC=$(top -bn1 | grep load | awk '{printf "%.2f%%\t\t\n",2$(NF2)}')
     bar
     if [[ -z $show ]]; then
         printf "%s\n" "$bar_osys_stat"
@@ -504,7 +510,7 @@ function fk_procserv
     echo
     printf "%s\n" "$bar_proc_serv"
     echo
-    printf "%s" "`service --status-all`"
+    printf "%s" "`systemctl | grep -E "\.service.*running" | awk -F. '{print $1}'`"
     echo
 }
 
@@ -549,7 +555,7 @@ function fk_crontab
     # /etc/cron.monthly/'
     bar
     echo
-    printf "%s\n" "$bar_cron_task"            
+    printf "%s\n" "$bar_cron_task"
     echo
     printf "%s" "$CRON"
     echo
@@ -619,7 +625,54 @@ function fk_userinfo
     echo
 }
 
-# [ ++ Function Webshell_Check ++ ]           
+# [ ++ Function SSH_BACKDOOR ++ ]
+## SSH后门
+function fk_sshlink
+{
+    processes=$(netstat -ntpl 2>/dev/null | grep -v ':22 ' | awk '{if (NR>2){print $7}}' | sed 's|/.*||')
+    processesx=$(netstat -ntpl 2>/dev/null | awk '{if (NR>2){print $7}}' | sed 's|/.*||')
+    declare -a sshlink_processes=()
+    declare -a sshwrapper_processes=()
+    sshbackdoor_info=''
+    for pid in $processes; do
+        # 检查 /proc/pid/exe 是否存在 sshd 软链接
+        if [ -L "/proc/$pid/exe" ]; then
+            if [ "$(readlink /proc/$pid/exe)" == "/usr/sbin/sshd" ]; then
+                sshlink_processes+=("$pid")
+            fi
+        fi
+    done
+
+    for pid in $processesx; do
+        # 检查 /proc/pid/exe 是否存在 SSH Server wrapper 后门
+        if [ -L "/proc/$pid/exe" ]; then
+            if [ "$(readlink /proc/$pid/exe)" == "/usr/bin/sshd" ]; then
+                sshwrapper_processes+=("$pid")
+            fi
+        fi
+    done
+
+    for pid in $processesx; do
+        # 细节
+        if [ -e "/proc/$pid/exe" ]; then
+            sshbackdoor_info+="$(ls -al /proc/$pid/ | grep 'exe')\\n"
+        fi
+    done
+
+    if [ ${#sshlink_processes[@]} -gt 0 ]; then
+        sshlink="异常进程：${sshlink_processes[@]}"
+    else
+        sshlink="未发现异常进程"
+    fi
+    if [ ${#sshwrapper_processes[@]} -gt 0 ]; then
+        sshwrapper="异常进程：${sshwrapper_processes[@]}"
+    else
+        sshwrapper="未发现异常进程"
+    fi
+
+}
+
+# [ ++ Function Webshell_Check ++ ]
 ## webshell检测
 function fk_wsfinder
 {
@@ -662,7 +715,7 @@ function fk_wsfinder
         else
             echo "未找到该目录"
         fi
-    else    
+    else
         echo
         echo "[+] check $WEBSHELL_PATH"
         echo
@@ -686,7 +739,7 @@ function fk_wsfinder
     rm -f output/webshell.log
 }
 
-# [ ++ Function Vulneribility_Check ++ ]       
+# [ ++ Function Vulneribility_Check ++ ]
 ## 漏洞检查
 function fk_vulcheck
 {
@@ -708,7 +761,7 @@ function fk_vulcheck
     rm -f vuln.log pass.tmp
 }
 
-# [ ++ Function Baseline_Check ++ ]      
+# [ ++ Function Baseline_Check ++ ]
 ## 基线检查
 function fk_baseline
 {
@@ -724,7 +777,7 @@ function fk_baseline
 
     echo
     printf "%s\n" "$bar_base_line"
-    echo  
+    echo
     # ----------------------------------------------------------------------
     echo -e  "${purple}${bold}1. 身份鉴别${reset}\n"
     echo # 1.1
@@ -752,9 +805,9 @@ function fk_baseline
 
     echo -e "${red}more /etc/login.defs${reset}"
     more /etc/login.defs | grep "PASS"
-    echo "\n整改建议：密码最大生存周期为90天	
-        密码最短修改周期为0天，可以随时修改密码	
-        密码最小长度为10位，包含数字，特殊字符，字母（大小写）三种形式	
+    echo "\n整改建议：密码最大生存周期为90天
+        密码最短修改周期为0天，可以随时修改密码
+        密码最小长度为10位，包含数字，特殊字符，字母（大小写）三种形式
         密码到期前7天必须提醒"
     echo
     echo # 1.3
@@ -961,7 +1014,7 @@ function fk_http_scan
 ## 终端代理
 function fk_terminal_proxy
 {
-    color 
+    color
     # 设置代理端口
     PORT=7897
     STAT=$INPUT
@@ -1003,9 +1056,9 @@ function fk_rookit_analysis
 
     echo
     printf "%s\n" "$bar_find_rkit"
-    echo  
+    echo
     # ----------------------------------------------------------------------
-    
+
     i "chkrookit"
     i "rkhunter"
 
@@ -1066,7 +1119,7 @@ function fk_weblog_sqlianalysis
         else
             echo "未找到该文件"
         fi
-    else    
+    else
         echo
         echo "[+] check $ACCESS_PATH"
         echo
@@ -1130,7 +1183,7 @@ function fk_auto_run
     fi
 
     # 设置 cron 作业
-    (crontab -l 2>/dev/null; echo "0 $hour * * * $DIR -b") | crontab -
+    (crontab -l 2>/dev/null; echo "0 $hour * * * $DIR -m") | crontab -
 
     echo "Whoamifuck的计划任务日志模块将在每天 $hour:00 执行一次。"
 
@@ -1141,10 +1194,11 @@ function fk_auto_run
 
 # [ ++ Function REPORT_HTML ++ ]
 ## 打印报告 - html
-
 function fk_reporthtml
 {
     bar
+    mkdir -p output
+
     printf "%s\n" "$bar_repo_rest"
 
     current_time=$(date "+%Y%m%d%H%M%S")
@@ -1155,7 +1209,7 @@ function fk_reporthtml
     else
         html_name=$REPORT_NAME
     fi
-    
+
     show=0
     # import
     fk_baseinfo "$show"
@@ -1165,21 +1219,54 @@ function fk_reporthtml
     network_info=$(netstat -anltu)
     portsvt_info=$(netstat -tunlp | awk '/^tcp/ {print $4,$7}; /^udp/ {print $4,$6}' | sed -r 's/.*:(.*)\/.*/\1/' | sort -un | awk '{cmd = "sudo lsof -w -i :" $1 " | awk '\''NR==2{print $1}'\''"; cmd | getline serviceName; close(cmd); print $1 "\t" serviceName}')
     process_info=$(ps aux | sed -e 's/</\&lt;/g; s/>/\&gt;/g')
-
+    service_info=$(systemctl | grep -E "\.service.*running" | awk -F. '{print $1}')
     # user
 
     user_info=$(cat /etc/passwd)
     pass_info=$(cat /etc/shadow)
     grop_info=$(cat /etc/group)
 
-    # whoamifuck
+    # 历史命令
 
-    histcmd_info=$(cat ~/.*sh_history)
-    crontab_info=$(crontab -l 2>/dev/null)
+    # current
+    histcurrent_info=$(cat ~/.*sh_history)
+
+    # all user
+    who_history_file=who_history.txt
+    $(> output/$who_history_file)
+    for userdir in /home/*; do
+        if [ -d "$userdir" ]; then
+            his_f=(".bash_history" ".zsh_history" ".csh_history" ".tcsh_history" ".fish_history")
+            for file in "${his_f[@]}"; do
+                if [ -f "$userdir/$file" ]; then
+                    echo "-------------| $userdir history | ----------------" >> output/$who_history_file
+                    cat  "$userdir/$file" >> output/$who_history_file
+                fi
+            done
+            histcmd_info=$(cat output/$who_history_file)
+
+        fi
+    done
+
+
+
+    # 计划任务要遍历的目录
+    cronpath="/var/spool/cron/"
+    crontab1_info=$(crontab -l 2>/dev/null)
+    crontab2_info=$(find "$cronpath" -type f -exec cat {} \;)
+    crontab3_info=$(cat /etc/cron.*/* 2>/dev/null)
+    crontab4_info=$(cat /etc/crontab 2>/dev/null)
+    # /var/spool/cron/'
+    # /etc/cron.d/'
+    # /etc/cron.daily/'
+    # /etc/cron.weekly/'
+    # /etc/cron.hourly/'
+    # /etc/cron.monthly/'
     initpid_info=$(systemctl list-unit-files --type=service)
 
+
+
     # user
-    mkdir -p output
     userinfo=userlogin.txt
     fk_userlogin > output/$userinfo
     sed "s/\x1B\[[0-9;]*[JKmsu]//g" output/$userinfo > output/userlogin_info.txt
@@ -1188,7 +1275,7 @@ function fk_reporthtml
 
     # file_info
     fk_filemove "$show"
-    
+
     # 僵尸进程进程
     kill_process=$(ps -al | awk '{print $2,$4}' | grep -e '^[Zz]')
 
@@ -1216,6 +1303,43 @@ function fk_reporthtml
     else
         openssh_risk="无"
     fi
+
+    # ssh后门
+    fk_sshlink
+    sshfileinfo=sshbackdoor.txt
+    echo -e $sshbackdoor_info > output/$sshfileinfo
+    ssh_info=$(cat output/$sshfileinfo)
+
+    env_alias_info=$(cat ~/.bashrc | grep alias 2>/dev/null)
+    env_profile1=$(cat /root/.bashrc 2>/dev/null)
+    env_profile2=$(cat /root/.*shrc 2>/dev/null)
+    env_profile3=$(cat /etc/bashrc 2>/dev/null)
+    env_profile4=$(cat /root/.bash_profile 2>/dev/null)
+
+    env_homefile=who_envprofile.txt
+    echo "-------------| environment variable | ----------------" > output/$env_homefile
+    for userdir in /home/*; do
+        echo "-------------| $userdir | ----------------" >> output/$env_homefile
+        if [ -d "$userdir" ]; then
+            bashrc_path="$userdir/.bashrc"
+            profile1_path="$userdir/.profile"
+            profile2_path="$userdir/.bash_profile"
+            profile3_path="$userdir/.bash_logout"
+            if [ -f "$bashrc_path" ]; then
+                cat "$bashrc_path" >> output/$env_homefile
+            fi
+            if [ -f "$profile1_path" ]; then
+                cat "$profile1_path" >> output/$env_homefile
+            fi
+            if [ -f "$profile2_path" ]; then
+                cat "$profile2_path" >> output/$env_homefile
+            fi
+            if [ -f "$profile3_path" ]; then
+                cat "$profile3_path" >> output/$env_homefile
+            fi
+        fi
+    done
+    env_homeprofile_info=$(cat output/$env_homefile)
 
     cat << EOF > output/$html_name
     <!DOCTYPE html>
@@ -1338,7 +1462,7 @@ function fk_reporthtml
             }
             .toggle-button:hover {
                 color: #FF7F00;
-                
+
             }
             .highlighted-command {
                 background-color: yellow;
@@ -1351,7 +1475,7 @@ function fk_reporthtml
                 color: red;
             }
             li {
-                font-size: 14px; 
+                font-size: 14px;
             }
             .container {
                 position: relative;
@@ -1507,15 +1631,15 @@ function fk_reporthtml
                         </tr>
                         <tr>
                             <td>内存</td>
-                            <td>$TA</d>
+                            <td>$TA</td>
                         </tr>
                         <tr>
                             <td>磁盘</td>
-                            <td>$TB</d>
+                            <td>$TB</td>
                         </tr>
                         <tr>
                             <td>CPU</td>
-                            <td>$TC</d>
+                            <td>$TC</td>
                         </tr>
                     </table>
                     <p class="bold">风险排查：</p>
@@ -1526,16 +1650,23 @@ function fk_reporthtml
                         </tr>
                         <tr>
                             <td>僵尸进程</td>
-                            <td>$kill_process</d>
+                            <td>$kill_process</td>
                         </tr>
                         <tr>
-                            <td>Redis未授权检测</td>
-                            <td>$redis_risk</d>
+                            <td>Redis未授权</td>
+                            <td>$redis_risk</td>
                         </tr>
                         <tr>
                             <td>CVE-2018-15473(OpenSSH用户名枚举)</td>
-                            <td>$openssh_risk</d>
+                            <td>$openssh_risk</td>
                         </tr>
+                        <tr>
+                            <td>SSH软链接后门</td>
+                            <td>$sshlink</td>
+                        </tr>
+                        <tr>
+                            <td>SSH Wrapper后门</td>
+                            <td>$sshwrapper</td>
                     </table>
                     <p class="bold">进程、端口服务、网络外联：</p>
                     <h5>进程</h5>
@@ -1550,6 +1681,7 @@ function fk_reporthtml
                         <span class="toggle-button" onclick="toggleBlock('portserviceInfoBlock')">收起/展开</span>
                         <div class="code-block" id="portserviceInfoBlock">
                         <pre>$portsvt_info</pre>
+                        <pre>$service_info<pre>
                         </div>
                     </div>
                     <h5>网络</h5>
@@ -1582,18 +1714,48 @@ function fk_reporthtml
                         </div>
                     </div>
                     <p class="bold">历史命令：</p>
+                    <h5>当前用户</h5>
+                    <div id="historycInfoBlockParent" class="code-block-container">
+                        <span class="toggle-button" onclick="toggleBlock('historycInfoBlock')">收起/展开</span>
+                        <div class="code-block" id="historycInfoBlock">
+                        <pre id="commandHistory">$histcurrent_info</pre>
+                        </div>
+                    </div>
+                    <h5>普通用户</h5>
                     <div id="historyInfoBlockParent" class="code-block-container">
                         <span class="toggle-button" onclick="toggleBlock('historyInfoBlock')">收起/展开</span>
                         <div class="code-block" id="historyInfoBlock">
-                        <pre id="commandHistory">$histcmd_info
-                        </pre>
+                        <pre id="commandHistory">$histcmd_info</pre>
                         </div>
                     </div>
+
                     <p class="bold">计划任务：</p>
-                    <div id="crontabInfoBlockParent" class="code-block-container">
-                        <span class="toggle-button" onclick="toggleBlock('crontabInfoBlock')">收起/展开</span>
-                        <div class="code-block" id="crontabInfoBlock">
-                        <pre>$crontab_info</pre>
+                    <h5>crontab -l</h5>
+                    <div id="c1BlockParent" class="code-block-container">
+                        <span class="toggle-button" onclick="toggleBlock('c1Block')">收起/展开</span>
+                        <div class="code-block" id="c1Block">
+                        <pre id=passwdContent>$crontab1_info</pre>
+                        </div>
+                    </div>
+                    <h5>/var/spool/cron/*</h5>
+                    <div id="c2BlockParent" class="code-block-container">
+                        <span class="toggle-button" onclick="toggleBlock('c2Block')">收起/展开</span>
+                        <div class="code-block" id="c2Block">
+                        <pre id=passwdContent>$crontab2_info</pre>
+                        </div>
+                    </div>
+                    <h5>/etc/cron.*/*</h5>
+                    <div id="c3BlockParent" class="code-block-container">
+                        <span class="toggle-button" onclick="toggleBlock('c3Block')">收起/展开</span>
+                        <div class="code-block" id="c3Block">
+                        <pre id=passwdContent>$crontab3_info</pre>
+                        </div>
+                    </div>
+                    <h5>/etc/crontab</h5>
+                    <div id="c4BlockParent" class="code-block-container">
+                        <span class="toggle-button" onclick="toggleBlock('c4Block')">收起/展开</span>
+                        <div class="code-block" id="c4Block">
+                        <pre id=passwdContent>$crontab4_info</pre>
                         </div>
                     </div>
                     <p class="bold">启动项：</p>
@@ -1602,25 +1764,74 @@ function fk_reporthtml
                         <div class="code-block" id="initpidInfoBlock">
                         <pre>$initpid_info</pre>
                         </div>
-                    </div>    
-                    <p class="bold">用户登录排查：</p> 
+                    </div>
+                    <p class="bold">用户登录排查：</p>
                     <div id="testInfoBlockParent" class="code-block-container">
                         <span class="toggle-button" onclick="toggleBlock('testInfoBlock')">收起/展开</span>
                         <div class="code-block" id="testInfoBlock">
                         <pre>$userlogin</pre>
                         </div>
-                    </div>                            
-                    <p class="bold">近期文件操作：</p> 
+                    </div>
+                    <p class="bold">近期文件操作：</p>
                     <div id="fileInfoBlockParent" class="code-block-container">
                         <span class="toggle-button" onclick="toggleBlock('fileInfoBlock')">收起/展开</span>
                         <div class="code-block" id="fileInfoBlock">
-                        <pre>
-                            $M_FILE
+                        <pre>$M_FILE
                             $M_FILE_VAR
                             $C_FILE
                         </pre>
                         </div>
-                    </div>        
+                    </div>
+                    <p class="bold">SSH后门排查：</p>
+                    <div id="sshBlockParent" class="code-block-container">
+                        <span class="toggle-button" onclick="toggleBlock('sshInfoBlock')">收起/展开</span>
+                        <div class="code-block" id="sshInfoBlock">
+                        <pre>$ssh_info</pre>
+                        </div>
+                    </div>
+                    <p class="bold">环境变量后门排查：</p>
+                    <h5>alias别名后门</h5>
+                    <div id="aliasBlockParent" class="code-block-container">
+                        <span class="toggle-button" onclick="toggleBlock('aliasInfoBlock')">收起/展开</span>
+                        <div class="code-block" id="aliasInfoBlock">
+                        <pre>$env_alias_info</pre>
+                        </div>
+                    </div>
+                    <h5>/root/.bashrc</h5>
+                    <div id="profile1BlockParent" class="code-block-container">
+                        <span class="toggle-button" onclick="toggleBlock('profile1InfoBlock')">收起/展开</span>
+                        <div class="code-block" id="profile1InfoBlock">
+                        <pre>$env_profile1</pre>
+                        </div>
+                    </div>
+                    <h5>/root/.*shrc</h5>
+                    <div id="profile2BlockParent" class="code-block-container">
+                        <span class="toggle-button" onclick="toggleBlock('profile2InfoBlock')">收起/展开</span>
+                        <div class="code-block" id="profile2InfoBlock">
+                        <pre>$env_profile2</pre>
+                        </div>
+                    </div>
+                    <h5>/etc/bashrc</h5>
+                    <div id="profile3BlockParent" class="code-block-container">
+                        <span class="toggle-button" onclick="toggleBlock('profile3InfoBlock')">收起/展开</span>
+                        <div class="code-block" id="profile3InfoBlock">
+                        <pre>$env_profile3</pre>
+                        </div>
+                    </div>
+                    <h5>/root/.bash_profile</h5>
+                    <div id="profile4BlockParent" class="code-block-container">
+                        <span class="toggle-button" onclick="toggleBlock('profile4InfoBlock')">收起/展开</span>
+                        <div class="code-block" id="profile4InfoBlock">
+                        <pre>$env_profile4</pre>
+                        </div>
+                    </div>
+                    <h5>普通用户环境变量配置文件</h5>
+                    <div id="profilehomeBlockParent" class="code-block-container">
+                        <span class="toggle-button" onclick="toggleBlock('profilehomeInfoBlock')">收起/展开</span>
+                        <div class="code-block" id="profilehomeInfoBlock">
+                        <pre>$env_homeprofile_info</pre>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="section">
@@ -1631,7 +1842,7 @@ function fk_reporthtml
                     <span id="repairSuggestion"></span>
                 </div>
             </div>
-        
+
             <!-- 技术支持和版权声明 -->
             <div class="line"></div>
             <div class="copyright">
@@ -1639,7 +1850,7 @@ function fk_reporthtml
                 Copyright © 2024 Eonian Sharp Security Team
             </div>
         </div>
-        
+
         <script>
             // 该我正则上场啦，原谅我一生放浪不羁爱自由，checkit~~~now~
             var totalHighlightedCommands = 0; // 用于统计命令标记的全局计数器
@@ -1754,12 +1965,12 @@ function fk_reporthtml
                 var sections = document.querySelectorAll('.section-content'); // 获取所有包含内容的部分
                 var searchRegex = new RegExp(searchText, 'gi');         // 正则的模式，别不认识 g就算全局， i就是忽略大小写
                 var matchFound = false;
-        
+
                 var resultContainer = document.getElementById('searchResult');
                 resultContainer.innerHTML = ''; // 清空搜索结果容器
-        
+
                 var matchesPositions = []; // 保存匹配项的位置
-        
+
                 sections.forEach(function(section) {
                     var content = section.innerText;
                     var lines = content.split('\n'); // 拆分成行
@@ -1783,8 +1994,8 @@ function fk_reporthtml
                             matchesPositions.push(section);
                         }
                     });
-                }); 
-        
+                });
+
                 if (matchFound) {
                     resultContainer.style.display = 'block'; // 显示结果容器
                     resultContainer.classList.add('rush-code'); // 添加匹配时的样式类
@@ -1793,7 +2004,7 @@ function fk_reporthtml
                     resultContainer.innerHTML = '<p></p>'; // 在结果容器中显示提示信息
                 }
             }
-        
+
             function scrollToPosition(element) {
                 element.scrollIntoView({ behavior: 'smooth', block: 'start' }); // 页面滚动到指定元素可见的位置
             }
@@ -1810,7 +2021,7 @@ function fk_reporthtml
                 } else {
                     block.style.maxHeight = targetHeight + 'px';
                 }
-            }   
+            }
         </script>
 
 
@@ -1875,12 +2086,12 @@ function fk_reporthtml
                 document.getElementById('repairSuggestion').innerText = repairSuggestion;
                 document.getElementById('eventAttackTypes').innerText = eventAttackTypes;
                 // window.addEventListener('load', function() {
-                //     updateDescriptionAndSuggestion();   
+                //     updateDescriptionAndSuggestion();
                 // });
             }
         </script>
     </body>
-    </html> 
+    </html>
 EOF
     echo "打印html报告成功。"
 }
@@ -1920,7 +2131,7 @@ function fk_options
         -h | --help)
             help_cn
             ;;
-        -a | --all) 
+        -a | --all)
             fk_baseinfo     # 基本消息
             fk_devicestatus # 基本状态
             fk_userlogin    # 登录日志
@@ -1931,7 +2142,7 @@ function fk_options
         -l | --login) FILE="$2"
             fk_userlogin "$FILE" "$SECURE_FILE"
             ;;
-        -u | --user-device)     
+        -u | --user-device)
             fk_baseinfo
             ;;
         -s | --os-status)
@@ -1990,7 +2201,7 @@ function fk_options
 }
 
 # --------------------------------------
-#        | Whoamifuck Main |             
+#        | Whoamifuck Main |
 # --------------------------------------
 
 function fk_main
@@ -2008,28 +2219,11 @@ function fk_main
 fk_main "$@"
 
 # --------------------------------------
-#        | Futher |             
+#        | Futher |
 # --------------------------------------
-
-# 软链接排查
-# alias
-
-# /home/用户名/.bashrc
-# /root/.bashrc
-# /etc/.bashrc针对所有用户生效
-# ~/.bashrc是针对当前用户生效
-
-# SSH软链接排查
-# netstat -anpt
-# netstat -ntpl 2>/dev/null |grep -v ':22 '| awk '{if (NR>2){print $7}}' | sed 's|/.*||'
-# /proc/[pid]/exe 有没有sshd
-
 
 # SSH Public key BackDoor
 # authorized_keys 的修改时间
 # stat /root/.ssh/authorized_keys
 # stat ~/.ssh/authorized_keys 是针对当前用户生效
 
-
-
-# 计划任务完善 cron
