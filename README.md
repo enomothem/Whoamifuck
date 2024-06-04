@@ -169,6 +169,10 @@ whomifuck -c # 检测
 sql注入分析起来非常的繁琐，索性直接自动化，而且做CTF题目也是非常的给力哦~  
 ![image](https://github.com/enomothem/Whoamifuck/assets/45089051/f6168455-f520-4d9a-bf59-4a505ae411af)
 
+### 计划任务目录优化
+由于crontab命令并不能查看完整的计划任务，完善了计划任务的一些目录，进行遍历。
+![image](https://github.com/enomothem/Whoamifuck/assets/45089051/afa478f7-7135-4311-8628-47bc7154502a)
+
 
 ## ES_T0004 关注永恒之锋
 <p align="center">
