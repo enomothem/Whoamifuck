@@ -81,8 +81,14 @@ usage:
 	 -s --os-status			查看系统状态信息
 	 -w --webshell [PATH]		查找可能存在的webshell文件
 	 -r --risk			查看系统可能存在的漏洞
+	 -k --rookitcheck		检测系统可能存在的后门
 	 -b --baseline			基线安全评估
+	 -c --httpstatuscode [URL|FILE]	页面存活探测
+	 -i --sqli-analysis [FILE]	日志分析-SQL注入专业分析
+	 -e --auto-run [0-23|c]		加入到定时运行计划
 	 -o --output [FILENAME]		导出全量输出模式文件
+	 -m --output-html [FILENAME]	导出全量输出模式文件
+
 ```
 ![image](https://github.com/enomothem/Whoamifuck/assets/45089051/2a291854-2efa-485c-bd75-fe71a56d5b65)
 
