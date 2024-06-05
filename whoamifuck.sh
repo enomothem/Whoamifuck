@@ -43,6 +43,8 @@
 #       |—— Update: 2024年06月02日 发布5.8.0-alpha，新增『SSH后门排查』，优化『Html输出格式问题』，优化『Html计划任务排查项』
 #       |—— Update: 2024年06月03日 >> 发布6.0版本
 #       |—— Update: 2024年06月06日 增加新功能，针对后门类进行更新、加入自动化任务自动发现威胁并查杀，持续防护，和其他优化。
+#       |                         |_ 优化『内核虚机判断』@Gu0st、新增『Html系统日志』@Gu0st、新增『环境变量后门』、优化『历史命令和计划任务遍历』
+#       |                         |_ 修复『导致html乱码』、优化『Html样式』、修复『Html一些错误』
 
 
 # --------------------------------------
@@ -55,8 +57,10 @@ VER="2024.6.6@whoamifuck-version 6.0.0"
 WHOAMIFUCK=`whoami`
 
 # [ ++ 默认路径 ++ ]
+OUTPUT="output"                  # Default Output
 AUTHLOG_FILE="/var/log/auth.log" # Ubuntu Path
 SECURE_FILE="/var/log/secure" 	 # RedHat Path
+
 
 
 # --------------------------------------
@@ -443,17 +447,17 @@ function fk_baseinfo
 
     GW=`route -n | tail -1 | awk '{print $1}'`
     HN=`hostname`
-    VM=`lscpu | grep "Hyper.*:\|Virtu\|超管理器厂商" | grep -oP "(?<=:)\s*\K.*" | paste -sd,`
-    DNS=`cat "/etc/resolv.conf" 	 | grep nameserver | awk '{print $2}' | paste -sd,`
+    VM=`lscpu | grep "Hyper.*:\|Virtu\|超管理器厂商" | awk -F [:：] '{print $2}' | sed 's/ //g' | paste -sd,`
+    DNS=`cat "/etc/resolv.conf"  | grep nameserver | awk '{print $2}' | paste -sd,`
     OS=`uname --kernel-name --kernel-release`
     TUN=`uptime | sed 's/user.*$//' | awk '{print $NF}'`
     M_TIME=`date +"%Y-%m-%d %H:%M:%S %s"`
-
+    OSNAME_VER=`cat /etc/os-release | grep '^VERSION_ID=' | awk -F '=' '{print $2}' | tr -d '"'`
     # show
     os_name
     IP_C=`echo -e "${cyan}$IP${reset}"`
     HN_C=`echo -e "${yellow}$HN${reset}「 ${white}$WHOAMIFUCK${reset} 」"`
-    OSNAME_C=`echo -e "${bg_purple}$OSNAME${reset}「 ${blue}$VM${reset} 」"`
+    OSNAME_C=`echo -e "${bg_purple}$OSNAME $OSNAME_VER${reset}「 ${blue}$VM${reset} 」"`
     TUN_C=`echo -e "${white}$TUN${reset}"`
     M_TIME_C=`echo -e "${green}$M_TIME${reset}"`
     bar
@@ -1199,6 +1203,7 @@ function fk_reporthtml
     bar
     mkdir -p output
 
+
     printf "%s\n" "$bar_repo_rest"
 
     current_time=$(date "+%Y%m%d%H%M%S")
@@ -1210,27 +1215,31 @@ function fk_reporthtml
         html_name=$REPORT_NAME
     fi
 
-    show=0
-    # import
+    show=0  # 控制调用的函数，简称 显控
+
+    # |        Import  Funtion     |
+    # ------------------------------
     fk_baseinfo "$show"
     fk_devicestatus "$show"
+    os_name
+    stats
 
-    # Port and process
+    # --- | Port and process | ---
     network_info=$(netstat -anltu)
     portsvt_info=$(netstat -tunlp | awk '/^tcp/ {print $4,$7}; /^udp/ {print $4,$6}' | sed -r 's/.*:(.*)\/.*/\1/' | sort -un | awk '{cmd = "sudo lsof -w -i :" $1 " | awk '\''NR==2{print $1}'\''"; cmd | getline serviceName; close(cmd); print $1 "\t" serviceName}')
     process_info=$(ps aux | sed -e 's/</\&lt;/g; s/>/\&gt;/g')
     service_info=$(systemctl | grep -E "\.service.*running" | awk -F. '{print $1}')
-    # user
 
+
+    # --- | User Group | ---
     user_info=$(cat /etc/passwd)
     pass_info=$(cat /etc/shadow)
     grop_info=$(cat /etc/group)
 
-    # 历史命令
 
+    # --- | History | ---
     # current
     histcurrent_info=$(cat ~/.*sh_history)
-
     # all user
     who_history_file=who_history.txt
     $(> output/$who_history_file)
@@ -1249,72 +1258,54 @@ function fk_reporthtml
     done
 
 
-
-    # 计划任务要遍历的目录
+    # --- | Crontab | ---
     cronpath="/var/spool/cron/"
+    cron_file="who_cron.txt"
+    cron_file1="who_cron1.txt"
     crontab1_info=$(crontab -l 2>/dev/null)
-    crontab2_info=$(find "$cronpath" -type f -exec cat {} \;)
-    crontab3_info=$(cat /etc/cron.*/* 2>/dev/null)
-    crontab4_info=$(cat /etc/crontab 2>/dev/null)
+    find "$cronpath" -type f -exec cat {} > $OUTPUT/$cron_file1 \;
+    crontab2_info=$(cat $OUTPUT/$cron_file1 2>/dev/null | sed -e 's/</\&lt;/g; s/>/\&gt;/g' | tr -d '\0')
+    cat /etc/cron.*/* 2>/dev/null >> $OUTPUT/$cron_file
+    crontab3_info=$(cat $OUTPUT/$cron_file 2>/dev/null | sed -e 's/</\&lt;/g; s/>/\&gt;/g' | tr -d '\0')
+    crontab4_info=$(cat /etc/crontab  2>/dev/null | sed -e 's/</\&lt;/g; s/>/\&gt;/g')
     # /var/spool/cron/'
     # /etc/cron.d/'
     # /etc/cron.daily/'
     # /etc/cron.weekly/'
     # /etc/cron.hourly/'
     # /etc/cron.monthly/'
+
+
+    # --- | init | ---
     initpid_info=$(systemctl list-unit-files --type=service)
+    initd_info=$(cat /etc/init.d/* 2>/dev/null)
+    initrc_info=$(cat /etc/rc*/* 2>/dev/null)
 
 
-
-    # user
+    # --- | User Login | ---
     userinfo=userlogin.txt
     fk_userlogin > output/$userinfo
     sed "s/\x1B\[[0-9;]*[JKmsu]//g" output/$userinfo > output/userlogin_info.txt
     rm -f output/$userinfo
     userlogin=$(cat output/userlogin_info.txt)
 
-    # file_info
+    if [[ $OSTYPE == "T_Debian" ]]; then
+        userlog_info=$(cat $AUTHLOG_FILE 2>/dev/null)
+        userlog_file=$AUTHLOG_FILE
+    else
+        userlog_info=$(cat $SECURE_FILE 2>/dev/null)
+        userlog_file=$SECURE_FILE
+    fi
+
+    # --- | File Stat | ---
     fk_filemove "$show"
 
-    # 僵尸进程进程
-    kill_process=$(ps -al | awk '{print $2,$4}' | grep -e '^[Zz]')
-
-    if [ -z "$kill_process" ]; then
-        kill_process="无"
-    fi
-
-    # redis
-    redis_risk=$(find / -name "redis.conf" -exec grep --color=none -H "# requirepass " {} \; 2>/dev/null)
-
-    if [ -z "$redis_risk" ]; then
-        redis_risk="无"
-    fi
-
-    # CVE-2018-15473 / 这里采用了先探测命令是否存在，提高健壮性 呜呼
-    if  which ssh &> /dev/null; then
-        ssh_version=$(ssh -V 2>&1 | awk 'match($0, /OpenSSH_([0-9]+\.[0-9]+)/, m) { print m[1] }')
-        version_major=${ssh_version%%.*}    # 这个语法第一次学，有点意思  意思是不要包括点及后面的
-        version_minor=${ssh_version#*.}     # 不要包括点前面的
-        if [[ "$version_major" -gt 7 ]] || ([[ "$version_major" -eq 7 ]] && [[ "$version_minor" -gt 7 ]]); then
-            openssh_risk="OpenSSH版本 $ssh_version 不受漏洞影响"
-        else
-            openssh_risk="OpenSSH版本 $ssh_version 受漏洞影响"
-        fi
-    else
-        openssh_risk="无"
-    fi
-
-    # ssh后门
-    fk_sshlink
-    sshfileinfo=sshbackdoor.txt
-    echo -e $sshbackdoor_info > output/$sshfileinfo
-    ssh_info=$(cat output/$sshfileinfo)
-
-    env_alias_info=$(cat ~/.bashrc | grep alias 2>/dev/null)
-    env_profile1=$(cat /root/.bashrc 2>/dev/null)
-    env_profile2=$(cat /root/.*shrc 2>/dev/null)
-    env_profile3=$(cat /etc/bashrc 2>/dev/null)
-    env_profile4=$(cat /root/.bash_profile 2>/dev/null)
+    # --- | env profile | ---
+    env_alias_info=$(cat ~/.bashrc | grep alias 2>/dev/null | sed -e 's/</\&lt;/g; s/>/\&gt;/g')
+    env_profile1=$(cat /root/.bashrc 2>/dev/null | sed -e 's/</\&lt;/g; s/>/\&gt;/g')
+    env_profile2=$(cat /root/.*shrc 2>/dev/null | sed -e 's/</\&lt;/g; s/>/\&gt;/g')
+    env_profile3=$(cat /etc/bashrc 2>/dev/null | sed -e 's/</\&lt;/g; s/>/\&gt;/g')
+    env_profile4=$(cat /root/.bash_profile 2>/dev/null | sed -e 's/</\&lt;/g; s/>/\&gt;/g')
 
     env_homefile=who_envprofile.txt
     echo "-------------| environment variable | ----------------" > output/$env_homefile
@@ -1340,6 +1331,46 @@ function fk_reporthtml
         fi
     done
     env_homeprofile_info=$(cat output/$env_homefile)
+
+
+    # --- | risk --> die process | ---
+    kill_process=$(ps -al | awk '{print $2,$4}' | grep -e '^[Zz]')
+    if [ -z "$kill_process" ]; then
+        kill_process="无"
+    fi
+
+    # --- | risk --> redis vul | ---
+    redis_risk=$(find / -name "redis.conf" -exec grep --color=none -H "# requirepass " {} \; 2>/dev/null)
+    if [ -z "$redis_risk" ]; then
+        redis_risk="无"
+    fi
+
+    # --- | risk --> CVE-2018-15473 | ---
+    # CVE-2018-15473 / 这里采用了先探测命令是否存在，提高健壮性 呜呼
+    if  which ssh &> /dev/null; then
+        ssh_version=$(ssh -V 2>&1 | awk 'match($0, /OpenSSH_([0-9]+\.[0-9]+)/, m) { print m[1] }')
+        version_major=${ssh_version%%.*}    # 这个语法第一次学，有点意思  意思是不要包括点及后面的
+        version_minor=${ssh_version#*.}     # 不要包括点前面的
+        if [[ "$version_major" -gt 7 ]] || ([[ "$version_major" -eq 7 ]] && [[ "$version_minor" -gt 7 ]]); then
+            openssh_risk="OpenSSH版本 $ssh_version 不受漏洞影响"
+        else
+            openssh_risk="OpenSSH版本 $ssh_version 受漏洞影响"
+        fi
+    else
+        openssh_risk="无"
+    fi
+
+    # --- | backdoor --> SSH | ---
+    fk_sshlink
+    sshfileinfo=sshbackdoor.txt
+    echo -e $sshbackdoor_info > output/$sshfileinfo
+    ssh_info=$(cat output/$sshfileinfo)
+
+
+    # -----------------------------------------------------------
+    #                   HTML Report Format
+    #                   Hi Whoamifuck 6.0
+    # -----------------------------------------------------------
 
     cat << EOF > output/$html_name
     <!DOCTYPE html>
@@ -1486,7 +1517,108 @@ function fk_reporthtml
                 top: 0;
                 right: 0;
             }
+            .t1 {
+                color: #09a9e8;
+                padding-left: 80px;
+                line-height: 22px;
+                position: relative;
+                border-bottom: 2px solid linear-gradient(to right, #1c9294, rgba(255, 255, 255, 0));
 
+
+                &:after {
+                    content: "";
+                    position: absolute;
+                    bottom: 0;
+                    top: 0;
+                    left: 18px;
+                    width: 50px;
+                    height: 18px;
+                    transform: skewX(35deg);
+                    background: linear-gradient(to right,
+                            #2d83fa,
+                            #2af0ed);
+                }
+                /* &:after {
+                    content: " ";
+                    position: absolute;
+                    bottom: 0;
+                    left: 0;
+                    position: absolute;
+                    height: 2px;
+                    width: 100%;
+                    background: linear-gradient(to right, #01DFE3, rgba(255, 255, 255, 0));
+                } */
+            }
+            .t3 {
+                padding-left: 20px;
+                position: relative; /* 添加这一行 */
+                &:after {
+                    content: " ";
+                    width: 8px;
+                    height: 8px;
+                    border-radius: 50%;
+                    background: #12a3f5;
+                    position: absolute;
+                    left: 0;
+                    top: 3px;
+                }
+            }
+            .t2 {
+                color: rgb(0, 0, 0);
+                border-width: 1px;
+                font-size: 12px;
+                border-style: solid;
+                border-color: #D2D4D4 #6B778C #6B778C #D2D4D4;
+                padding: 3px 5px 3px 5px;
+                margin-bottom: 3px;
+                border-radius: 16px;
+                /* border: 1px solid #0b0720; */
+                box-shadow: 0 0 10px #C0C0C0;
+                text-align: center;
+                width: 240px;
+                position: relative;
+                color: #000000;
+                font-weight: bold;
+                background: linear-gradient(to bottom, #D5DEE7 0%, #E8EBF2 50%, #E2E7ED 100%), linear-gradient(to bottom, rgba(0,0,0,0.02) 50%, rgba(255,255,255,0.02) 61%, rgba(0,0,0,0.02) 73%), linear-gradient(33deg, rgba(255,255,255,0.20) 0%, rgba(0,0,0,0.20) 100%); background-blend-mode: normal,color-burn;
+
+                &:before {
+                    content: "";
+                    width: 210%;
+                    height: 2px;
+                    background: #f8f8f9;
+                    position: absolute;
+                    top: 10px;
+                    left: 102%;
+                    /* background: linear-gradient(to right, #967312, rgba(255, 255, 255, 0)); */
+                    background: linear-gradient(to right, #D5DEE7 0%, #E8EBF2 50%, #E2E7ED 100%), linear-gradient(to right, rgba(0,0,0,0.02) 50%, rgba(255,255,255,0.02) 61%, rgba(0,0,0,0.02) 73%), linear-gradient(33deg, rgba(255,255,255,0.20) 0%, rgba(0,0,0,0.20) 100%); background-blend-mode: normal,color-burn;
+                }
+            }
+            #infoTable {
+                width: 100%;
+                border-collapse: collapse;
+                font-family: Arial, sans-serif;
+                margin: 20px 0;
+                box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1);
+            }
+            #infoTable th, #infoTable td {
+                padding: 12px 15px;
+                text-align: left;
+                border-bottom: 1px solid #ddd;
+            }
+            #infoTable th {
+                background-color: #0ea9eb;
+                color: #ffffff;
+                text-transform: uppercase;
+            }
+            #infoTable tr:nth-child(even) {
+                background-color: #f3f3f3;
+            }
+            #infoTable tr:hover {
+                background-color: #f1f1f1;
+            }
+            #infoTable td {
+                color: #333;
+            }
         </style>
     </head>
     <body>
@@ -1509,7 +1641,7 @@ function fk_reporthtml
             <div id="searchResult" class="rush-code"></div>
 
             <div class="section">
-                <h2 class="section-title">T0001 事件概要</h2>
+                <h2 class="t1">T0001 事件概要</h2><hr />
                 <div class="section-content">
                     <p><strong>事件日期：</strong> $event_date</p>
                     <label for="eventType"><strong>事件类型：</strong></label>
@@ -1530,7 +1662,7 @@ function fk_reporthtml
                 </div>
             </div>
             <div class="section">
-                <h2 class="section-title">T0002 调查结果</h2>
+                <h2 class="t1">T0002 调查结果</h2><hr />
                 <div class="section-content">
                     <p><strong>受影响系统：</strong> 内部服务器</p>
                     <span class="bold">攻击方式：</span>
@@ -1543,19 +1675,18 @@ function fk_reporthtml
                 </div>
             </div>
             <div class="section">
-                <h2 class="section-title">T0003 响应措施</h2>
+                <h2 class="t1">T0003 响应措施</h2><hr />
                 <div class="section-content">
                     <p><strong>应急响应团队：</strong> <input type="text" id="team" value="Eonian Sharp Team"></p>
                     <p><strong>处理步骤：</strong></p>
 
-                    <h5>临时处置</h5>
-
+                    <h5 class="t3">临时处置</h5>
                     <ul>
                         <li>物理隔离 - 禁用网卡，线路隔离</li>
                         <li>访问控制 - 限制端口，对用户、权限、文件的访问控制</li>
                         <li>更新病毒库、开启防火墙、关闭高危端口、打补丁</li>
                     </ul>
-                    <h5>应急分析</h5>
+                    <h5 class="t3">应急分析</h5>
                     <ul>
                         <li>分析攻击流量信息</li>
                         <li>阻止攻击流量</li>
@@ -1563,7 +1694,7 @@ function fk_reporthtml
                         <li>确定感染范围</li>
                         <li>加强网络安全配置</li>
                     </ul>
-                    <h5>应急排查</h5>
+                    <h5 class="t3">应急排查</h5>
                     <ul>
                         <li>端口</li>
                         <li>进程</li>
@@ -1578,9 +1709,9 @@ function fk_reporthtml
                 </div>
             </div>
             <div class="section">
-                <h2 class="section-title">T0004 取证内容</h2>
+                <h2 class="t1">T0004 取证内容</h2><hr />
                 <div class="section-content">
-                    <p class="bold">系统信息：</p>
+                    <p class="t2">系统信息：</p>
                     <table id="infoTable">
                         <tr>
                             <th>名称</th>
@@ -1623,7 +1754,7 @@ function fk_reporthtml
                             <td>$M_TIME</td>
                         </tr>
                     </table>
-                    <p class="bold">系统状态：</p>
+                    <p class="t2">系统状态：</p>
                     <table id="infoTable">
                         <tr>
                             <th>名称</th>
@@ -1642,7 +1773,7 @@ function fk_reporthtml
                             <td>$TC</td>
                         </tr>
                     </table>
-                    <p class="bold">风险排查：</p>
+                    <p class="t2">风险排查：</p>
                     <table id="infoTable">
                         <tr>
                             <th>名称</th>
@@ -1668,15 +1799,15 @@ function fk_reporthtml
                             <td>SSH Wrapper后门</td>
                             <td>$sshwrapper</td>
                     </table>
-                    <p class="bold">进程、端口服务、网络外联：</p>
-                    <h5>进程</h5>
+                    <p class="t2">进程、端口服务、网络外联：</p>
+                    <h5 class="t3">进程</h5>
                     <div id="processInfoBlockParent" class="code-block-container">
                         <button class="toggle-button" onclick="toggleBlock('processInfoBlock')">收起/展开</button>
                         <div class="code-block" id="processInfoBlock">
                         <pre>$process_info</pre>
                         </div>
                     </div>
-                    <h5>端口-服务</h5>
+                    <h5 class="t3">端口-服务</h5>
                     <div id="portserviceInfoBlockParent" class="code-block-container">
                         <span class="toggle-button" onclick="toggleBlock('portserviceInfoBlock')">收起/展开</span>
                         <div class="code-block" id="portserviceInfoBlock">
@@ -1684,44 +1815,44 @@ function fk_reporthtml
                         <pre>$service_info<pre>
                         </div>
                     </div>
-                    <h5>网络</h5>
+                    <h5 class="t3">网络</h5>
                     <div id="networkInfoBlockParent" class="code-block-container">
                         <span class="toggle-button" onclick="toggleBlock('networkInfoBlock')">收起/展开</span>
                         <div class="code-block" id="networkInfoBlock">
                         <pre>$network_info</pre>
                         </div>
                     </div>
-                    <p class="bold">用户：</p>
-                    <h5>/etc/passwd</h5>
+                    <p class="t2">用户：</p>
+                    <h5 class="t3">/etc/passwd</h5>
                     <div id="userInfoBlockParent" class="code-block-container">
                         <span class="toggle-button" onclick="toggleBlock('userInfoBlock')">收起/展开</span>
                         <div class="code-block" id="userInfoBlock">
                         <pre id=passwdContent>$user_info</pre>
                         </div>
                     </div>
-                    <h5>/etc/shadow</h5>
+                    <h5 class="t3">/etc/shadow</h5>
                     <div id="passInfoBlockParent" class="code-block-container">
                         <span class="toggle-button" onclick="toggleBlock('passInfoBlock')">收起/展开</span>
                         <div class="code-block" id="passInfoBlock">
                         <pre>$pass_info</pre>
                         </div>
                     </div>
-                    <h5>/etc/group</h5>
+                    <h5 class="t3">/etc/group</h5>
                     <div id="groupInfoBlockParent" class="code-block-container">
                         <span class="toggle-button" onclick="toggleBlock('groupInfoBlock')">收起/展开</span>
                         <div class="code-block" id="groupInfoBlock">
                         <pre>$grop_info</pre>
                         </div>
                     </div>
-                    <p class="bold">历史命令：</p>
-                    <h5>当前用户</h5>
+                    <p class="t2">历史命令：</p>
+                    <h5 class="t3">当前用户</h5>
                     <div id="historycInfoBlockParent" class="code-block-container">
                         <span class="toggle-button" onclick="toggleBlock('historycInfoBlock')">收起/展开</span>
                         <div class="code-block" id="historycInfoBlock">
                         <pre id="commandHistory">$histcurrent_info</pre>
                         </div>
                     </div>
-                    <h5>普通用户</h5>
+                    <h5 class="t3">普通用户</h5>
                     <div id="historyInfoBlockParent" class="code-block-container">
                         <span class="toggle-button" onclick="toggleBlock('historyInfoBlock')">收起/展开</span>
                         <div class="code-block" id="historyInfoBlock">
@@ -1729,103 +1860,127 @@ function fk_reporthtml
                         </div>
                     </div>
 
-                    <p class="bold">计划任务：</p>
-                    <h5>crontab -l</h5>
+                    <p class="t2">计划任务：</p>
+                    <h5 class="t3">crontab -l</h5>
                     <div id="c1BlockParent" class="code-block-container">
                         <span class="toggle-button" onclick="toggleBlock('c1Block')">收起/展开</span>
                         <div class="code-block" id="c1Block">
-                        <pre id=passwdContent>$crontab1_info</pre>
+                        <pre>$crontab1_info</pre>
                         </div>
                     </div>
-                    <h5>/var/spool/cron/*</h5>
+                    <h5 class="t3">/var/spool/cron/*</h5>
                     <div id="c2BlockParent" class="code-block-container">
                         <span class="toggle-button" onclick="toggleBlock('c2Block')">收起/展开</span>
                         <div class="code-block" id="c2Block">
-                        <pre id=passwdContent>$crontab2_info</pre>
+                        <pre>$crontab2_info</pre>
                         </div>
                     </div>
-                    <h5>/etc/cron.*/*</h5>
+                    <h5 class="t3">/etc/cron.*/*</h5>
                     <div id="c3BlockParent" class="code-block-container">
                         <span class="toggle-button" onclick="toggleBlock('c3Block')">收起/展开</span>
                         <div class="code-block" id="c3Block">
-                        <pre id=passwdContent>$crontab3_info</pre>
+                        <pre>$crontab3_info</pre>
                         </div>
                     </div>
-                    <h5>/etc/crontab</h5>
+                    <h5 class="t3">/etc/crontab</h5>
                     <div id="c4BlockParent" class="code-block-container">
                         <span class="toggle-button" onclick="toggleBlock('c4Block')">收起/展开</span>
                         <div class="code-block" id="c4Block">
-                        <pre id=passwdContent>$crontab4_info</pre>
+                        <pre>$crontab4_info</pre>
                         </div>
                     </div>
-                    <p class="bold">启动项：</p>
+                    <p class="t2">启动项：</p>
+                    <h5 class="t3">list-unit-files</h5>
                     <div id="initpidInfoBlockParent" class="code-block-container">
                         <span class="toggle-button" onclick="toggleBlock('initpidInfoBlock')">收起/展开</span>
                         <div class="code-block" id="initpidInfoBlock">
                         <pre>$initpid_info</pre>
                         </div>
                     </div>
-                    <p class="bold">用户登录排查：</p>
+                    <h5 class="t3">cat /etc/init.d</h5>
+                    <div id="initpid1InfoBlockParent" class="code-block-container">
+                        <span class="toggle-button" onclick="toggleBlock('initpid1InfoBlock')">收起/展开</span>
+                        <div class="code-block" id="initpid1InfoBlock">
+                        <pre>$initd_info</pre>
+                        </div>
+                    </div>
+                    <h5 class="t3">cat /etc/rc*/*</h5>
+                    <div id="initpid2InfoBlockParent" class="code-block-container">
+                        <span class="toggle-button" onclick="toggleBlock('initpid2InfoBlock')">收起/展开</span>
+                        <div class="code-block" id="initpid2InfoBlock">
+                        <pre>$initrc_info</pre>
+                        </div>
+                    </div>
+                    <p class="t2">用户登录排查：</p>
+                    <h5 class="t3">全量登录日志 $userlog_file</h5>
+                    <div id="userlogInfoBlockParent" class="code-block-container">
+                        <span class="toggle-button" onclick="toggleBlock('userlogInfoBlock')">收起/展开</span>
+                        <div class="code-block" id="userlogInfoBlock">
+                        <pre>$userlog_info</pre>
+                        </div>
+                    </div>
+                    <h5 class="t3">用户登录分析</h5>
                     <div id="testInfoBlockParent" class="code-block-container">
                         <span class="toggle-button" onclick="toggleBlock('testInfoBlock')">收起/展开</span>
                         <div class="code-block" id="testInfoBlock">
                         <pre>$userlogin</pre>
                         </div>
                     </div>
-                    <p class="bold">近期文件操作：</p>
+                    <p class="t2">近期文件操作：</p>
+                    <h5 class="t3">近3天操作的文件</h5>
                     <div id="fileInfoBlockParent" class="code-block-container">
                         <span class="toggle-button" onclick="toggleBlock('fileInfoBlock')">收起/展开</span>
                         <div class="code-block" id="fileInfoBlock">
-                        <pre>$M_FILE
-                            $M_FILE_VAR
-                            $C_FILE
-                        </pre>
+                        <pre>$M_FILE</pre>
+                        <pre>$M_FILE_VAR</pre>
+                        <pre>$C_FILE</pre>
                         </div>
                     </div>
-                    <p class="bold">SSH后门排查：</p>
+                    <p class="t2">SSH后门排查：</p>
+                    <h5 class="t3">SSH后门进程排查</h5>
                     <div id="sshBlockParent" class="code-block-container">
                         <span class="toggle-button" onclick="toggleBlock('sshInfoBlock')">收起/展开</span>
                         <div class="code-block" id="sshInfoBlock">
                         <pre>$ssh_info</pre>
                         </div>
                     </div>
-                    <p class="bold">环境变量后门排查：</p>
-                    <h5>alias别名后门</h5>
+                    <p class="t2">环境变量后门排查：</p>
+                    <h5 class="t3">alias别名后门</h5>
                     <div id="aliasBlockParent" class="code-block-container">
                         <span class="toggle-button" onclick="toggleBlock('aliasInfoBlock')">收起/展开</span>
                         <div class="code-block" id="aliasInfoBlock">
                         <pre>$env_alias_info</pre>
                         </div>
                     </div>
-                    <h5>/root/.bashrc</h5>
+                    <h5 class="t3">/root/.bashrc</h5>
                     <div id="profile1BlockParent" class="code-block-container">
                         <span class="toggle-button" onclick="toggleBlock('profile1InfoBlock')">收起/展开</span>
                         <div class="code-block" id="profile1InfoBlock">
                         <pre>$env_profile1</pre>
                         </div>
                     </div>
-                    <h5>/root/.*shrc</h5>
+                    <h5 class="t3">/root/.*shrc</h5>
                     <div id="profile2BlockParent" class="code-block-container">
                         <span class="toggle-button" onclick="toggleBlock('profile2InfoBlock')">收起/展开</span>
                         <div class="code-block" id="profile2InfoBlock">
                         <pre>$env_profile2</pre>
                         </div>
                     </div>
-                    <h5>/etc/bashrc</h5>
+                    <h5 class="t3">/etc/bashrc</h5>
                     <div id="profile3BlockParent" class="code-block-container">
                         <span class="toggle-button" onclick="toggleBlock('profile3InfoBlock')">收起/展开</span>
                         <div class="code-block" id="profile3InfoBlock">
                         <pre>$env_profile3</pre>
                         </div>
                     </div>
-                    <h5>/root/.bash_profile</h5>
+                    <h5 class="t3">/root/.bash_profile</h5>
                     <div id="profile4BlockParent" class="code-block-container">
                         <span class="toggle-button" onclick="toggleBlock('profile4InfoBlock')">收起/展开</span>
                         <div class="code-block" id="profile4InfoBlock">
                         <pre>$env_profile4</pre>
                         </div>
                     </div>
-                    <h5>普通用户环境变量配置文件</h5>
+                    <h5 class="t3">普通用户环境变量配置文件</h5>
                     <div id="profilehomeBlockParent" class="code-block-container">
                         <span class="toggle-button" onclick="toggleBlock('profilehomeInfoBlock')">收起/展开</span>
                         <div class="code-block" id="profilehomeInfoBlock">
@@ -1835,10 +1990,10 @@ function fk_reporthtml
                 </div>
             </div>
             <div class="section">
-                <h2 class="section-title">T0005 总结与建议</h2>
+                <h2 class="t1">T0005 总结与建议</h2><hr />
                 <div class="section-content">
                     <p><strong>总结：</strong> 成功防止了进一步损害，但系统仍需进一步检查和加固。</p>
-                    <span class="bold">事件描述：</span>
+                    <span class="bold">建议：</span>
                     <span id="repairSuggestion"></span>
                 </div>
             </div>
@@ -2093,7 +2248,7 @@ function fk_reporthtml
     </body>
     </html>
 EOF
-    echo "打印html报告成功。"
+    printf "$SUC 导出Html结果成功。路径：$OUTPUT/$html_name\n"
 }
 
 # [ ++ OPTIONS OUTPUT ++ ]
@@ -2103,7 +2258,6 @@ function fk_output
     color
     stats
     FILENAME=$OUT_NAME
-    OUTPUT="output"
     mkdir -p $OUTPUT
     current_time=$(date "+%Y%m%d%H%M%S")
     OUTPUT_DEFAULT=$OUTPUT/${current_time}_output.txt
@@ -2218,6 +2372,8 @@ function fk_main
 
 fk_main "$@"
 
+
+
 # --------------------------------------
 #        | Futher |
 # --------------------------------------
@@ -2226,4 +2382,3 @@ fk_main "$@"
 # authorized_keys 的修改时间
 # stat /root/.ssh/authorized_keys
 # stat ~/.ssh/authorized_keys 是针对当前用户生效
-
