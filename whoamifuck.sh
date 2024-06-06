@@ -1239,7 +1239,7 @@ function fk_reporthtml
 
     # --- | History | ---
     # current
-    histcurrent_info=$(cat ~/.*sh_history)
+    histcurrent_info=$(cat ~/.*sh_history | sed -e 's/</\&lt;/g; s/>/\&gt;/g' )
     # all user
     who_history_file=who_history.txt
     $(> output/$who_history_file)
@@ -1249,7 +1249,7 @@ function fk_reporthtml
             for file in "${his_f[@]}"; do
                 if [ -f "$userdir/$file" ]; then
                     echo "-------------| $userdir history | ----------------" >> output/$who_history_file
-                    cat  "$userdir/$file" >> output/$who_history_file
+                    cat  "$userdir/$file" | sed -e 's/</\&lt;/g; s/>/\&gt;/g' >> output/$who_history_file
                 fi
             done
             histcmd_info=$(cat output/$who_history_file)
@@ -1278,8 +1278,8 @@ function fk_reporthtml
 
     # --- | init | ---
     initpid_info=$(systemctl list-unit-files --type=service)
-    initd_info=$(cat /etc/init.d/* 2>/dev/null)
-    initrc_info=$(cat /etc/rc*/* 2>/dev/null)
+    initd_info=$(cat /etc/init.d/* 2>/dev/null | sed -e 's/</\&lt;/g; s/>/\&gt;/g')
+    initrc_info=$(cat /etc/rc*/* 2>/dev/null | sed -e 's/</\&lt;/g; s/>/\&gt;/g')
 
 
     # --- | User Login | ---
