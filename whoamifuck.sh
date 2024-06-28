@@ -383,25 +383,48 @@ function fk_baseinfo
 
     color
 
-    ETH=`ifconfig -s | grep ^e | awk '{print $1}' | wc -l`
+    if command -v ifconfig > /dev/null; then
+        ETH=`ifconfig -s | grep ^e | awk '{print $1}' | wc -l`
 
-    if [ $ETH -eq 1 ]; then
-        ETHx=`ifconfig -s | grep ^e | awk '{print $1}'`
-        IP=`ifconfig $ETHx | head -2 | tail -1 | awk '{print $2}'`
-        ZW=`ifconfig $ETHx | head -2 | tail -1 | awk '{print $4}'`
-    elif [ $ETH -eq 2 ]; then
-        ETH0=`ifconfig -s | grep ^e | awk 'NR==1{print $1}'`
-        ETH1=`ifconfig -s | grep ^e | awk 'NR==2{print $1}'`
-        IP1=`ifconfig $ETH0 | head -2 | tail -1 | awk '{print $2}'`
-        ZW1=`ifconfig $ETH0 | head -2 | tail -1 | awk '{print $4}'`
-        IP2=`ifconfig $ETH1 | head -2 | tail -1 | awk '{print $2}'`
-        ZW2=`ifconfig $ETH1 | head -2 | tail -1 | awk '{print $4}'`
-        IP="$IP1,$IP2"
-        ZW="$ZW1,$ZW2"
-    elif [ $ETH -gt 2 ]; then
-        echo "The variable is greater 3"
+        if [ $ETH -eq 1 ]; then
+            ETHx=`ifconfig -s | grep ^e | awk '{print $1}'`
+            IP=`ifconfig $ETHx | head -2 | tail -1 | awk '{print $2}'`
+            ZW=`ifconfig $ETHx | head -2 | tail -1 | awk '{print $4}'`
+        elif [ $ETH -eq 2 ]; then
+            ETH0=`ifconfig -s | grep ^e | awk 'NR==1{print $1}'`
+            ETH1=`ifconfig -s | grep ^e | awk 'NR==2{print $1}'`
+            IP1=`ifconfig $ETH0 | head -2 | tail -1 | awk '{print $2}'`
+            ZW1=`ifconfig $ETH0 | head -2 | tail -1 | awk '{print $4}'`
+            IP2=`ifconfig $ETH1 | head -2 | tail -1 | awk '{print $2}'`
+            ZW2=`ifconfig $ETH1 | head -2 | tail -1 | awk '{print $4}'`
+            IP="$IP1,$IP2"
+            ZW="$ZW1,$ZW2"
+        elif [ $ETH -gt 2 ]; then
+            echo "The variable is greater than 2"
+        else
+            echo "panic!"
+        fi
     else
-        echo "panic!"
+        ETH=`ip -o link show | grep '^[0-9]*: e' | awk '{print $2}' | tr -d ':' | wc -l`
+
+        if [ $ETH -eq 1 ]; then
+            ETHx=`ip -o link show | grep '^[0-9]*: e' | awk '{print $2}' | tr -d ':'`
+            IP=`ip -o -4 addr show $ETHx | awk '{print $4}' | cut -d/ -f1`
+            ZW=`ip -o -4 addr show $ETHx | awk '{print $4}' | cut -d/ -f2`
+        elif [ $ETH -eq 2 ]; then
+            ETH0=`ip -o link show | grep '^[0-9]*: e' | awk 'NR==1{print $2}' | tr -d ':'`
+            ETH1=`ip -o link show | grep '^[0-9]*: e' | awk 'NR==2{print $2}' | tr -d ':'`
+            IP1=`ip -o -4 addr show $ETH0 | awk '{print $4}' | cut -d/ -f1`
+            ZW1=`ip -o -4 addr show $ETH0 | awk '{print $4}' | cut -d/ -f2`
+            IP2=`ip -o -4 addr show $ETH1 | awk '{print $4}' | cut -d/ -f1`
+            ZW2=`ip -o -4 addr show $ETH1 | awk '{print $4}' | cut -d/ -f2`
+            IP="$IP1,$IP2"
+            ZW="$ZW1,$ZW2"
+        elif [ $ETH -gt 2 ]; then
+            echo "The variable is greater than 2"
+        else
+            echo "panic!"
+        fi
     fi
 
     GW=`route -n | tail -1 | awk '{print $1}'`
