@@ -10,7 +10,7 @@
 
 
 # [ ++ 基本信息 ++ ]
-VER="2024.6.28@whoamifuck-version 6.1.1"
+VER="2024.6.29@whoamifuck-version 6.1.2"
 WHOAMIFUCK=`whoami`
 
 # [ ++ 默认路径 ++ ]
