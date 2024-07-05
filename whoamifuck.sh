@@ -10,7 +10,7 @@
 
 
 # [ ++ 基本信息 ++ ]
-VER="2024.6.29@whoamifuck-version 6.1.2"
+VER="2024.6.29@whoamifuck-version 6.1.3"
 WHOAMIFUCK=`whoami`
 
 # [ ++ 默认路径 ++ ]
@@ -1343,6 +1343,14 @@ function fk_reporthtml
         openssh_risk="无"
     fi
 
+    # --- | risk --> CVE-2018-15473 | ---
+    # CVE-2024-6387 Exist!!! 核弹级别 这个是采用@ahlfors老哥的，语法很紧凑
+    vc(){ [[ "$(printf '%s\n' "$1" "$3"|sort -V|head -n1)" != "$1" || "$1" == "$3" ]]&&[[ "$2" == "<" ]]&&return 1;[[ "$(printf '%s\n' "$1" "$3"|sort -V|head -n1)" != "$3" || "$1" == "$3" ]]&&[[ "$2" == ">" ]]&&return 1;return 0;}
+    gov(){ if command -v apt-get>/dev/null;then dpkg -s openssh-server|grep '^Version:'|awk '{print $2}';elif command -v yum>/dev/null||command -v dnf>/dev/null;then rpm -qi openssh-server|grep '^Version'|awk '{print $3}';elif command -v pacman>/dev/null;then pacman -Qi openssh|grep 'Version'|awk '{print $3}';else echo "未知的Linux发行版或不支持的包管理器。"&&return 1;fi;}
+    ov=$(gov)
+    [ $? -eq 0 ]&&sv="OpenSSH版本 $ov "&&vc "$ov" ">=" "8.5p1"&&vc "$ov" "<" "9.8p1"&&opensshvul="受漏洞影响"||opensshvul="不受漏洞影响"||echo "Fail to get OpenSSH version."
+
+
     # --- | backdoor --> SSH | ---
     fk_sshlink
     sshfileinfo=who_sshbackdoor.txt
@@ -1789,6 +1797,10 @@ function fk_reporthtml
                     <tr>
                         <td>CVE-2018-15473(OpenSSH用户名枚举)</td>
                         <td>$openssh_risk</td>
+                    </tr>
+                    <tr>
+                        <td>CVE-2024-6387(OpenSSH远程代码执行)</td>
+                        <td>$sv$opensshvul</td>
                     </tr>
                     <tr>
                         <td>SSH软链接后门</td>
