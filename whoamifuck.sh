@@ -1045,7 +1045,7 @@ function fk_rookit_analysis
     echo
     # ----------------------------------------------------------------------
 
-    i "chkrookit"
+    i "chkrootkit"
     i "rkhunter"
 
     mkdir -p "./output"
