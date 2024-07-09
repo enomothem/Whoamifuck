@@ -14,7 +14,7 @@
 <p>为什么不使用python，因为python依赖多，版本差异大，shell原生支持，除个别少数shell语法不同，大部分unix，linux基本都支持bash shell。</p>
 
 > [!tip]
-> 凡是bug提交者，赋予漏洞编号，并在github更新追加贡献者 ![WHOK-ID](https://github.com/enomothem/Whoamifuck/wiki/WHOK%E7%BC%96%E5%8F%B7%E5%88%97%E8%A1%A8)</p>
+> 凡是bug提交者，赋予漏洞编号，并在github更新追加贡献者 [WHOK-ID](https://github.com/enomothem/Whoamifuck/wiki/WHOK%E7%BC%96%E5%8F%B7%E5%88%97%E8%A1%A8)</p>
 
 <p align="center"><img src="https://github.com/AppFlowy-IO/appflowy/blob/main/doc/imgs/howtostar.gif" alt="AppFlowy Github - how to star the repo" width="100%" /></p>
 
