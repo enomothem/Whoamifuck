@@ -73,29 +73,41 @@ chmod +x whoamifuck.sh
 ```
 ### 使用方法
 ```
-usage:  
+使用方法:                                                                    
 
-	 -v --version			版本信息
- 	 -h --help			帮助指南
-	 -l --login [FILEPATH]		用户登录信息
-	 -n --nomal			基本输出模式
-	 -a --all			全量输出模式
-	 -u --user-device		查看设备基本信息
-	 -x --process-and-servic	检查用户进程与开启服务状态
-	 -p --port			查看端口开放状态
-	 -s --os-status			查看系统状态信息
-	 -w --webshell [PATH]		查找可能存在的webshell文件
-	 -r --risk			查看系统可能存在的漏洞
-	 -k --rookitcheck		检测系统可能存在的后门
-	 -b --baseline			基线安全评估
-	 -c --httpstatuscode [URL|FILE]	页面存活探测
-	 -i --sqli-analysis [FILE]	日志分析-SQL注入专业分析
-	 -e --auto-run [0-23|c]		加入到定时运行计划
-	 -o --output [FILENAME]		导出全量输出模式文件
-	 -m --output-html [FILENAME]	导出全量输出模式文件
+        -v --version                   版本信息                                      
+        -h --help                      帮助指南                                      
+
+  QUICK                                                                            
+        -u --user-device               查看设备基本信息                          
+        -l --login [FILEPATH]          用户登录信息 [default:/var/log/secure;/var/log/auth.log]
+        -n --nomal                     基本输出模式                                
+        -a --all                       全量输出模式                                
+
+  SPECIAL                                                                          
+        -x --proc-serv                 检查用户进程与开启服务状态           
+        -p --port                      查看端口开放状态                          
+        -s --os-status                 查看系统状态信息                          
+
+  RISK                                                                             
+        -b --baseline                  基线安全评估                                
+        -r --risk                      查看系统可能存在的漏洞                 
+        -k --rookitcheck               检测系统可能存在的后门                 
+        -w --webshell [PATH]           查找可能存在的webshell文件 [default:/var/www/;/www/wwwroot/..]
+
+  MISC                                                                             
+        -c --code [URL|FILE]           页面存活探测                                
+        -i --sqletlog [FILE]           日志分析-SQL注入专业分析                
+        -e --auto-run [0-23|c]         加入到定时运行计划                       
+        -z --ext [PATH]                自定义命令配置测试 [default:~/.whok/chief-inspector.conf]
+
+  OUTPUT                                                                           
+        -o --output [FILENAME]         导出全量输出模式文件                    
+        -m --html [FILENAME]           导出全量输出模式HTML文件                
 
 ```
-![image](https://github.com/enomothem/Whoamifuck/assets/45089051/2a291854-2efa-485c-bd75-fe71a56d5b65)
+![image](https://github.com/user-attachments/assets/c724447f-4159-407b-b73c-9c5cac00dcf4)
+
 
 ### 关于用户登录排查的优化
 使用 `-l` 参数显示系统的用户登录信息。
@@ -189,6 +201,53 @@ sql注入分析起来非常的繁琐，索性直接自动化，而且做CTF题�
 ./whoamifuck -e c	# 清空所有whoamifuck定时任务
 ```
 ![image](https://github.com/enomothem/Whoamifuck/assets/45089051/4c4ff3cd-73f9-4111-b69f-d4992b1ef59c)
+
+### 优化：增加国产化系统的指纹
+国产系统，你们懂的，结果内核一识别，还是ubuntu，所以目前仅识别做得不错的国产系统。后面国产化牛逼了再慢慢加。
+![image](https://github.com/user-attachments/assets/ee3d29e6-085b-45b8-9944-9f70738d727c)
+可以发现，很多Linux默认的文件都找不到。
+
+### 新特性🎉：创建属于自己的命令脚本
+该想法由永恒之锋战队rvy提出，目的是让工具成为一个载体，让用户自己去定义一些根据自身经验总结出的命令配置到工具中。人人都可以将工具进行扩展命令，就行扩展武器库的POC一样，深度定制化，可扩展的一个工具才是好工具。
+> [!WARNING]
+> 扩展于全局只适用于默认路径下的配置文件。
+
+> [!NOTE]
+> 欢迎大家把自己的命令分享在ISSUE中，让大家讨论一下自己觉得最好用的命令。 [命令交流区](https://github.com/enomothem/Whoamifuck/issues/19)
+#### 配置文件结构
+配置文件共两个变量，一个控制开启或关闭同步到工具全局中，另一个则是自定义命令的数组。
+```
+EXT="false"
+commands=(
+	"COMMAND1;命令描述"
+	"COMMAND2;命令描述"
+)
+```
+- `EXT`参数作为控制控制的开关，决定自定义扩展的命令是否被加入Whoamifuck中，目前仅适配于Normal输出中。参数为false、true。
+- `commands`参数是一个字符串数组，可以添加属于你自己的命令，并对命令进行描述。命令和描述中级使用`;`作为分隔符，命令请不要带有`;`
+- `-z`参数作为测试自定义的命令是否正常。
+
+#### 方法一：手动创建
+目前配置文件生成方法有两种，一种是手动创建一个，然后添加参数指定路径，如`vim my_commands.conf`
+```
+./whoamifuck.sh -z my_commands.conf
+```
+![image](https://github.com/user-attachments/assets/8185ed22-bcac-4ca9-a628-aff0f789ec30)
+
+#### 方法二：自动生成
+还有一种方法，如果**第一次**使用`-z`功能，则会自动生成一个配置文件放置在默认路径下
+```
+./whoamifuck.sh -z
+```
+![image](https://github.com/user-attachments/assets/a63b5864-db07-44f6-a8cf-0ab127325030)
+
+但在默认配置中配置为`true`时，则会被同步到Normal打印中
+![image](https://github.com/user-attachments/assets/5c0cd4ee-672c-4f2f-9e80-ca9dc578e2da)
+
+### 优化：格式化帮助命令，进行分类，更加直观
+使用格式化，并对命令作了进一步的解释，将默认路径显示在描述中。
+![image](https://github.com/user-attachments/assets/6e85d484-0364-41c9-a8fa-05ff444d6d6e)
+
 
 ## ES_T0004 关注永恒之锋
 <p align="center">
