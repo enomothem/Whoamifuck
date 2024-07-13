@@ -106,7 +106,8 @@ chmod +x whoamifuck.sh
         -m --html [FILENAME]           导出全量输出模式HTML文件                
 
 ```
-![image](https://github.com/user-attachments/assets/c724447f-4159-407b-b73c-9c5cac00dcf4)
+![image](https://github.com/user-attachments/assets/afc8dc8f-c696-4b46-bf52-4fcc769a9ceb)
+
 
 
 ### 关于用户登录排查的优化
