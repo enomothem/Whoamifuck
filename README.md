@@ -196,11 +196,15 @@ sql注入分析起来非常的繁琐，索性直接自动化，而且做CTF题�
 ![image](https://github.com/enomothem/Whoamifuck/assets/45089051/afa478f7-7135-4311-8628-47bc7154502a)
 
 ### 新功能🎉：定时启动脚本生成报告
+备份、备份、备份，重要的事情说三遍！
+定时主要就是防止证据被消灭，最好将报告每日同步下来，省心。
 ```
 ./whoamifuck -e [0-23]  # 填入0到23其中一个时间点，默认为0时
 ./whoamifuck -e c	# 清空所有whoamifuck定时任务
 ```
 ![image](https://github.com/enomothem/Whoamifuck/assets/45089051/4c4ff3cd-73f9-4111-b69f-d4992b1ef59c)
+![image](https://github.com/user-attachments/assets/8bde6e5c-e355-46a1-9baf-2f1c78a63745)
+
 
 ### 优化：增加国产化系统的指纹
 国产系统，你们懂的，结果内核一识别，还是ubuntu，所以目前仅识别做得不错的国产系统。后面国产化牛逼了再慢慢加。
