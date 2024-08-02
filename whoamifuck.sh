@@ -8,21 +8,24 @@
 #        | Whoamifuck |
 # --------------------------------------
 
+function env
+{
+    # [ ++ 基本信息 ++ ]
+    VER="2024.8.1@whoamifuck-version 6.3.0"
+    WHOAMIFUCK=`whoami`
 
-# [ ++ 基本信息 ++ ]
-VER="2024.7.14@whoamifuck-version 6.2.0"
-WHOAMIFUCK=`whoami`
+    # [ ++ 默认路径 ++ ]
+    CONF_PATH="$HOME/.whok"
+    CONF_FILE="chief-inspector.conf"    # Conf File
+    OUTPUT="output"                     # Default Output
+    OUTPUT_M="output/html"              # Html Output Path
+    OUTPUT_T="output/text"              # Text Output Path
+    AUTHLOG_FILE="/var/log/auth.log"    # Ubuntu Path
+    SECURE_FILE="/var/log/secure"       # RedHat Path
+    COURIER="courier.html"              # Email file
+}
 
-# [ ++ 默认路径 ++ ]
-CONF_PATH="$HOME/.whok"
-CONF_FILE="chief-inspector.conf"    # Conf File
-OUTPUT="output"                     # Default Output
-OUTPUT_M="output/html"              # Html Output Path
-OUTPUT_T="output/text"
-AUTHLOG_FILE="/var/log/auth.log"    # Ubuntu Path
-SECURE_FILE="/var/log/secure" 	    # RedHat Path
-
-
+env
 
 # --------------------------------------
 #        | Function |
@@ -68,61 +71,63 @@ function logo
     echo
     echo
     hh="${reset}${green}<bug>${reset}${red}"
-    s="${reset}${redx}777 ${reset}${red}"
+    s="${reset}${redx}777${reset}${red}"
     r="${reset}${yellow}who!${reset}${red}"
+    x="${reset}${orange}root${reset}${red}"
     printf "${red} ██╗    ██╗██╗  ██╗ ██████╗  █████╗ ███╗   ███╗██╗    ███████╗██╗   ██╗ ██████╗██╗  ██╗ ${reset}\n"
-    printf "${red} ██║${s}██║██║  ██║██╔═══██╗██╔══██╗████╗ ████║██║    ██╔════╝██║   ██║██╔════╝██║ ██╔╝ ${reset}\n"
-    printf "${red} ██║ █╗ ██║███████║██║   ██║███████║██╔████╔██║██║    █████╗  ██║   ██║██║${hh}█████╔╝  ${reset}\n"
+    printf "${red} ██║${x}██║██║  ██║██╔═══██╗██╔══██╗████╗ ████║██║    ██╔════╝██║   ██║██╔════╝██║ ██╔╝ ${reset}\n"
+    printf "${red} ██║ █╗ ██║███████║██║${s}██║███████║██╔████╔██║██║    █████╗  ██║   ██║██║${hh}█████╔╝  ${reset}\n"
     printf "${red} ██║███╗██║██╔══██║██║   ██║██╔══██║██║╚██╔╝██║██║    ██╔══╝  ██║   ██║██║     ██╔═██╗  ${reset}\n"
     printf "${red} ╚███╔███╔╝██║  ██║╚██████╔╝██║  ██║██║ ╚═╝ ██║██║    ██║     ╚██████╔╝╚██████╗██║  ██╗ ${reset}\n"
     printf "${red}  ╚══╝╚══╝ ╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═╝╚═╝     ╚═╝╚═╝    ╚═╝ ${r} ╚═════╝  ╚═════╝╚═╝  ╚═╝ ${reset}\n"
-    printf "                             ${VER}           by ${blue}Enomothem${reset}\n"
+    printf "       Hi ${WHOAMIFUCK}          ${VER}          by \\\Eonian Sharp\\ -${blue} Enomothem${reset}     \n"
 
 }
 
 # [ ++ Function HELP_CN ++ ]
 function help_cn
 {
+    logo
     COL1_WIDTH=30
     COL2_WIDTH=50
 
     printf "%-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "使用方法:" ""
     printf "\n"
 
-    printf "\t%-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "-v --version"           "版本信息"
-    printf "\t%-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "-h --help"              "帮助指南"
+    printf "\t%-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "-v --version"                   "版本信息"
+    printf "\t%-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "-h --help"                      "帮助指南"
     printf "\n"
 
     printf "  %-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "QUICK" ""
-    printf "\t%-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "-u --user-device"       "查看设备基本信息"
-    printf "\t%-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "-l --login [FILEPATH]"  "用户登录信息 [default:/var/log/secure;/var/log/auth.log]"
-    printf "\t%-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "-n --nomal"             "基本输出模式"
-    printf "\t%-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "-a --all"               "全量输出模式"
+    printf "\t%-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "-u --user-device"               "查看设备基本信息"
+    printf "\t%-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "-l --login [FILEPATH]"          "用户登录信息 [default:/var/log/secure;/var/log/auth.log]"
+    printf "\t%-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "-n --nomal"                     "基本输出模式"
+    printf "\t%-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "-a --all"                       "全量输出模式"
     printf "\n"
 
     printf "  %-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "SPECIAL" ""
-    printf "\t%-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "-x --proc-serv"         "检查用户进程与开启服务状态"
-    printf "\t%-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "-p --port"              "查看端口开放状态"
-    printf "\t%-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "-s --os-status"         "查看系统状态信息"
+    printf "\t%-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "-x --proc-serv"                 "检查用户进程与开启服务状态"
+    printf "\t%-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "-p --port"                      "查看端口开放状态"
+    printf "\t%-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "-s --os-status"                 "查看系统状态信息"
     printf "\n"
 
     printf "  %-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "RISK" ""
-    printf "\t%-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "-b --baseline"          "基线安全评估"
-    printf "\t%-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "-r --risk"              "查看系统可能存在的漏洞"
-    printf "\t%-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "-k --rookitcheck"       "检测系统可能存在的后门"
-    printf "\t%-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "-w --webshell [PATH]"   "查找可能存在的webshell文件 [default:/var/www/;/www/wwwroot/..]"
+    printf "\t%-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "-b --baseline"                  "基线安全评估"
+    printf "\t%-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "-r --risk"                      "查看系统可能存在的漏洞"
+    printf "\t%-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "-k --rookitcheck"               "检测系统可能存在的后门"
+    printf "\t%-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "-w --webshell [PATH]"           "查找可能存在的webshell文件 [default:/var/www/;/www/wwwroot/..]"
     printf "\n"
 
     printf "  %-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "MISC" ""
-    printf "\t%-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "-c --code [URL|FILE]"   "页面存活探测"
-    printf "\t%-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "-i --sqletlog [FILE]"   "日志分析-SQL注入专业分析"
-    printf "\t%-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "-e --auto-run [0-23|c]" "加入到定时运行计划"
-    printf "\t%-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "-z --ext [PATH]"        "自定义命令配置测试 [default:~/.whok/chief-inspector.conf]"
+    printf "\t%-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "-c --code [URL|FILE]"           "页面存活探测"
+    printf "\t%-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "-i --sqletlog [FILE]"           "日志分析-SQL注入专业分析"
+    printf "\t%-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "-e --auto-run [0-23 0-59|c]"    "加入到定时运行计划 [default:~/.whok/chief-inspector.conf]"
+    printf "\t%-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "-z --ext [PATH]"                "自定义命令配置测试 [default:~/.whok/chief-inspector.conf]"
     printf "\n"
 
     printf "  %-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "OUTPUT" ""
-    printf "\t%-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "-o --output [FILENAME]" "导出全量输出模式文件"
-    printf "\t%-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "-m --html [FILENAME]"   "导出全量输出模式HTML文件"
+    printf "\t%-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "-o --output [FILENAME]"         "导出全量输出模式文件"
+    printf "\t%-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "-m --html [FILENAME]"           "导出全量输出模式HTML文件"
     printf "\n"
 }
 
@@ -136,40 +141,40 @@ function help_en
     printf "%-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "USAGE:" ""
     printf "\n"
 
-    printf "\t%-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "-v --version"           "Show version."
-    printf "\t%-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "-h --help"              "Show help guide."
+    printf "\t%-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "-v --version"                   "Show version."
+    printf "\t%-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "-h --help"                      "Show help guide."
     printf "\n"
 
     printf "  %-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "QUICK" ""
-    printf "\t%-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "-u --user-device"       "Check device information."
-    printf "\t%-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "-l --login [FILEPATH]"  "Show user login log. [default:/var/log/secure;/var/log/auth.log]"
-    printf "\t%-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "-n --nomal"             "Nomal print."
-    printf "\t%-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "-a --all"               "All print."
+    printf "\t%-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "-u --user-device"               "Check device information."
+    printf "\t%-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "-l --login [FILEPATH]"          "Show user login log. [default:/var/log/secure;/var/log/auth.log]"
+    printf "\t%-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "-n --nomal"                     "Nomal print."
+    printf "\t%-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "-a --all"                       "All print."
     printf "\n"
 
     printf "  %-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "SPECIAL" ""
-    printf "\t%-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "-x --proc-serv"         "Check service and process information."
-    printf "\t%-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "-p --port"              "Show port information."
-    printf "\t%-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "-s --os-status"         "Show os status information."
+    printf "\t%-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "-x --proc-serv"                 "Check service and process information."
+    printf "\t%-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "-p --port"                      "Show port information."
+    printf "\t%-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "-s --os-status"                 "Show os status information."
     printf "\n"
 
     printf "  %-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "RISK" ""
-    printf "\t%-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "-b --baseline"          "Baseline security assessment."
-    printf "\t%-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "-r --risk"              "Check os vulneribility."
-    printf "\t%-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "-k --rookitcheck"       "Check os rookit."
-    printf "\t%-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "-w --webshell [PATH]"   "Find the webshell file. [default:/var/www/;/www/wwwroot/..]"
+    printf "\t%-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "-b --baseline"                  "Baseline security assessment."
+    printf "\t%-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "-r --risk"                      "Check os vulneribility."
+    printf "\t%-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "-k --rookitcheck"               "Check os rookit."
+    printf "\t%-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "-w --webshell [PATH]"           "Find the webshell file. [default:/var/www/;/www/wwwroot/..]"
     printf "\n"
 
     printf "  %-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "MISC" ""
-    printf "\t%-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "-c --code [URL|FILE]"   "Http status code scan."
-    printf "\t%-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "-i --sqletlog [FILE]"   "Log Analysis - Professional Analysis of SQL Injection."
-    printf "\t%-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "-e --auto-run [0-23|c]" "Add to crontab to run regularly."
-    printf "\t%-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "-z --ext [PATH]"        "Custom command configuration tests. [default:./chief-inspector.conf]"
+    printf "\t%-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "-c --code [URL|FILE]"           "Http status code scan."
+    printf "\t%-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "-i --sqletlog [FILE]"           "Log Analysis - Professional Analysis of SQL Injection."
+    printf "\t%-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "-e --auto-run [0-23 0-59|c]"    "Add to crontab to run regularly. [default:~/.whok/chief-inspector.conf]"
+    printf "\t%-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "-z --ext [PATH]"                "Custom command configuration tests. [default:./.whok/chief-inspector.conf]"
     printf "\n"
 
     printf "  %-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "OUTPUT" ""
-    printf "\t%-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "-o --output [FILENAME]" "Output to file."
-    printf "\t%-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "-m --html [FILENAME]"   "Output to html file."
+    printf "\t%-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "-o --output [FILENAME]"         "Output to file."
+    printf "\t%-${COL1_WIDTH}s %-${COL2_WIDTH}s\n" "-m --html [FILENAME]"           "Output to html file."
     printf "\n"
 }
 
@@ -179,12 +184,14 @@ function help_en
 # --------------------------------------
 
 
-#      \|/     \|/     \|/     \|/     \|/     \|/     \|/      \|/
-# ////////////////////////////////////////////////////////////////////////
-# ////////////////////////////////////////////////////////////////////////
-#                                   /////    
-#                                   /////
-# ----------始于2021--------------入      口--------Whoamifuck 1.0 纪念馆------|
+#---------------------------------------------------------------------------------------
+#        /     /     /       /      /       /       /       /
+#       |     |     |       |      |       |       |       |
+# \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\^V3@$%
+# \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\^\^\^
+#                                  |/////|    
+#                                  |/////|
+# ==========始于2021=============>入      口<==========|Whoamifuck 1.0 纪念馆|==========\
 function user
 {
     if [ -e $AUTHLOG_FILE ]
@@ -233,11 +240,11 @@ function user
             printf "\n不存在默认文件,请指定该系统文件路径。\n\n"
     fi
 }
-# ----------始于2021--------------出      口---------------------------|
-#     \|/               \|/         /////      \|/      \|/
-#             \|/                   /////          \|/          \|/
-#      \|/        \|/    \|/        /////////////////////////////////////// -> 通往2025年
-
+# ==========始于2021=============>出      口<==========================================\
+#     \|/               \|/        |/////|     \|/     __ \|/      __
+#             \|/                  |/////|__     __ _\|/    _______    \|/
+#      \|/   __   \|/    \|/       |\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\/ -> 通往2025年 AI
+#---------------------------------------------------------------------------------------
 
 function user_debian
 {
@@ -357,6 +364,8 @@ function fk_command
         printf "$WAR curl 命令不存在将导致web存活模块无法使用。\n"
     fi
 }
+
+# [ ++ Check Command ++ ]
 function i
 {
     color
@@ -1183,7 +1192,6 @@ function fk_rookit_analysis
     echo "rkhunter 扫描结果已保存到 $RKHUNTER_RESULTS"
 }
 
-
 # [ ++ Function SQL_INJECTION_ANALYSIS ++ ]
 ## 日志分析-SQL注入分析专项
 function fk_sqlianalysis
@@ -1198,6 +1206,7 @@ function fk_sqlianalysis
     echo;echo
 }
 
+## 日志分析-SQL注入分析专项
 function fk_weblog_sqlianalysis
 {
 
@@ -1239,7 +1248,6 @@ function fk_weblog_sqlianalysis
 
 }
 
-
 # [ ++ Function AUTO_FUCK ++ ]
 ## 彩蛋：一键溯源（不是） 溯源思路
 function fk_autofuck
@@ -1267,14 +1275,53 @@ function fk_auto_run
     # path
     SCRIPT_DIR=$(cd "$(dirname "$0")"; pwd)
     DIR="${SCRIPT_DIR}/$(basename "$0")"
+    DIR_E="${SCRIPT_DIR}/courier"
+    EXT_FILE=$CONF_PATH/$CONF_FILE
+    OK_HTML=$OUTPUT_M/$COURIER
+
+    # 先判断配置文件是否存在，如果存在则进入用户自定义命令
+    if [ -f $EXT_FILE ]; then
+        printf "$OK 配置文件已找到，请正确配置文件${green}%s${reset}邮件信息！\n" "$EXT_FILE"
+        source $EXT_FILE 
+        if [ -z $EMAIL ] ; then
+            printf "$NO 未配置EMAIL开关。\n"
+            echo "EMAIL=\"false\"" >> $EXT_FILE
+            printf "$OK 已将EMAIL开关导入配置文件，默认关闭。\n"
+            EMAIL_STAT="$WAR 信使未开启。"
+        else
+            if [ $EMAIL = "true" ]; then
+                EMAIL_STAT="$SUC 信使已开启。"
+            elif [ $EMAIL = "false" ];then
+                EMAIL_STAT="$WAR 信使未开启。"
+            else
+                EMAIL_STAT="$WAR EMAIL配置错误，只能是true或false。"
+            fi
+    fi
+    else
+        printf "$ERR 配置文件%s未找到。\n" "$CONF_FILE"
+        mkdir -p $CONF_PATH
+        echo "EMAIL=\"false\"" > $EXT_FILE
+        echo "# 信使 - 邮箱配置，抄送CC可选"  >>$EXT_FILE
+        echo "FROM=\"Your Email\"" >>$EXT_FILE
+        echo "KEY=\"Your Email Auth Code\"" >>$EXT_FILE
+        echo "TO=\"to Email\"" >>$EXT_FILE
+        echo "CC=\"to Email\"" >>$EXT_FILE
+        echo "SERVER=\"Your Email SERVER\"" >>$EXT_FILE
+        printf "$OK 配置文件已生成，请前往配置文件${green}%s${reset}填写信息！\n" "$EXT_FILE"
+        source $EXT_FILE
+    fi
+
+    printf "$EMAIL_STAT\n"
 
     if [[ -z "$HOUR" ]]; then
         hour=0
+        printf "$INFO 可使用 -e c 清除whoamifuck的所有日志。\n"
+        printf "$INFO 可使用 -e 时 分 设置每天的执行时间（default: 0:0）。\n"
     else
         if [[ "$HOUR" == "c" ]]; then
             crontab -l 2>/dev/null | grep -v $DIR | crontab -
-            echo "清除成功"
-            printf "\n-------------crontab--------------\n"
+            printf "$SUC 清除成功\n\n"
+            echo -e "${cyan}------------- | ${reset}${purple}crontab${reset}${cyan} | --------------${reset}" 
             crontab -l
             exit 1
         else
@@ -1282,24 +1329,63 @@ function fk_auto_run
         fi
     fi
 
+    if [[ -z "$MINUTE" ]]; then
+        minute=0
+    else
+        if [[ "$HOUR" == "c" ]]; then
+            crontab -l 2>/dev/null | grep -v $DIR | crontab -
+            printf "$SUC 清除成功\n\n"
+            echo -e "${cyan}------------- | ${reset}${purple}crontab${reset}${cyan} | --------------${reset}" 
+            crontab -l
+            exit 1
+        else
+            minute=$MINUTE
+        fi
+    fi
+
     # 0-23时
     if ! [[ "$hour" =~ ^[0-9]+$ ]] || [ "$hour" -lt 0 ] || [ "$hour" -gt 23 ]; then
-        printf "$ERROR 请填写范围0到23小时之间的整数。\n"
+        printf "$ERR 请填写范围0到23小时之间的整数。\n"
+        exit 1
+    fi
+
+    # 0-59分
+    if ! [[ "$minute" =~ ^[0-9]+$ ]] || [ "$minute" -lt 0 ] || [ "$minute" -gt 59 ]; then
+        printf "$ERR 请填写范围0到59分钟之间的整数。\n"
         exit 1
     fi
 
     # 设置 cron 作业
-    (crontab -l 2>/dev/null; echo "0 $hour * * * $DIR -m") | crontab -
-
-    echo "Whoamifuck的计划任务日志模块将在每天 $hour:00 执行一次。"
-
-    printf "\n-------------crontab--------------\n"
+    if [[ "$EMAIL" == "false" ]] ; then
+        (crontab -l 2>/dev/null; echo "$minute $hour * * * $DIR -m") | crontab -
+    elif [[ "$EMAIL" == "true" ]] ; then
+        # 判断信使是否存在
+        if [ -f "courier" ]; then
+            printf "$SUC 信使已到达。\n"
+            # 是否抄送
+            if [ -z $CC ] ; then
+                (crontab -l 2>/dev/null; echo "$minute $hour * * * $DIR -m && $DIR_E -u $FROM -s $SERVER -t $TO -r $OK_HTML -k $KEY ") | crontab -
+            else
+                (crontab -l 2>/dev/null; echo "$minute $hour * * * $DIR -m && $DIR_E -u $FROM -s $SERVER -t $TO -r $OK_HTML -k $KEY -c $CC") | crontab -
+            fi
+        else
+            printf "$WAR 信使已失踪。\n"
+            (crontab -l 2>/dev/null; echo "$minute $hour * * * $DIR -m") | crontab -
+        fi
+    else
+        printf "$ERR 邮件配置错误。\n"
+    fi
+    printf "$INFO Whoamifuck的计划任务日志模块将在每天 $hour:$minute 执行一次。\n"
+    echo -e "${cyan}------------- | ${reset}${purple}crontab${reset}${cyan} | --------------${reset}" 
     crontab -l
+
+
+    # rm -f $OUTPUT/courier-*.html
 
 }
 
 # [ ++ Function EXTENTION_CMD ++ ]
-## 扩展命令
+## 扩展命令 - 属于你自己的工具
 function fk_extention
 {
     bar
@@ -1314,7 +1400,7 @@ function fk_extention
         EXT_FILE=$EXT_PATH
     fi
 
-    # 先判断配置文件是否存在，如过存在则进入用户自定义命令
+    # 先判断配置文件是否存在，如果存在则进入用户自定义命令
     if [ -f $EXT_FILE ]; then
         source $EXT_FILE
         if [ $EXT = "true" ]; then
@@ -1333,7 +1419,7 @@ function fk_extention
         done
     else
         printf "$ERR 配置文件%s未找到。\n" "$CONF_FILE"
-        mkdir -p ~/.whok
+        mkdir -p $CONF_PATH
         echo "EXT=\"false\"" > $EXT_FILE
         echo "# 以命令 + 描述的方式增加"  >>$EXT_FILE
         echo "commands=(" >>$EXT_FILE
@@ -1344,15 +1430,153 @@ function fk_extention
     
 }
 
+# [ ++ Function BINHASH_FILE ++ />m/ ]
+## 重点目录下的文件hash值
+function fk_hashfile
+{
+    # 定义要遍历的目录
+    dirs=("/usr/bin" "/usr/local/bin" "/bin")
+    HASH=""
+    # 遍历每个目录
+    for dir in "${dirs[@]}"; do
+    # 检查目录是否存在
+    if [ -d "$dir" ]; then
+        # 遍历目录中的每个文件
+        for file in "$dir"/*; do
+        # 检查文件是否存在并且是普通文件
+        if [ -f "$file" ]; then
+        # 计算文件的 MD5 哈希值并追加到变量中
+        HASH+=$(md5sum "$file")
+        HASH+=$'\n'
+        fi
+        done
+    fi
+    done
+}
+
+# [ ++ OPTIONS OUTPUT ++ ]
+## 打印文本输出 - text
+function fk_output
+{
+    # > 文本思路：Html仅用于较为短的查询，如日志超长达几十万条则推荐采用文本输出进行全量保持并使用自己喜爱的编辑器查看
+    color
+    bar
+    stats
+    fk_hashfile
+    
+    printf "%s\n" "$bar_repo_rest"
+
+    FILENAME=$OUT_NAME
+    mkdir -p $OUTPUT_T
+    
+    current_time=$(date "+%Y%m%d%H%M%S")
+    OUTPUT_DEFAULT=$OUTPUT/chief_output.txt
+    OUTPUT_OPTIONS=$OUTPUT/chief_$FILENAME
+
+    # --- | User Login | ---
+    userinfo=userlogin.txt
+    userloginfo=chief_userlogin_info.txt
+    userloginfo_all=chief_userlogin_info_all.txt
+    fk_userlogin > output/$userinfo
+    sed "s/\x1B\[[0-9;]*[JKmsu]//g" $OUTPUT/$userinfo > $OUTPUT/$userloginfo
+    rm -f $OUTPUT/$userinfo
+    userlogin=$(cat $OUTPUT/$userloginfo)
+
+    if [[ $OSTYPE == "T_Debian" ]]; then
+        $(cat $AUTHLOG_FILE 2>/dev/null| tail -20000 > $OUTPUT/$userloginfo_all)
+    else
+        $(cat $SECURE_FILE 2>/dev/null | tail -20000 > $OUTPUT/$userloginfo_all)
+    fi
+
+    # --- | History | ---
+    # current 这个失效
+    $(cat ~/.*sh_history > chief_history_current.txt ) 
+    # all users
+    who_history_file=chief_history_allusers.txt
+    $(> output/$who_history_file)
+    for userdir in /home/*; do
+        if [ -d "$userdir" ]; then
+            his_f=(".bash_history" ".zsh_history" ".csh_history" ".tcsh_history" ".fish_history")
+            for file in "${his_f[@]}"; do
+                if [ -f "$userdir/$file" ]; then
+                    echo "-------------| $userdir history | ----------------" >> output/$who_history_file
+                    cat  "$userdir/$file"  >> output/$who_history_file
+                fi
+            done
+        fi
+    done
+
+    # --- | Crontab | ---
+    cronpath="/var/spool/cron/"
+    crond_file="chief_crond.txt"
+    cron_file_spool="chief_cron_spool.txt"
+    # 这条也失效，不过命令展示可以看见
+    crontab -l 2>/dev/null > chief_crontab.txt
+    find "$cronpath" -type f -exec cat {} > $OUTPUT/$cron_file_spool \;
+    cat /etc/cron.*/* 2>/dev/null > $OUTPUT/$crond_file
+
+
+    # HASH
+
+    # 定义要遍历的目录
+    dirs=("/usr/bin" "/usr/local/bin" "/bin")
+    # 遍历每个目录
+    for dir in "${dirs[@]}"; do
+    # 检查目录是否存在
+    if [ -d "$dir" ]; then
+        # 遍历目录中的每个文件
+        for file in "$dir"/*; do
+        # 检查文件是否存在并且是普通文件
+        if [ -f "$file" ]; then
+        # 计算文件的 MD5 哈希值并追加到变量中
+        md5sum "$file" >> $OUTPUT/chief_binhashfile.txt
+        fi
+        done
+    fi
+    done
+
+
+    # --- | SSHPUBLICKEY FILE | ---
+    sshpubkey_outfile="chief_sshpublickey.txt"
+    SSHKEY_FILE="$HOME/.ssh/authorized_keys"
+    if [ -f $SSHKEY_FILE ]; then
+        cat $SSHKEY_FILE 2>/dev/null > $OUTPUT/$sshpubkey_outfile
+    else
+        status="no find file"
+    fi
+
+
+
+    # --- | OUTPUT - TEXT | ---
+
+    if [ -z "$FILENAME" ]; then
+        ./"$0" -n > output.txt
+        sed "s/\x1B\[[0-9;]*[JKmsu]//g" output.txt > $OUTPUT_DEFAULT
+        rm -f output.txt
+        tar -czf $OUTPUT_T/report-${current_time}.tar.gz $OUTPUT/chief_*
+        printf "\n$SUC 导出结果成功。路径：$OUTPUT_T/report-${current_time}.tar.gz\n"
+        rm -f $OUTPUT/chief_*
+    else
+        ./"$0" -n > "$FILENAME"
+        sed "s/\x1B\[[0-9;]*[JKmsu]//g" $FILENAME > $OUTPUT_OPTIONS
+        rm -f $FILENAME
+        tar -czf $OUTPUT_T/report-${current_time}.tar.gz $OUTPUT/chief_*
+        printf "\n$SUC 导出结果成功。路径：$OUTPUT_T/report-${current_time}.tar.gz\n"
+        rm -f $OUTPUT/chief_*
+    fi
+
+
+
+}
+
 # [ ++ Function REPORT_HTML ++ ]
 ## 打印报告 - html
 function fk_reporthtml
 {
     bar
-    mkdir -p $OUTPUT_M
-
-
+    fk_hashfile
     printf "%s\n" "$bar_repo_rest"
+    mkdir -p $OUTPUT_M
 
     current_time=$(date "+%Y%m%d%H%M%S")
     event_date=$(date "+%Y年%m月%d日 %H:%M:%S")
@@ -1417,7 +1641,7 @@ function fk_reporthtml
     cron_file="who_cron.txt"
     cron_file1="who_cron1.txt"
     crontab1_info=$(crontab -l 2>/dev/null)
-    find "$cronpath" -type f -exec cat {} > $OUTPUT/$cron_file1 \;
+    find "$cronpath" -type f -print0 | xargs -0 file --mime-type | grep -v 'application/' | awk -F: '{print $1}' | xargs cat > $OUTPUT/$cron_file1
     crontab2_info=$(cat $OUTPUT/$cron_file1 2>/dev/null | sed -e 's/</\&lt;/g; s/>/\&gt;/g' | tr -d '\0')
     cat /etc/cron.*/* 2>/dev/null >> $OUTPUT/$cron_file
     crontab3_info=$(cat $OUTPUT/$cron_file 2>/dev/null | sed -e 's/</\&lt;/g; s/>/\&gt;/g' | tr -d '\0')
@@ -1544,8 +1768,8 @@ function fk_reporthtml
     #                   HTML Report Format
     #                   Hi Whoamifuck 6.0
     # -----------------------------------------------------------
-
-    cat << EOF > $OUTPUT_M/$html_name
+ 
+    cat << EOF | tee $OUTPUT_M/$html_name $OUTPUT_M/$COURIER > /dev/null
     <!DOCTYPE html>
     <html lang="en">
     <head>
@@ -2183,9 +2407,17 @@ function fk_reporthtml
                     <span class="toggle-button" onclick="toggleBlock('profilehomeInfoBlock')">收起/展开</span><span class="toggle-button" id="backToTopButton" onclick="scrollToTop()">↑</span><span class="toggle-button" onclick="toggleAllBlocks()">A</span>
                     <div id="profilehomeBlockParent" class="code-block-container">
                         <div class="code-block" id="profilehomeInfoBlock">
-                        <pre>$env_homeprofile_info
-                        </pre>
+                        <pre>$env_homeprofile_info</pre>
                         </div>
+                    </div>
+                    <p class="t2">恶意文件排查：</p>
+                    <h5 class="t3">bin文件hash</h5>
+                    <span class="toggle-button" onclick="toggleBlock('hashInfoBlock')">收起/展开</span><span class="toggle-button" id="backToTopButton" onclick="scrollToTop()">↑</span><span class="toggle-button" onclick="toggleAllBlocks()">A</span>
+                    <div id="hashBlockParent" class="code-block-container">
+                        <div class="code-block" id="hashInfoBlock">
+                        <pre>$HASH</pre>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="section">
@@ -2589,91 +2821,6 @@ EOF
     rm -f $OUTPUT/who_*
 }
 
-# [ ++ OPTIONS OUTPUT ++ ]
-## 打印文本输出 - text
-function fk_output
-{
-    # > 文本思路：Html仅用于较为短的查询，如日志超长达几十万条则推荐采用文本输出进行全量保持并使用自己喜爱的编辑器查看
-    color
-    bar
-    stats
-    printf "%s\n" "$bar_repo_rest"
-
-    FILENAME=$OUT_NAME
-    mkdir -p $OUTPUT_T
-    
-    current_time=$(date "+%Y%m%d%H%M%S")
-    OUTPUT_DEFAULT=$OUTPUT/chief_output.txt
-    OUTPUT_OPTIONS=$OUTPUT/chief_$FILENAME
-
-    # --- | User Login | ---
-    userinfo=userlogin.txt
-    userloginfo=chief_userlogin_info.txt
-    userloginfo_all=chief_userlogin_info_all.txt
-    fk_userlogin > output/$userinfo
-    sed "s/\x1B\[[0-9;]*[JKmsu]//g" $OUTPUT/$userinfo > $OUTPUT/$userloginfo
-    rm -f $OUTPUT/$userinfo
-    userlogin=$(cat $OUTPUT/$userloginfo)
-
-    if [[ $OSTYPE == "T_Debian" ]]; then
-        $(cat $AUTHLOG_FILE 2>/dev/null| tail -20000 > $OUTPUT/$userloginfo_all)
-    else
-        $(cat $SECURE_FILE 2>/dev/null | tail -20000 > $OUTPUT/$userloginfo_all)
-    fi
-
-    # --- | History | ---
-    # current 这个失效
-    $(cat ~/.*sh_history > chief_history_current.txt ) 
-    # all users
-    who_history_file=chief_history_allusers.txt
-    $(> output/$who_history_file)
-    for userdir in /home/*; do
-        if [ -d "$userdir" ]; then
-            his_f=(".bash_history" ".zsh_history" ".csh_history" ".tcsh_history" ".fish_history")
-            for file in "${his_f[@]}"; do
-                if [ -f "$userdir/$file" ]; then
-                    echo "-------------| $userdir history | ----------------" >> output/$who_history_file
-                    cat  "$userdir/$file"  >> output/$who_history_file
-                fi
-            done
-        fi
-    done
-
-    # --- | Crontab | ---
-    cronpath="/var/spool/cron/"
-    crond_file="chief_crond.txt"
-    cron_file_spool="chief_cron_spool.txt"
-    # 这条也失效，不过命令展示可以看见
-    crontab -l 2>/dev/null > chief_crontab.txt
-    find "$cronpath" -type f -exec cat {} > $OUTPUT/$cron_file_spool \;
-    cat /etc/cron.*/* 2>/dev/null > $OUTPUT/$crond_file
-
-    # --- | SSHPUBLICKEY FILE | ---
-    sshpubkey_outfile="chief_sshpublickey.txt"
-    SSHKEY_FILE="$HOME/.ssh/authorized_keys"
-    if [ -f $SSHKEY_FILE ]; then
-        cat $SSHKEY_FILE 2>/dev/null > $OUTPUT/$sshpubkey_outfile
-    else
-        status="no find file"
-    fi
-
-    if [ -z "$FILENAME" ]; then
-        ./"$0" -n > output.txt
-        sed "s/\x1B\[[0-9;]*[JKmsu]//g" output.txt > $OUTPUT_DEFAULT
-        rm -f output.txt
-        tar -czf $OUTPUT_T/report-${current_time}.tar.gz $OUTPUT/chief_*
-        printf "\n$SUC 导出结果成功。路径：$OUTPUT_T/report-${current_time}.tar.gz\n"
-        rm -f $OUTPUT/chief_*
-    else
-        ./"$0" -n > "$FILENAME"
-        sed "s/\x1B\[[0-9;]*[JKmsu]//g" $FILENAME > $OUTPUT_OPTIONS
-        rm -f $FILENAME
-        tar -czf $OUTPUT_T/report-${current_time}.tar.gz $OUTPUT/chief_*
-        printf "\n$SUC 导出结果成功。路径：$OUTPUT_T/report-${current_time}.tar.gz\n"
-        rm -f $OUTPUT/chief_*
-    fi
-}
-
 # [ ++ OPTIONS PARAMETE ++ ]
 
 function fk_options
@@ -2691,8 +2838,8 @@ function fk_options
         -c | --code) LIST="$2"
             fk_http_scan "$LIST"
             ;;
-        -e | --auto-run) HOUR="$2"
-            fk_auto_run "$HOUR"
+        -e | --auto-run) HOUR="$2" MINUTE="$3"
+            fk_auto_run "$HOUR" "$MINUTE"
             ;;
         -h | --help)
             help_cn
@@ -2771,11 +2918,10 @@ function fk_main
     fi
 }
 
+###################
 fk_main "$@"
-
-
+###################
 
 # --------------------------------------
 #        | Futher |
 # --------------------------------------
-
