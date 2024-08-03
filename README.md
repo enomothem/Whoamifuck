@@ -9,9 +9,11 @@
 > 工具仅作为辅助，仅作为攻防技术学习交流，不可用于非法用途。下载则代表同意。
 
 ## ES_T0001 介绍
-<p>司稽（Whoamifuck或Chief-Inspector），永恒之锋发布的第一款开源工具，这是一款由shell编写的Linux应急响应脚本，能对基本的检查项进行输出和分析，并支持一些扩展的特色功能。</p>
+**司稽（Whoamifuck或Chief-Inspector）**，永恒之锋发布的第一款开源工具，这是一款由shell编写的Linux应急响应脚本，能对基本的检查项进行输出和分析，并支持一些扩展的特色功能。
 <p>该工具目前实现的功能基本满足了应急响应的基本需求，后续将加入更多的入侵检测点，并完善代码。如有新的功能建议，可提issue。</p>
 <p>为什么不使用python，因为python依赖多，版本差异大，shell原生支持，除个别少数shell语法不同，大部分unix，linux基本都支持bash shell。</p>
+
+**信使（courier）** 服务是永恒之锋开发的一款用于自动化邮件通知的客户端程序。配置信使服务可查看WIKI - [信使配置指南](https://github.com/enomothem/Whoamifuck/wiki/%E4%BF%A1%E4%BD%BF%E9%82%AE%E4%BB%B6%E9%80%9A%E7%9F%A5%E5%8A%9F%E8%83%BD%E9%85%8D%E7%BD%AE%E6%8C%87%E5%8D%97)
 
 > [!tip]
 > 凡是bug提交者，赋予漏洞编号，并在github更新追加贡献者 [WHOK-ID](https://github.com/enomothem/Whoamifuck/wiki/WHOK%E7%BC%96%E5%8F%B7%E5%88%97%E8%A1%A8)</p>
