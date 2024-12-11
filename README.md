@@ -5,7 +5,7 @@
 > **司稽，察留连不时去者** ——《周礼·司稽》  
 > 司稽作为地官的属官，其职责就是确保市场的正常运行和人员的有序流动，对于那些违反规定、扰乱市场秩序的行为进行及时的制止和处罚。
 
-> [!warning]
+> [!IMPORTANT]
 > 工具仅作为辅助，仅作为攻防技术学习交流，不可用于非法用途。下载则代表同意。
 
 ## ES_T0001 介绍
@@ -16,7 +16,8 @@
 **信使（courier）** 服务是永恒之锋开发的一款用于自动化邮件通知的客户端程序。配置信使服务可查看WIKI - [信使配置指南](https://github.com/enomothem/Whoamifuck/wiki/%E4%BF%A1%E4%BD%BF%E9%82%AE%E4%BB%B6%E9%80%9A%E7%9F%A5%E5%8A%9F%E8%83%BD%E9%85%8D%E7%BD%AE%E6%8C%87%E5%8D%97)
 
 > [!tip]
-> 凡是bug提交者，赋予漏洞编号，并在github更新追加贡献者 [WHOK-ID](https://github.com/enomothem/Whoamifuck/wiki/WHOK%E7%BC%96%E5%8F%B7%E5%88%97%E8%A1%A8)</p>
+> 凡是bug提交者，赋予漏洞编号，并在github更新追加贡献者 [WHOK-ID](https://github.com/enomothem/Whoamifuck/wiki/WHOK%E7%BC%96%E5%8F%B7%E5%88%97%E8%A1%A8)  
+> 开设司稽应急知识库，方便查阅相关知识点用于手工排查和学习。 [WHOK-WIKI](https://github.com/enomothem/Whoamifuck/wiki/)
 
 <p align="center"><img src="https://github.com/AppFlowy-IO/appflowy/blob/main/doc/imgs/howtostar.gif" alt="AppFlowy Github - how to star the repo" width="100%" /></p>
 
