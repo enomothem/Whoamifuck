@@ -13,6 +13,8 @@
 <p>该工具目前实现的功能基本满足了应急响应的基本需求，后续将加入更多的入侵检测点，并完善代码。如有新的功能建议，可提issue。</p>
 <p>为什么不使用python，因为python依赖多，版本差异大，shell原生支持，除个别少数shell语法不同，大部分unix，linux基本都支持bash shell。</p>
 
+<p align="center"><img src="https://github.com/user-attachments/assets/9e8bca3f-1c14-40b9-8689-4dd15750aa68" alt="AppFlowy Github - how to star the repo" width="300px" /></p>
+
 **信使（courier）** 服务是永恒之锋开发的一款用于自动化邮件通知的客户端程序。配置信使服务可查看WIKI - [信使配置指南](https://github.com/enomothem/Whoamifuck/wiki/%E4%BF%A1%E4%BD%BF%E9%82%AE%E4%BB%B6%E9%80%9A%E7%9F%A5%E5%8A%9F%E8%83%BD%E9%85%8D%E7%BD%AE%E6%8C%87%E5%8D%97)
 
 > [!tip]
