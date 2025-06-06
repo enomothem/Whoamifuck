@@ -11,8 +11,9 @@
 function env
 {
     # [ ++ 基本信息 ++ ]
-    VER="2024.8.1@whoamifuck-version 6.3.0"
+    VER="2025.6.6@whoamifuck-version 7.0.0"
     WHOAMIFUCK=`whoami`
+    FUCK=`who`
 
     # [ ++ 默认路径 ++ ]
     CONF_PATH="$HOME/.whok"
@@ -301,6 +302,7 @@ function bar
     bar_proc_port=`printf "${red}%50s${reset}" "[ 进程状态信息 ]"`
     bar_proc_serv=`printf "${red}%50s${reset}" "[ 服务状态信息 ]"`
     bar_file_move=`printf "${red}%50s${reset}" "[ 文件信息排查 ]"`
+    bar_file_info=`printf "${red}%50s${reset}" "[ 文件位置排查 ]"`
     bar_web_shell=`printf "${red}%50s${reset}" "[ webshell查找 ]"`
     bar_vuln_find=`printf "${red}%50s${reset}" "[ 常见漏洞评估 ]"`
     bar_base_line=`printf "${red}%50s${reset}" "[ 基线安全评估 ]"`
@@ -529,6 +531,8 @@ function fk_baseinfo
     TUN=`uptime | sed 's/user.*$//' | awk '{print $NF}'`
     M_TIME=`date +"%Y-%m-%d %H:%M:%S %s"`
     OSNAME_VER=`cat /etc/os-release | grep '^VERSION_ID=' | awk -F '=' '{print $2}' `
+    LAST=`last -i | head`
+    LASTLOG=`lastlog  | grep -v Never`
     # show
     os_name
     IP_C=`echo -e "${cyan}$IP${reset}"`
@@ -551,7 +555,16 @@ function fk_baseinfo
         printf "%-20s|\t%s\n" "系统版本" "$OS"
         printf "%-20s|\t%s\n" "系统内核" "$OSNAME_C"
         echo "------------------------------------------------------------------------------------------------------"
-        printf "%s%s" "此刻唯一时间戳[本地]: " "$M_TIME_C"
+        echo -e "${red}> 在线用户具体信息${reset}"
+        printf "$FUCK"
+        printf "\n------------------------------------------------------------------------------------------------------\n"
+        echo -e "${red}> 最近用户登录信息${reset}"
+        printf "$LAST"
+        printf "\n------------------------------------------------------------------------------------------------------\n"
+        echo -e "${red}> 用户最后登录信息${reset}"
+        printf "$LASTLOG"
+        printf "\n------------------------------------------------------------------------------------------------------"
+        printf "\n%s%s" "此刻唯一时间戳[本地]: " "$M_TIME_C"
         echo
     else
         noprint=$show
@@ -594,12 +607,69 @@ function fk_procserv
     echo
 }
 
+
+
 # [ ++ Function OPENPORT_INFORMATION ++ ]
 ## 开启端口列表
+function port_http
+{
+    color
+
+    # 获取本地开放的端口
+    open_ports=$(ss -tuln | awk '/LISTEN/ {print $1, $5}' | grep tcp | awk -F: '{print $NF}' | sort -u)
+
+    # 设置User-Agent
+    useragent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36"
+
+    # 设置超时时间
+    connect_timeout=5
+    max_time=10
+
+    # 已知非HTTP服务端口列表
+    non_http_ports=("3306" "22" "25" "139" "143" "465" "587" "993" "995" "3389" "445")
+
+    # 遍历每个端口，使用curl检查是否为HTTP服务
+    for port in $open_ports; do
+        # 跳过已知非HTTP服务端口
+        if [[ " ${non_http_ports[@]} " =~ " ${port} " ]]; then
+            # echo "Skipping non-HTTP port: $port"
+            continue
+        fi
+
+        url="http://localhost:$port"
+
+
+        # 发送HTTP请求并获取响应
+        response=$(curl -k -A "${useragent}" --connect-timeout ${connect_timeout} --max-time ${max_time} --silent --location --write-out "HTTPSTATUS:%{http_code}" --max-redirs 10 "${url}" 2>/dev/null)
+        http_code=$(echo "$response" | tr -d '\n' | sed -e 's/.*HTTPSTATUS://')
+        response_body=$(echo "$response" | sed -e 's/HTTPSTATUS\:.*//g')
+
+        # 检查是否为HTTP服务
+        if [ "$http_code" -eq 000 ]; then
+            continue
+        fi
+
+        # 检查是否为302跳转
+        if [ "$http_code" -eq 302 ]; then
+            redirect_url=$(echo "$response_body" | grep -oP '(?<=Location: ).*' | head -n 1)
+            echo "Redirected to: $redirect_url"
+        fi
+
+        title=$(echo "$response_body" | grep -oP '(?<=<title>).*?(?=</title>)')
+        bytes=$(echo -n "$response_body" | wc -c)
+        
+
+        # 输出结果
+        echo -e "[INFO] ${url} [${http_code}] [${bytes}] [${purple}${title}${reset}]" | tee -a output/http_info.txt
+    done
+}
+
 function fk_portstatus
 {
     # 考虑没有net-tools工具包的情况
-    if command -v netstat > /dev/null; then
+    # netstat 和 lsof 一起判断
+    
+    if command -v netstat > /dev/null && command -v lsof > /dev/null; then
         PORT=`netstat -tunlp | awk '/^tcp/ {print $4,$7}; /^udp/ {print $4,$6}' | sed -r 's/.*:(.*)\/.*/\1/' | sort -un | awk '{cmd = "sudo lsof -w -i :" $1 " | awk '\''NR==2{print $1}'\''"; cmd | getline serviceName; close(cmd); print $1 "\t" serviceName}'`
     else
         PORT=`ss -tulpn`
@@ -608,7 +678,14 @@ function fk_portstatus
     echo
     printf "%s\n" "$bar_port_open"
     echo
+    echo -e "${red}>端口服务信息${reset}"
     printf "%s\n" "$PORT"
+    echo
+    echo -e "${red}>探测HTTP服务端口${reset}"
+    port_http
+
+
+
 }
 
 # [ ++ Function HISTORY_INFORMSTION ++ ]
@@ -644,6 +721,47 @@ function fk_crontab
     echo
     printf "%s" "$CRON"
     echo
+}
+
+# [ ++ Function FILE ++ ]
+## 异常文件排查
+function fk_network
+{ 
+    color
+
+    # 定义要检查的目录
+    DIRECTORIES=("/home" "/opt" "/tmp")
+
+    # 初始化一个变量来存储所有输出
+    output=""
+
+    # 遍历每个目录
+    for dir in "${DIRECTORIES[@]}"; do
+        output+="${green}列出 $dir 下的文件和目录：${reset}\n"
+        if [ -d "$dir" ]; then
+            for user_dir in "$dir"/*/; do
+                output+="${green}目录：${reset}${user_dir}\n"
+                output+="$(ls -lt "${user_dir}" | head -n 10)\n"
+            done
+        else
+            output+="${red}目录 $dir 不存在。${reset}\n"
+        fi
+    done
+
+    echo
+    stats
+    bar
+
+    if [ -z $show ]; then
+        echo -e "$bar_file_info"
+        echo
+        printf "$OK 常见目录下的文件\n"
+        echo "-----------------" 
+        echo -e "$output"
+        echo
+    else
+        noprint=$show
+    fi
 }
 
 # [ ++ Function FILEMOVE_INFORMSTION ++ ]
@@ -856,6 +974,1455 @@ function fk_wsfinder
 
 # [ ++ Function Vulneribility_Check ++ ]
 ## 漏洞检查
+
+# https://github.com/aishee/scan-dirtycow/blob/master/dirtycowscan.sh 老哥的脚本
+function dirty_cow
+{
+    color
+    SAFE_KERNEL="SAFE_KERNEL"
+    SAFE_KPATCH="SAFE_KPATCH"
+    MITIGATED="MITIGATED"
+    VULNERABLE="VULNERABLE"
+
+    MITIGATION_ON='CVE-2016-5195 mitigation loaded'
+    MITIGATION_OFF='CVE-2016-5195 mitigation unloaded'
+
+
+    VULNERABLE_VERSIONS=(
+        # UBUNTU PRECISE
+        "3.1.1-1400-linaro-lt-mx5"
+        "3.11.0-13-generic"
+        "3.11.0-14-generic"
+        "3.11.0-15-generic"
+        "3.11.0-17-generic"
+        "3.11.0-18-generic"
+        "3.11.0-20-generic"
+        "3.11.0-22-generic"
+        "3.11.0-23-generic"
+        "3.11.0-24-generic"
+        "3.11.0-26-generic"
+        "3.13.0-100-generic"
+        "3.13.0-24-generic"
+        "3.13.0-27-generic"
+        "3.13.0-29-generic"
+        "3.13.0-30-generic"
+        "3.13.0-32-generic"
+        "3.13.0-33-generic"
+        "3.13.0-34-generic"
+        "3.13.0-35-generic"
+        "3.13.0-36-generic"
+        "3.13.0-37-generic"
+        "3.13.0-39-generic"
+        "3.13.0-40-generic"
+        "3.13.0-41-generic"
+        "3.13.0-43-generic"
+        "3.13.0-44-generic"
+        "3.13.0-46-generic"
+        "3.13.0-48-generic"
+        "3.13.0-49-generic"
+        "3.13.0-51-generic"
+        "3.13.0-52-generic"
+        "3.13.0-53-generic"
+        "3.13.0-54-generic"
+        "3.13.0-55-generic"
+        "3.13.0-57-generic"
+        "3.13.0-58-generic"
+        "3.13.0-59-generic"
+        "3.13.0-61-generic"
+        "3.13.0-62-generic"
+        "3.13.0-63-generic"
+        "3.13.0-65-generic"
+        "3.13.0-66-generic"
+        "3.13.0-67-generic"
+        "3.13.0-68-generic"
+        "3.13.0-71-generic"
+        "3.13.0-73-generic"
+        "3.13.0-74-generic"
+        "3.13.0-76-generic"
+        "3.13.0-77-generic"
+        "3.13.0-79-generic"
+        "3.13.0-83-generic"
+        "3.13.0-85-generic"
+        "3.13.0-86-generic"
+        "3.13.0-88-generic"
+        "3.13.0-91-generic"
+        "3.13.0-92-generic"
+        "3.13.0-93-generic"
+        "3.13.0-95-generic"
+        "3.13.0-96-generic"
+        "3.13.0-98-generic"
+        "3.2.0-101-generic"
+        "3.2.0-101-generic-pae"
+        "3.2.0-101-virtual"
+        "3.2.0-102-generic"
+        "3.2.0-102-generic-pae"
+        "3.2.0-102-virtual"
+        "3.2.0-104-generic"
+        "3.2.0-104-generic-pae"
+        "3.2.0-104-virtual"
+        "3.2.0-105-generic"
+        "3.2.0-105-generic-pae"
+        "3.2.0-105-virtual"
+        "3.2.0-106-generic"
+        "3.2.0-106-generic-pae"
+        "3.2.0-106-virtual"
+        "3.2.0-107-generic"
+        "3.2.0-107-generic-pae"
+        "3.2.0-107-virtual"
+        "3.2.0-109-generic"
+        "3.2.0-109-generic-pae"
+        "3.2.0-109-virtual"
+        "3.2.0-110-generic"
+        "3.2.0-110-generic-pae"
+        "3.2.0-110-virtual"
+        "3.2.0-111-generic"
+        "3.2.0-111-generic-pae"
+        "3.2.0-111-virtual"
+        "3.2.0-1412-omap4"
+        "3.2.0-1602-armadaxp"
+        "3.2.0-23-generic"
+        "3.2.0-23-generic-pae"
+        "3.2.0-23-lowlatency"
+        "3.2.0-23-lowlatency-pae"
+        "3.2.0-23-omap"
+        "3.2.0-23-powerpc-smp"
+        "3.2.0-23-powerpc64-smp"
+        "3.2.0-23-virtual"
+        "3.2.0-24-generic"
+        "3.2.0-24-generic-pae"
+        "3.2.0-24-virtual"
+        "3.2.0-25-generic"
+        "3.2.0-25-generic-pae"
+        "3.2.0-25-virtual"
+        "3.2.0-26-generic"
+        "3.2.0-26-generic-pae"
+        "3.2.0-26-virtual"
+        "3.2.0-27-generic"
+        "3.2.0-27-generic-pae"
+        "3.2.0-27-virtual"
+        "3.2.0-29-generic"
+        "3.2.0-29-generic-pae"
+        "3.2.0-29-virtual"
+        "3.2.0-31-generic"
+        "3.2.0-31-generic-pae"
+        "3.2.0-31-virtual"
+        "3.2.0-32-generic"
+        "3.2.0-32-generic-pae"
+        "3.2.0-32-virtual"
+        "3.2.0-33-generic"
+        "3.2.0-33-generic-pae"
+        "3.2.0-33-lowlatency"
+        "3.2.0-33-lowlatency-pae"
+        "3.2.0-33-virtual"
+        "3.2.0-34-generic"
+        "3.2.0-34-generic-pae"
+        "3.2.0-34-virtual"
+        "3.2.0-35-generic"
+        "3.2.0-35-generic-pae"
+        "3.2.0-35-lowlatency"
+        "3.2.0-35-lowlatency-pae"
+        "3.2.0-35-virtual"
+        "3.2.0-36-generic"
+        "3.2.0-36-generic-pae"
+        "3.2.0-36-lowlatency"
+        "3.2.0-36-lowlatency-pae"
+        "3.2.0-36-virtual"
+        "3.2.0-37-generic"
+        "3.2.0-37-generic-pae"
+        "3.2.0-37-lowlatency"
+        "3.2.0-37-lowlatency-pae"
+        "3.2.0-37-virtual"
+        "3.2.0-38-generic"
+        "3.2.0-38-generic-pae"
+        "3.2.0-38-lowlatency"
+        "3.2.0-38-lowlatency-pae"
+        "3.2.0-38-virtual"
+        "3.2.0-39-generic"
+        "3.2.0-39-generic-pae"
+        "3.2.0-39-lowlatency"
+        "3.2.0-39-lowlatency-pae"
+        "3.2.0-39-virtual"
+        "3.2.0-40-generic"
+        "3.2.0-40-generic-pae"
+        "3.2.0-40-lowlatency"
+        "3.2.0-40-lowlatency-pae"
+        "3.2.0-40-virtual"
+        "3.2.0-41-generic"
+        "3.2.0-41-generic-pae"
+        "3.2.0-41-lowlatency"
+        "3.2.0-41-lowlatency-pae"
+        "3.2.0-41-virtual"
+        "3.2.0-43-generic"
+        "3.2.0-43-generic-pae"
+        "3.2.0-43-virtual"
+        "3.2.0-44-generic"
+        "3.2.0-44-generic-pae"
+        "3.2.0-44-lowlatency"
+        "3.2.0-44-lowlatency-pae"
+        "3.2.0-44-virtual"
+        "3.2.0-45-generic"
+        "3.2.0-45-generic-pae"
+        "3.2.0-45-virtual"
+        "3.2.0-48-generic"
+        "3.2.0-48-generic-pae"
+        "3.2.0-48-lowlatency"
+        "3.2.0-48-lowlatency-pae"
+        "3.2.0-48-virtual"
+        "3.2.0-51-generic"
+        "3.2.0-51-generic-pae"
+        "3.2.0-51-lowlatency"
+        "3.2.0-51-lowlatency-pae"
+        "3.2.0-51-virtual"
+        "3.2.0-52-generic"
+        "3.2.0-52-generic-pae"
+        "3.2.0-52-lowlatency"
+        "3.2.0-52-lowlatency-pae"
+        "3.2.0-52-virtual"
+        "3.2.0-53-generic"
+        "3.2.0-53-generic-pae"
+        "3.2.0-53-lowlatency"
+        "3.2.0-53-lowlatency-pae"
+        "3.2.0-53-virtual"
+        "3.2.0-54-generic"
+        "3.2.0-54-generic-pae"
+        "3.2.0-54-lowlatency"
+        "3.2.0-54-lowlatency-pae"
+        "3.2.0-54-virtual"
+        "3.2.0-55-generic"
+        "3.2.0-55-generic-pae"
+        "3.2.0-55-lowlatency"
+        "3.2.0-55-lowlatency-pae"
+        "3.2.0-55-virtual"
+        "3.2.0-56-generic"
+        "3.2.0-56-generic-pae"
+        "3.2.0-56-lowlatency"
+        "3.2.0-56-lowlatency-pae"
+        "3.2.0-56-virtual"
+        "3.2.0-57-generic"
+        "3.2.0-57-generic-pae"
+        "3.2.0-57-lowlatency"
+        "3.2.0-57-lowlatency-pae"
+        "3.2.0-57-virtual"
+        "3.2.0-58-generic"
+        "3.2.0-58-generic-pae"
+        "3.2.0-58-lowlatency"
+        "3.2.0-58-lowlatency-pae"
+        "3.2.0-58-virtual"
+        "3.2.0-59-generic"
+        "3.2.0-59-generic-pae"
+        "3.2.0-59-lowlatency"
+        "3.2.0-59-lowlatency-pae"
+        "3.2.0-59-virtual"
+        "3.2.0-60-generic"
+        "3.2.0-60-generic-pae"
+        "3.2.0-60-lowlatency"
+        "3.2.0-60-lowlatency-pae"
+        "3.2.0-60-virtual"
+        "3.2.0-61-generic"
+        "3.2.0-61-generic-pae"
+        "3.2.0-61-virtual"
+        "3.2.0-63-generic"
+        "3.2.0-63-generic-pae"
+        "3.2.0-63-lowlatency"
+        "3.2.0-63-lowlatency-pae"
+        "3.2.0-63-virtual"
+        "3.2.0-64-generic"
+        "3.2.0-64-generic-pae"
+        "3.2.0-64-lowlatency"
+        "3.2.0-64-lowlatency-pae"
+        "3.2.0-64-virtual"
+        "3.2.0-65-generic"
+        "3.2.0-65-generic-pae"
+        "3.2.0-65-lowlatency"
+        "3.2.0-65-lowlatency-pae"
+        "3.2.0-65-virtual"
+        "3.2.0-67-generic"
+        "3.2.0-67-generic-pae"
+        "3.2.0-67-lowlatency"
+        "3.2.0-67-lowlatency-pae"
+        "3.2.0-67-virtual"
+        "3.2.0-68-generic"
+        "3.2.0-68-generic-pae"
+        "3.2.0-68-lowlatency"
+        "3.2.0-68-lowlatency-pae"
+        "3.2.0-68-virtual"
+        "3.2.0-69-generic"
+        "3.2.0-69-generic-pae"
+        "3.2.0-69-lowlatency"
+        "3.2.0-69-lowlatency-pae"
+        "3.2.0-69-virtual"
+        "3.2.0-70-generic"
+        "3.2.0-70-generic-pae"
+        "3.2.0-70-lowlatency"
+        "3.2.0-70-lowlatency-pae"
+        "3.2.0-70-virtual"
+        "3.2.0-72-generic"
+        "3.2.0-72-generic-pae"
+        "3.2.0-72-lowlatency"
+        "3.2.0-72-lowlatency-pae"
+        "3.2.0-72-virtual"
+        "3.2.0-73-generic"
+        "3.2.0-73-generic-pae"
+        "3.2.0-73-lowlatency"
+        "3.2.0-73-lowlatency-pae"
+        "3.2.0-73-virtual"
+        "3.2.0-74-generic"
+        "3.2.0-74-generic-pae"
+        "3.2.0-74-lowlatency"
+        "3.2.0-74-lowlatency-pae"
+        "3.2.0-74-virtual"
+        "3.2.0-75-generic"
+        "3.2.0-75-generic-pae"
+        "3.2.0-75-lowlatency"
+        "3.2.0-75-lowlatency-pae"
+        "3.2.0-75-virtual"
+        "3.2.0-76-generic"
+        "3.2.0-76-generic-pae"
+        "3.2.0-76-lowlatency"
+        "3.2.0-76-lowlatency-pae"
+        "3.2.0-76-virtual"
+        "3.2.0-77-generic"
+        "3.2.0-77-generic-pae"
+        "3.2.0-77-lowlatency"
+        "3.2.0-77-lowlatency-pae"
+        "3.2.0-77-virtual"
+        "3.2.0-79-generic"
+        "3.2.0-79-generic-pae"
+        "3.2.0-79-lowlatency"
+        "3.2.0-79-lowlatency-pae"
+        "3.2.0-79-virtual"
+        "3.2.0-80-generic"
+        "3.2.0-80-generic-pae"
+        "3.2.0-80-lowlatency"
+        "3.2.0-80-lowlatency-pae"
+        "3.2.0-80-virtual"
+        "3.2.0-82-generic"
+        "3.2.0-82-generic-pae"
+        "3.2.0-82-lowlatency"
+        "3.2.0-82-lowlatency-pae"
+        "3.2.0-82-virtual"
+        "3.2.0-83-generic"
+        "3.2.0-83-generic-pae"
+        "3.2.0-83-virtual"
+        "3.2.0-84-generic"
+        "3.2.0-84-generic-pae"
+        "3.2.0-84-virtual"
+        "3.2.0-85-generic"
+        "3.2.0-85-generic-pae"
+        "3.2.0-85-virtual"
+        "3.2.0-86-generic"
+        "3.2.0-86-generic-pae"
+        "3.2.0-86-virtual"
+        "3.2.0-87-generic"
+        "3.2.0-87-generic-pae"
+        "3.2.0-87-virtual"
+        "3.2.0-88-generic"
+        "3.2.0-88-generic-pae"
+        "3.2.0-88-virtual"
+        "3.2.0-89-generic"
+        "3.2.0-89-generic-pae"
+        "3.2.0-89-virtual"
+        "3.2.0-90-generic"
+        "3.2.0-90-generic-pae"
+        "3.2.0-90-virtual"
+        "3.2.0-91-generic"
+        "3.2.0-91-generic-pae"
+        "3.2.0-91-virtual"
+        "3.2.0-92-generic"
+        "3.2.0-92-generic-pae"
+        "3.2.0-92-virtual"
+        "3.2.0-93-generic"
+        "3.2.0-93-generic-pae"
+        "3.2.0-93-virtual"
+        "3.2.0-94-generic"
+        "3.2.0-94-generic-pae"
+        "3.2.0-94-virtual"
+        "3.2.0-95-generic"
+        "3.2.0-95-generic-pae"
+        "3.2.0-95-virtual"
+        "3.2.0-96-generic"
+        "3.2.0-96-generic-pae"
+        "3.2.0-96-virtual"
+        "3.2.0-97-generic"
+        "3.2.0-97-generic-pae"
+        "3.2.0-97-virtual"
+        "3.2.0-98-generic"
+        "3.2.0-98-generic-pae"
+        "3.2.0-98-virtual"
+        "3.2.0-99-generic"
+        "3.2.0-99-generic-pae"
+        "3.2.0-99-virtual"
+        "3.5.0-40-generic"
+        "3.5.0-41-generic"
+        "3.5.0-42-generic"
+        "3.5.0-43-generic"
+        "3.5.0-44-generic"
+        "3.5.0-45-generic"
+        "3.5.0-46-generic"
+        "3.5.0-49-generic"
+        "3.5.0-51-generic"
+        "3.5.0-52-generic"
+        "3.5.0-54-generic"
+        "3.8.0-19-generic"
+        "3.8.0-21-generic"
+        "3.8.0-22-generic"
+        "3.8.0-23-generic"
+        "3.8.0-27-generic"
+        "3.8.0-29-generic"
+        "3.8.0-30-generic"
+        "3.8.0-31-generic"
+        "3.8.0-32-generic"
+        "3.8.0-33-generic"
+        "3.8.0-34-generic"
+        "3.8.0-35-generic"
+        "3.8.0-36-generic"
+        "3.8.0-37-generic"
+        "3.8.0-38-generic"
+        "3.8.0-39-generic"
+        "3.8.0-41-generic"
+        "3.8.0-42-generic"
+
+        # Ubuntu Trusty
+        "3.13.0-24-generic"
+        "3.13.0-24-generic-lpae"
+        "3.13.0-24-lowlatency"
+        "3.13.0-24-powerpc-e500"
+        "3.13.0-24-powerpc-e500mc"
+        "3.13.0-24-powerpc-smp"
+        "3.13.0-24-powerpc64-emb"
+        "3.13.0-24-powerpc64-smp"
+        "3.13.0-27-generic"
+        "3.13.0-27-lowlatency"
+        "3.13.0-29-generic"
+        "3.13.0-29-lowlatency"
+        "3.13.0-3-exynos5"
+        "3.13.0-30-generic"
+        "3.13.0-30-lowlatency"
+        "3.13.0-32-generic"
+        "3.13.0-32-lowlatency"
+        "3.13.0-33-generic"
+        "3.13.0-33-lowlatency"
+        "3.13.0-34-generic"
+        "3.13.0-34-lowlatency"
+        "3.13.0-35-generic"
+        "3.13.0-35-lowlatency"
+        "3.13.0-36-generic"
+        "3.13.0-36-lowlatency"
+        "3.13.0-37-generic"
+        "3.13.0-37-lowlatency"
+        "3.13.0-39-generic"
+        "3.13.0-39-lowlatency"
+        "3.13.0-40-generic"
+        "3.13.0-40-lowlatency"
+        "3.13.0-41-generic"
+        "3.13.0-41-lowlatency"
+        "3.13.0-43-generic"
+        "3.13.0-43-lowlatency"
+        "3.13.0-44-generic"
+        "3.13.0-44-lowlatency"
+        "3.13.0-46-generic"
+        "3.13.0-46-lowlatency"
+        "3.13.0-48-generic"
+        "3.13.0-48-lowlatency"
+        "3.13.0-49-generic"
+        "3.13.0-49-lowlatency"
+        "3.13.0-51-generic"
+        "3.13.0-51-lowlatency"
+        "3.13.0-52-generic"
+        "3.13.0-52-lowlatency"
+        "3.13.0-53-generic"
+        "3.13.0-53-lowlatency"
+        "3.13.0-54-generic"
+        "3.13.0-54-lowlatency"
+        "3.13.0-55-generic"
+        "3.13.0-55-lowlatency"
+        "3.13.0-57-generic"
+        "3.13.0-57-lowlatency"
+        "3.13.0-58-generic"
+        "3.13.0-58-lowlatency"
+        "3.13.0-59-generic"
+        "3.13.0-59-lowlatency"
+        "3.13.0-61-generic"
+        "3.13.0-61-lowlatency"
+        "3.13.0-62-generic"
+        "3.13.0-62-lowlatency"
+        "3.13.0-63-generic"
+        "3.13.0-63-lowlatency"
+        "3.13.0-65-generic"
+        "3.13.0-65-lowlatency"
+        "3.13.0-66-generic"
+        "3.13.0-66-lowlatency"
+        "3.13.0-67-generic"
+        "3.13.0-67-lowlatency"
+        "3.13.0-68-generic"
+        "3.13.0-68-lowlatency"
+        "3.13.0-70-generic"
+        "3.13.0-70-lowlatency"
+        "3.13.0-71-generic"
+        "3.13.0-71-lowlatency"
+        "3.13.0-73-generic"
+        "3.13.0-73-lowlatency"
+        "3.13.0-74-generic"
+        "3.13.0-74-lowlatency"
+        "3.13.0-76-generic"
+        "3.13.0-76-lowlatency"
+        "3.13.0-77-generic"
+        "3.13.0-77-lowlatency"
+        "3.13.0-79-generic"
+        "3.13.0-79-lowlatency"
+        "3.13.0-83-generic"
+        "3.13.0-83-lowlatency"
+        "3.13.0-85-generic"
+        "3.13.0-85-lowlatency"
+        "3.13.0-86-generic"
+        "3.13.0-86-lowlatency"
+        "3.13.0-87-generic"
+        "3.13.0-87-lowlatency"
+        "3.13.0-88-generic"
+        "3.13.0-88-lowlatency"
+        "3.13.0-91-generic"
+        "3.13.0-91-lowlatency"
+        "3.13.0-92-generic"
+        "3.13.0-92-lowlatency"
+        "3.13.0-93-generic"
+        "3.13.0-93-lowlatency"
+        "3.13.0-95-generic"
+        "3.13.0-95-lowlatency"
+        "3.13.0-96-generic"
+        "3.13.0-96-lowlatency"
+        "3.13.0-98-generic"
+        "3.13.0-98-lowlatency"
+        "3.16.0-25-generic"
+        "3.16.0-25-lowlatency"
+        "3.16.0-26-generic"
+        "3.16.0-26-lowlatency"
+        "3.16.0-28-generic"
+        "3.16.0-28-lowlatency"
+        "3.16.0-29-generic"
+        "3.16.0-29-lowlatency"
+        "3.16.0-31-generic"
+        "3.16.0-31-lowlatency"
+        "3.16.0-33-generic"
+        "3.16.0-33-lowlatency"
+        "3.16.0-34-generic"
+        "3.16.0-34-lowlatency"
+        "3.16.0-36-generic"
+        "3.16.0-36-lowlatency"
+        "3.16.0-37-generic"
+        "3.16.0-37-lowlatency"
+        "3.16.0-38-generic"
+        "3.16.0-38-lowlatency"
+        "3.16.0-39-generic"
+        "3.16.0-39-lowlatency"
+        "3.16.0-41-generic"
+        "3.16.0-41-lowlatency"
+        "3.16.0-43-generic"
+        "3.16.0-43-lowlatency"
+        "3.16.0-44-generic"
+        "3.16.0-44-lowlatency"
+        "3.16.0-45-generic"
+        "3.16.0-45-lowlatency"
+        "3.16.0-46-generic"
+        "3.16.0-46-lowlatency"
+        "3.16.0-48-generic"
+        "3.16.0-48-lowlatency"
+        "3.16.0-49-generic"
+        "3.16.0-49-lowlatency"
+        "3.16.0-50-generic"
+        "3.16.0-50-lowlatency"
+        "3.16.0-51-generic"
+        "3.16.0-51-lowlatency"
+        "3.16.0-52-generic"
+        "3.16.0-52-lowlatency"
+        "3.16.0-53-generic"
+        "3.16.0-53-lowlatency"
+        "3.16.0-55-generic"
+        "3.16.0-55-lowlatency"
+        "3.16.0-56-generic"
+        "3.16.0-56-lowlatency"
+        "3.16.0-57-generic"
+        "3.16.0-57-lowlatency"
+        "3.16.0-59-generic"
+        "3.16.0-59-lowlatency"
+        "3.16.0-60-generic"
+        "3.16.0-60-lowlatency"
+        "3.16.0-62-generic"
+        "3.16.0-62-lowlatency"
+        "3.16.0-67-generic"
+        "3.16.0-67-lowlatency"
+        "3.16.0-69-generic"
+        "3.16.0-69-lowlatency"
+        "3.16.0-70-generic"
+        "3.16.0-70-lowlatency"
+        "3.16.0-71-generic"
+        "3.16.0-71-lowlatency"
+        "3.16.0-73-generic"
+        "3.16.0-73-lowlatency"
+        "3.16.0-76-generic"
+        "3.16.0-76-lowlatency"
+        "3.16.0-77-generic"
+        "3.16.0-77-lowlatency"
+        "3.19.0-20-generic"
+        "3.19.0-20-lowlatency"
+        "3.19.0-21-generic"
+        "3.19.0-21-lowlatency"
+        "3.19.0-22-generic"
+        "3.19.0-22-lowlatency"
+        "3.19.0-23-generic"
+        "3.19.0-23-lowlatency"
+        "3.19.0-25-generic"
+        "3.19.0-25-lowlatency"
+        "3.19.0-26-generic"
+        "3.19.0-26-lowlatency"
+        "3.19.0-28-generic"
+        "3.19.0-28-lowlatency"
+        "3.19.0-30-generic"
+        "3.19.0-30-lowlatency"
+        "3.19.0-31-generic"
+        "3.19.0-31-lowlatency"
+        "3.19.0-32-generic"
+        "3.19.0-32-lowlatency"
+        "3.19.0-33-generic"
+        "3.19.0-33-lowlatency"
+        "3.19.0-37-generic"
+        "3.19.0-37-lowlatency"
+        "3.19.0-39-generic"
+        "3.19.0-39-lowlatency"
+        "3.19.0-41-generic"
+        "3.19.0-41-lowlatency"
+        "3.19.0-42-generic"
+        "3.19.0-42-lowlatency"
+        "3.19.0-43-generic"
+        "3.19.0-43-lowlatency"
+        "3.19.0-47-generic"
+        "3.19.0-47-lowlatency"
+        "3.19.0-49-generic"
+        "3.19.0-49-lowlatency"
+        "3.19.0-51-generic"
+        "3.19.0-51-lowlatency"
+        "3.19.0-56-generic"
+        "3.19.0-56-lowlatency"
+        "3.19.0-58-generic"
+        "3.19.0-58-lowlatency"
+        "3.19.0-59-generic"
+        "3.19.0-59-lowlatency"
+        "3.19.0-61-generic"
+        "3.19.0-61-lowlatency"
+        "3.19.0-64-generic"
+        "3.19.0-64-lowlatency"
+        "3.19.0-65-generic"
+        "3.19.0-65-lowlatency"
+        "3.19.0-66-generic"
+        "3.19.0-66-lowlatency"
+        "3.19.0-68-generic"
+        "3.19.0-68-lowlatency"
+        "3.19.0-69-generic"
+        "3.19.0-69-lowlatency"
+        "3.19.0-71-generic"
+        "3.19.0-71-lowlatency"
+        "3.4.0-5-chromebook"
+        "4.2.0-18-generic"
+        "4.2.0-18-lowlatency"
+        "4.2.0-19-generic"
+        "4.2.0-19-lowlatency"
+        "4.2.0-21-generic"
+        "4.2.0-21-lowlatency"
+        "4.2.0-22-generic"
+        "4.2.0-22-lowlatency"
+        "4.2.0-23-generic"
+        "4.2.0-23-lowlatency"
+        "4.2.0-25-generic"
+        "4.2.0-25-lowlatency"
+        "4.2.0-27-generic"
+        "4.2.0-27-lowlatency"
+        "4.2.0-30-generic"
+        "4.2.0-30-lowlatency"
+        "4.2.0-34-generic"
+        "4.2.0-34-lowlatency"
+        "4.2.0-35-generic"
+        "4.2.0-35-lowlatency"
+        "4.2.0-36-generic"
+        "4.2.0-36-lowlatency"
+        "4.2.0-38-generic"
+        "4.2.0-38-lowlatency"
+        "4.2.0-41-generic"
+        "4.2.0-41-lowlatency"
+        "4.4.0-21-generic"
+        "4.4.0-21-lowlatency"
+        "4.4.0-22-generic"
+        "4.4.0-22-lowlatency"
+        "4.4.0-24-generic"
+        "4.4.0-24-lowlatency"
+        "4.4.0-28-generic"
+        "4.4.0-28-lowlatency"
+        "4.4.0-31-generic"
+        "4.4.0-31-lowlatency"
+        "4.4.0-34-generic"
+        "4.4.0-34-lowlatency"
+        "4.4.0-36-generic"
+        "4.4.0-36-lowlatency"
+        "4.4.0-38-generic"
+        "4.4.0-38-lowlatency"
+        "4.4.0-42-generic"
+        "4.4.0-42-lowlatency"
+
+        # Ubuntu Xenial
+        "4.4.0-1009-raspi2"
+        "4.4.0-1012-snapdragon"
+        "4.4.0-21-generic"
+        "4.4.0-21-generic-lpae"
+        "4.4.0-21-lowlatency"
+        "4.4.0-21-powerpc-e500mc"
+        "4.4.0-21-powerpc-smp"
+        "4.4.0-21-powerpc64-emb"
+        "4.4.0-21-powerpc64-smp"
+        "4.4.0-22-generic"
+        "4.4.0-22-lowlatency"
+        "4.4.0-24-generic"
+        "4.4.0-24-lowlatency"
+        "4.4.0-28-generic"
+        "4.4.0-28-lowlatency"
+        "4.4.0-31-generic"
+        "4.4.0-31-lowlatency"
+        "4.4.0-34-generic"
+        "4.4.0-34-lowlatency"
+        "4.4.0-36-generic"
+        "4.4.0-36-lowlatency"
+        "4.4.0-38-generic"
+        "4.4.0-38-lowlatency"
+        "4.4.0-42-generic"
+        "4.4.0-42-lowlatency"
+
+        # RHEL5
+        "2.6.18-8.1.1.el5"
+        "2.6.18-8.1.3.el5"
+        "2.6.18-8.1.4.el5"
+        "2.6.18-8.1.6.el5"
+        "2.6.18-8.1.8.el5"
+        "2.6.18-8.1.10.el5"
+        "2.6.18-8.1.14.el5"
+        "2.6.18-8.1.15.el5"
+        "2.6.18-53.el5"
+        "2.6.18-53.1.4.el5"
+        "2.6.18-53.1.6.el5"
+        "2.6.18-53.1.13.el5"
+        "2.6.18-53.1.14.el5"
+        "2.6.18-53.1.19.el5"
+        "2.6.18-53.1.21.el5"
+        "2.6.18-92.el5"
+        "2.6.18-92.1.1.el5"
+        "2.6.18-92.1.6.el5"
+        "2.6.18-92.1.10.el5"
+        "2.6.18-92.1.13.el5"
+        "2.6.18-92.1.18.el5"
+        "2.6.18-92.1.22.el5"
+        "2.6.18-92.1.24.el5"
+        "2.6.18-92.1.26.el5"
+        "2.6.18-92.1.27.el5"
+        "2.6.18-92.1.28.el5"
+        "2.6.18-92.1.29.el5"
+        "2.6.18-92.1.32.el5"
+        "2.6.18-92.1.35.el5"
+        "2.6.18-92.1.38.el5"
+        "2.6.18-128.el5"
+        "2.6.18-128.1.1.el5"
+        "2.6.18-128.1.6.el5"
+        "2.6.18-128.1.10.el5"
+        "2.6.18-128.1.14.el5"
+        "2.6.18-128.1.16.el5"
+        "2.6.18-128.2.1.el5"
+        "2.6.18-128.4.1.el5"
+        "2.6.18-128.4.1.el5"
+        "2.6.18-128.7.1.el5"
+        "2.6.18-128.8.1.el5"
+        "2.6.18-128.11.1.el5"
+        "2.6.18-128.12.1.el5"
+        "2.6.18-128.14.1.el5"
+        "2.6.18-128.16.1.el5"
+        "2.6.18-128.17.1.el5"
+        "2.6.18-128.18.1.el5"
+        "2.6.18-128.23.1.el5"
+        "2.6.18-128.23.2.el5"
+        "2.6.18-128.25.1.el5"
+        "2.6.18-128.26.1.el5"
+        "2.6.18-128.27.1.el5"
+        "2.6.18-128.29.1.el5"
+        "2.6.18-128.30.1.el5"
+        "2.6.18-128.31.1.el5"
+        "2.6.18-128.32.1.el5"
+        "2.6.18-128.35.1.el5"
+        "2.6.18-128.36.1.el5"
+        "2.6.18-128.37.1.el5"
+        "2.6.18-128.38.1.el5"
+        "2.6.18-128.39.1.el5"
+        "2.6.18-128.40.1.el5"
+        "2.6.18-128.41.1.el5"
+        "2.6.18-164.el5"
+        "2.6.18-164.2.1.el5"
+        "2.6.18-164.6.1.el5"
+        "2.6.18-164.9.1.el5"
+        "2.6.18-164.10.1.el5"
+        "2.6.18-164.11.1.el5"
+        "2.6.18-164.15.1.el5"
+        "2.6.18-164.17.1.el5"
+        "2.6.18-164.19.1.el5"
+        "2.6.18-164.21.1.el5"
+        "2.6.18-164.25.1.el5"
+        "2.6.18-164.25.2.el5"
+        "2.6.18-164.28.1.el5"
+        "2.6.18-164.30.1.el5"
+        "2.6.18-164.32.1.el5"
+        "2.6.18-164.34.1.el5"
+        "2.6.18-164.36.1.el5"
+        "2.6.18-164.37.1.el5"
+        "2.6.18-164.38.1.el5"
+        "2.6.18-194.el5"
+        "2.6.18-194.3.1.el5"
+        "2.6.18-194.8.1.el5"
+        "2.6.18-194.11.1.el5"
+        "2.6.18-194.11.3.el5"
+        "2.6.18-194.11.4.el5"
+        "2.6.18-194.17.1.el5"
+        "2.6.18-194.17.4.el5"
+        "2.6.18-194.26.1.el5"
+        "2.6.18-194.32.1.el5"
+        "2.6.18-238.el5"
+        "2.6.18-238.1.1.el5"
+        "2.6.18-238.5.1.el5"
+        "2.6.18-238.9.1.el5"
+        "2.6.18-238.12.1.el5"
+        "2.6.18-238.19.1.el5"
+        "2.6.18-238.21.1.el5"
+        "2.6.18-238.27.1.el5"
+        "2.6.18-238.28.1.el5"
+        "2.6.18-238.31.1.el5"
+        "2.6.18-238.33.1.el5"
+        "2.6.18-238.35.1.el5"
+        "2.6.18-238.37.1.el5"
+        "2.6.18-238.39.1.el5"
+        "2.6.18-238.40.1.el5"
+        "2.6.18-238.44.1.el5"
+        "2.6.18-238.45.1.el5"
+        "2.6.18-238.47.1.el5"
+        "2.6.18-238.48.1.el5"
+        "2.6.18-238.49.1.el5"
+        "2.6.18-238.50.1.el5"
+        "2.6.18-238.51.1.el5"
+        "2.6.18-238.52.1.el5"
+        "2.6.18-238.53.1.el5"
+        "2.6.18-238.54.1.el5"
+        "2.6.18-238.55.1.el5"
+        "2.6.18-238.56.1.el5"
+        "2.6.18-274.el5"
+        "2.6.18-274.3.1.el5"
+        "2.6.18-274.7.1.el5"
+        "2.6.18-274.12.1.el5"
+        "2.6.18-274.17.1.el5"
+        "2.6.18-274.18.1.el5"
+        "2.6.18-308.el5"
+        "2.6.18-308.1.1.el5"
+        "2.6.18-308.4.1.el5"
+        "2.6.18-308.8.1.el5"
+        "2.6.18-308.8.2.el5"
+        "2.6.18-308.11.1.el5"
+        "2.6.18-308.13.1.el5"
+        "2.6.18-308.16.1.el5"
+        "2.6.18-308.20.1.el5"
+        "2.6.18-308.24.1.el5"
+        "2.6.18-348.el5"
+        "2.6.18-348.1.1.el5"
+        "2.6.18-348.2.1.el5"
+        "2.6.18-348.3.1.el5"
+        "2.6.18-348.4.1.el5"
+        "2.6.18-348.6.1.el5"
+        "2.6.18-348.12.1.el5"
+        "2.6.18-348.16.1.el5"
+        "2.6.18-348.18.1.el5"
+        "2.6.18-348.19.1.el5"
+        "2.6.18-348.21.1.el5"
+        "2.6.18-348.22.1.el5"
+        "2.6.18-348.23.1.el5"
+        "2.6.18-348.25.1.el5"
+        "2.6.18-348.27.1.el5"
+        "2.6.18-348.28.1.el5"
+        "2.6.18-348.29.1.el5"
+        "2.6.18-348.30.1.el5"
+        "2.6.18-348.31.2.el5"
+        "2.6.18-371.el5"
+        "2.6.18-371.1.2.el5"
+        "2.6.18-371.3.1.el5"
+        "2.6.18-371.4.1.el5"
+        "2.6.18-371.6.1.el5"
+        "2.6.18-371.8.1.el5"
+        "2.6.18-371.9.1.el5"
+        "2.6.18-371.11.1.el5"
+        "2.6.18-371.12.1.el5"
+        "2.6.18-398.el5"
+        "2.6.18-400.el5"
+        "2.6.18-400.1.1.el5"
+        "2.6.18-402.el5"
+        "2.6.18-404.el5"
+        "2.6.18-406.el5"
+        "2.6.18-407.el5"
+        "2.6.18-408.el5"
+        "2.6.18-409.el5"
+        "2.6.18-410.el5"
+        "2.6.18-411.el5"
+        "2.6.18-412.el5"
+
+        # RHEL6
+        "2.6.32-71.7.1.el6"
+        "2.6.32-71.14.1.el6"
+        "2.6.32-71.18.1.el6"
+        "2.6.32-71.18.2.el6"
+        "2.6.32-71.24.1.el6"
+        "2.6.32-71.29.1.el6"
+        "2.6.32-71.31.1.el6"
+        "2.6.32-71.34.1.el6"
+        "2.6.32-71.35.1.el6"
+        "2.6.32-71.36.1.el6"
+        "2.6.32-71.37.1.el6"
+        "2.6.32-71.38.1.el6"
+        "2.6.32-71.39.1.el6"
+        "2.6.32-71.40.1.el6"
+        "2.6.32-131.0.15.el6"
+        "2.6.32-131.2.1.el6"
+        "2.6.32-131.4.1.el6"
+        "2.6.32-131.6.1.el6"
+        "2.6.32-131.12.1.el6"
+        "2.6.32-131.17.1.el6"
+        "2.6.32-131.21.1.el6"
+        "2.6.32-131.22.1.el6"
+        "2.6.32-131.25.1.el6"
+        "2.6.32-131.26.1.el6"
+        "2.6.32-131.28.1.el6"
+        "2.6.32-131.29.1.el6"
+        "2.6.32-131.30.1.el6"
+        "2.6.32-131.30.2.el6"
+        "2.6.32-131.33.1.el6"
+        "2.6.32-131.35.1.el6"
+        "2.6.32-131.36.1.el6"
+        "2.6.32-131.37.1.el6"
+        "2.6.32-131.38.1.el6"
+        "2.6.32-131.39.1.el6"
+        "2.6.32-220.el6"
+        "2.6.32-220.2.1.el6"
+        "2.6.32-220.4.1.el6"
+        "2.6.32-220.4.2.el6"
+        "2.6.32-220.4.7.bgq.el6"
+        "2.6.32-220.7.1.el6"
+        "2.6.32-220.7.3.p7ih.el6"
+        "2.6.32-220.7.4.p7ih.el6"
+        "2.6.32-220.7.6.p7ih.el6"
+        "2.6.32-220.7.7.p7ih.el6"
+        "2.6.32-220.13.1.el6"
+        "2.6.32-220.17.1.el6"
+        "2.6.32-220.23.1.el6"
+        "2.6.32-220.24.1.el6"
+        "2.6.32-220.25.1.el6"
+        "2.6.32-220.26.1.el6"
+        "2.6.32-220.28.1.el6"
+        "2.6.32-220.30.1.el6"
+        "2.6.32-220.31.1.el6"
+        "2.6.32-220.32.1.el6"
+        "2.6.32-220.34.1.el6"
+        "2.6.32-220.34.2.el6"
+        "2.6.32-220.38.1.el6"
+        "2.6.32-220.39.1.el6"
+        "2.6.32-220.41.1.el6"
+        "2.6.32-220.42.1.el6"
+        "2.6.32-220.45.1.el6"
+        "2.6.32-220.46.1.el6"
+        "2.6.32-220.48.1.el6"
+        "2.6.32-220.51.1.el6"
+        "2.6.32-220.52.1.el6"
+        "2.6.32-220.53.1.el6"
+        "2.6.32-220.54.1.el6"
+        "2.6.32-220.55.1.el6"
+        "2.6.32-220.56.1.el6"
+        "2.6.32-220.57.1.el6"
+        "2.6.32-220.58.1.el6"
+        "2.6.32-220.60.2.el6"
+        "2.6.32-220.62.1.el6"
+        "2.6.32-220.63.2.el6"
+        "2.6.32-220.64.1.el6"
+        "2.6.32-220.65.1.el6"
+        "2.6.32-220.66.1.el6"
+        "2.6.32-220.67.1.el6"
+        "2.6.32-279.el6"
+        "2.6.32-279.1.1.el6"
+        "2.6.32-279.2.1.el6"
+        "2.6.32-279.5.1.el6"
+        "2.6.32-279.5.2.el6"
+        "2.6.32-279.9.1.el6"
+        "2.6.32-279.11.1.el6"
+        "2.6.32-279.14.1.bgq.el6"
+        "2.6.32-279.14.1.el6"
+        "2.6.32-279.19.1.el6"
+        "2.6.32-279.22.1.el6"
+        "2.6.32-279.23.1.el6"
+        "2.6.32-279.25.1.el6"
+        "2.6.32-279.25.2.el6"
+        "2.6.32-279.31.1.el6"
+        "2.6.32-279.33.1.el6"
+        "2.6.32-279.34.1.el6"
+        "2.6.32-279.37.2.el6"
+        "2.6.32-279.39.1.el6"
+        "2.6.32-279.41.1.el6"
+        "2.6.32-279.42.1.el6"
+        "2.6.32-279.43.1.el6"
+        "2.6.32-279.43.2.el6"
+        "2.6.32-279.46.1.el6"
+        "2.6.32-358.el6"
+        "2.6.32-358.0.1.el6"
+        "2.6.32-358.2.1.el6"
+        "2.6.32-358.6.1.el6"
+        "2.6.32-358.6.2.el6"
+        "2.6.32-358.6.3.p7ih.el6"
+        "2.6.32-358.11.1.bgq.el6"
+        "2.6.32-358.11.1.el6"
+        "2.6.32-358.14.1.el6"
+        "2.6.32-358.18.1.el6"
+        "2.6.32-358.23.2.el6"
+        "2.6.32-358.28.1.el6"
+        "2.6.32-358.32.3.el6"
+        "2.6.32-358.37.1.el6"
+        "2.6.32-358.41.1.el6"
+        "2.6.32-358.44.1.el6"
+        "2.6.32-358.46.1.el6"
+        "2.6.32-358.46.2.el6"
+        "2.6.32-358.48.1.el6"
+        "2.6.32-358.49.1.el6"
+        "2.6.32-358.51.1.el6"
+        "2.6.32-358.51.2.el6"
+        "2.6.32-358.55.1.el6"
+        "2.6.32-358.56.1.el6"
+        "2.6.32-358.59.1.el6"
+        "2.6.32-358.61.1.el6"
+        "2.6.32-358.62.1.el6"
+        "2.6.32-358.65.1.el6"
+        "2.6.32-358.67.1.el6"
+        "2.6.32-358.68.1.el6"
+        "2.6.32-358.69.1.el6"
+        "2.6.32-358.70.1.el6"
+        "2.6.32-358.71.1.el6"
+        "2.6.32-358.72.1.el6"
+        "2.6.32-358.73.1.el6"
+        "2.6.32-358.111.1.openstack.el6"
+        "2.6.32-358.114.1.openstack.el6"
+        "2.6.32-358.118.1.openstack.el6"
+        "2.6.32-358.123.4.openstack.el6"
+        "2.6.32-431.el6"
+        "2.6.32-431.1.1.bgq.el6"
+        "2.6.32-431.1.2.el6"
+        "2.6.32-431.3.1.el6"
+        "2.6.32-431.5.1.el6"
+        "2.6.32-431.11.2.el6"
+        "2.6.32-431.17.1.el6"
+        "2.6.32-431.20.3.el6"
+        "2.6.32-431.20.5.el6"
+        "2.6.32-431.23.3.el6"
+        "2.6.32-431.29.2.el6"
+        "2.6.32-431.37.1.el6"
+        "2.6.32-431.40.1.el6"
+        "2.6.32-431.40.2.el6"
+        "2.6.32-431.46.2.el6"
+        "2.6.32-431.50.1.el6"
+        "2.6.32-431.53.2.el6"
+        "2.6.32-431.56.1.el6"
+        "2.6.32-431.59.1.el6"
+        "2.6.32-431.61.2.el6"
+        "2.6.32-431.64.1.el6"
+        "2.6.32-431.66.1.el6"
+        "2.6.32-431.68.1.el6"
+        "2.6.32-431.69.1.el6"
+        "2.6.32-431.70.1.el6"
+        "2.6.32-431.71.1.el6"
+        "2.6.32-431.72.1.el6"
+        "2.6.32-431.73.2.el6"
+        "2.6.32-431.74.1.el6"
+        "2.6.32-504.el6"
+        "2.6.32-504.1.3.el6"
+        "2.6.32-504.3.3.el6"
+        "2.6.32-504.8.1.el6"
+        "2.6.32-504.8.2.bgq.el6"
+        "2.6.32-504.12.2.el6"
+        "2.6.32-504.16.2.el6"
+        "2.6.32-504.23.4.el6"
+        "2.6.32-504.30.3.el6"
+        "2.6.32-504.30.5.p7ih.el6"
+        "2.6.32-504.33.2.el6"
+        "2.6.32-504.36.1.el6"
+        "2.6.32-504.38.1.el6"
+        "2.6.32-504.40.1.el6"
+        "2.6.32-504.43.1.el6"
+        "2.6.32-504.46.1.el6"
+        "2.6.32-504.49.1.el6"
+        "2.6.32-504.50.1.el6"
+        "2.6.32-504.51.1.el6"
+        "2.6.32-504.52.1.el6"
+        "2.6.32-573.el6"
+        "2.6.32-573.1.1.el6"
+        "2.6.32-573.3.1.el6"
+        "2.6.32-573.4.2.bgq.el6"
+        "2.6.32-573.7.1.el6"
+        "2.6.32-573.8.1.el6"
+        "2.6.32-573.12.1.el6"
+        "2.6.32-573.18.1.el6"
+        "2.6.32-573.22.1.el6"
+        "2.6.32-573.26.1.el6"
+        "2.6.32-573.30.1.el6"
+        "2.6.32-573.32.1.el6"
+        "2.6.32-573.34.1.el6"
+        "2.6.32-642.el6"
+        "2.6.32-642.1.1.el6"
+        "2.6.32-642.3.1.el6"
+        "2.6.32-642.4.2.el6"
+        "2.6.32-642.6.1.el6"
+
+        # RHEL7
+        "3.10.0-123.el7"
+        "3.10.0-123.1.2.el7"
+        "3.10.0-123.4.2.el7"
+        "3.10.0-123.4.4.el7"
+        "3.10.0-123.6.3.el7"
+        "3.10.0-123.8.1.el7"
+        "3.10.0-123.9.2.el7"
+        "3.10.0-123.9.3.el7"
+        "3.10.0-123.13.1.el7"
+        "3.10.0-123.13.2.el7"
+        "3.10.0-123.20.1.el7"
+        "3.10.0-229.el7"
+        "3.10.0-229.1.2.el7"
+        "3.10.0-229.4.2.el7"
+        "3.10.0-229.7.2.el7"
+        "3.10.0-229.11.1.el7"
+        "3.10.0-229.14.1.el7"
+        "3.10.0-229.20.1.el7"
+        "3.10.0-229.24.2.el7"
+        "3.10.0-229.26.2.el7"
+        "3.10.0-229.28.1.el7"
+        "3.10.0-229.30.1.el7"
+        "3.10.0-229.34.1.el7"
+        "3.10.0-229.38.1.el7"
+        "3.10.0-229.40.1.el7"
+        "3.10.0-229.42.1.el7"
+        "3.10.0-327.el7"
+        "3.10.0-327.3.1.el7"
+        "3.10.0-327.4.4.el7"
+        "3.10.0-327.4.5.el7"
+        "3.10.0-327.10.1.el7"
+        "3.10.0-327.13.1.el7"
+        "3.10.0-327.18.2.el7"
+        "3.10.0-327.22.2.el7"
+        "3.10.0-327.28.2.el7"
+        "3.10.0-327.28.3.el7"
+        "3.10.0-327.36.1.el7"
+        "3.10.0-327.36.2.el7"
+        "3.10.0-229.1.2.ael7b"
+        "3.10.0-229.4.2.ael7b"
+        "3.10.0-229.7.2.ael7b"
+        "3.10.0-229.11.1.ael7b"
+        "3.10.0-229.14.1.ael7b"
+        "3.10.0-229.20.1.ael7b"
+        "3.10.0-229.24.2.ael7b"
+        "3.10.0-229.26.2.ael7b"
+        "3.10.0-229.28.1.ael7b"
+        "3.10.0-229.30.1.ael7b"
+        "3.10.0-229.34.1.ael7b"
+        "3.10.0-229.38.1.ael7b"
+        "3.10.0-229.40.1.ael7b"
+        "3.10.0-229.42.1.ael7b"
+        "4.2.0-0.21.el7"
+
+        # RHEL5
+        "2.6.24.7-74.el5rt"
+        "2.6.24.7-81.el5rt"
+        "2.6.24.7-93.el5rt"
+        "2.6.24.7-101.el5rt"
+        "2.6.24.7-108.el5rt"
+        "2.6.24.7-111.el5rt"
+        "2.6.24.7-117.el5rt"
+        "2.6.24.7-126.el5rt"
+        "2.6.24.7-132.el5rt"
+        "2.6.24.7-137.el5rt"
+        "2.6.24.7-139.el5rt"
+        "2.6.24.7-146.el5rt"
+        "2.6.24.7-149.el5rt"
+        "2.6.24.7-161.el5rt"
+        "2.6.24.7-169.el5rt"
+        "2.6.33.7-rt29.45.el5rt"
+        "2.6.33.7-rt29.47.el5rt"
+        "2.6.33.7-rt29.55.el5rt"
+        "2.6.33.9-rt31.64.el5rt"
+        "2.6.33.9-rt31.67.el5rt"
+        "2.6.33.9-rt31.86.el5rt"
+
+        # RHEL6
+        "2.6.33.9-rt31.66.el6rt"
+        "2.6.33.9-rt31.74.el6rt"
+        "2.6.33.9-rt31.75.el6rt"
+        "2.6.33.9-rt31.79.el6rt"
+        "3.0.9-rt26.45.el6rt"
+        "3.0.9-rt26.46.el6rt"
+        "3.0.18-rt34.53.el6rt"
+        "3.0.25-rt44.57.el6rt"
+        "3.0.30-rt50.62.el6rt"
+        "3.0.36-rt57.66.el6rt"
+        "3.2.23-rt37.56.el6rt"
+        "3.2.33-rt50.66.el6rt"
+        "3.6.11-rt28.20.el6rt"
+        "3.6.11-rt30.25.el6rt"
+        "3.6.11.2-rt33.39.el6rt"
+        "3.6.11.5-rt37.55.el6rt"
+        "3.8.13-rt14.20.el6rt"
+        "3.8.13-rt14.25.el6rt"
+        "3.8.13-rt27.33.el6rt"
+        "3.8.13-rt27.34.el6rt"
+        "3.8.13-rt27.40.el6rt"
+        "3.10.0-229.rt56.144.el6rt"
+        "3.10.0-229.rt56.147.el6rt"
+        "3.10.0-229.rt56.149.el6rt"
+        "3.10.0-229.rt56.151.el6rt"
+        "3.10.0-229.rt56.153.el6rt"
+        "3.10.0-229.rt56.158.el6rt"
+        "3.10.0-229.rt56.161.el6rt"
+        "3.10.0-229.rt56.162.el6rt"
+        "3.10.0-327.rt56.170.el6rt"
+        "3.10.0-327.rt56.171.el6rt"
+        "3.10.0-327.rt56.176.el6rt"
+        "3.10.0-327.rt56.183.el6rt"
+        "3.10.0-327.rt56.190.el6rt"
+        "3.10.0-327.rt56.194.el6rt"
+        "3.10.0-327.rt56.195.el6rt"
+        "3.10.0-327.rt56.197.el6rt"
+        "3.10.33-rt32.33.el6rt"
+        "3.10.33-rt32.34.el6rt"
+        "3.10.33-rt32.43.el6rt"
+        "3.10.33-rt32.45.el6rt"
+        "3.10.33-rt32.51.el6rt"
+        "3.10.33-rt32.52.el6rt"
+        "3.10.58-rt62.58.el6rt"
+        "3.10.58-rt62.60.el6rt"
+
+        # RHEL7
+        "3.10.0-229.rt56.141.el7"
+        "3.10.0-229.1.2.rt56.141.2.el7_1"
+        "3.10.0-229.4.2.rt56.141.6.el7_1"
+        "3.10.0-229.7.2.rt56.141.6.el7_1"
+        "3.10.0-229.11.1.rt56.141.11.el7_1"
+        "3.10.0-229.14.1.rt56.141.13.el7_1"
+        "3.10.0-229.20.1.rt56.141.14.el7_1"
+        "3.10.0-229.rt56.141.el7"
+        "3.10.0-327.rt56.204.el7"
+        "3.10.0-327.4.5.rt56.206.el7_2"
+        "3.10.0-327.10.1.rt56.211.el7_2"
+        "3.10.0-327.13.1.rt56.216.el7_2"
+        "3.10.0-327.18.2.rt56.223.el7_2"
+        "3.10.0-327.22.2.rt56.230.el7_2"
+        "3.10.0-327.28.2.rt56.234.el7_2"
+        "3.10.0-327.28.3.rt56.235.el7"
+        "3.10.0-327.36.1.rt56.237.el7"
+    )
+
+    KPATCH_MODULE_NAMES=(
+        "kpatch_3_10_0_327_36_1_1_1"
+        "kpatch_3_10_0_327_36_2_1_1"
+    )
+
+    VALID_OS=(
+        "precise"
+        "trusty"
+        "xenial"
+        "5"
+        "6"
+        "7"
+    )
+
+    getKernel()
+    {
+        # Get current Kerenl
+        running_kernel=$( uname -r )
+    }
+
+    collectSystemStats()
+    {
+        # 获取系统详细信息
+        if [ -f /etc/lsb-release ]; then
+            # 如果存在 /etc/lsb-release 文件，则加载该文件
+            . /etc/lsb-release
+            # 设置操作系统名称
+            OS=$DISTRIB_ID
+            # 设置操作系统版本代号
+            VER=$DISTRIB_CODENAME
+            # 获取可更新的内核版本（适用于基于Debian的系统，如Ubuntu）
+            UPDATE_VERSION=$(apt-cache policy linux-image-server | grep Candidate | awk -F': ' '{print $2}' | awk -F'.' '{print $1 "." $2 "." $3 "-" $4 "-generic"}')
+        elif [ -f /etc/os-release ]; then
+            # 如果存在 /etc/os-release 文件，则加载该文件
+            . /etc/os-release
+            # 设置操作系统名称（对于Red Hat系统）
+            OS=$REDHAT_SUPPORT_PRODUCT
+            # 设置操作系统版本
+            VER=$REDHAT_SUPPORT_PRODUCT_VERSION
+            # 获取可更新的内核版本（适用于基于Red Hat的系统，如CentOS）
+            # UPDATE_VERSION=$(yum info kernel | grep -A4 'Available Packages' | tail -2 | awk 'BEGIN { ORS="-" }; {print $3}' | sed 's/.$//')
+        fi
+    }
+
+    checkOS()
+    {
+        # Validate OS is Supported for this Scan
+        for check_os in "${VALID_OS[@]}"; do
+            if [[ "$VER" == *"$check_os"* ]]; then
+            VALID="true"
+            break
+            fi
+        done
+    }
+
+    validateOS()
+    {
+        # If invalid OS is found, notify and exit
+        if [[ ! $VALID ]]; then
+            echo -e "${red}This script is only meant to detect vulnerable kernels on Ubuntu 12.04, 14.04, and 16.04.${reset}"
+            echo -e "${red}This script is only meant to detect vulnerable kernels on Red Hat Enterprise Linux 5, 6 and 7.${reset}"
+            exit 4
+        fi
+    }
+
+    checkCurrentKernel()
+    {
+        # Check kernel if it is vulnerable
+        for tested_kernel in "${VULNERABLE_VERSIONS[@]}"; do
+            if [[ "$running_kernel" == *"$tested_kernel"* ]]; then
+                vulnerable_kernel=${running_kernel}
+                break
+            fi
+        done
+    }
+
+    checkUpdateKernel() 
+    {
+        # Check updated kernel if it is vulnerable
+        for update_kernel in "${VULNERABLE_VERSIONS[@]}"; do
+            if [[ "$UPDATE_VERSION" == *"$update_kernel"* ]]; then
+                vulnerable_update_kernel=${UPDATE_VERSION}
+                break
+            fi
+        done
+    }
+
+    checkKPatch()
+    {
+        # Check if kpatch is installed
+        modules=$( lsmod )
+        for tested_kpatch in "${KPATCH_MODULE_NAMES[@]}"; do
+            if [[ "$modules" == *"$tested_kpatch"* ]]; then
+                applied_kpatch=${tested_kpatch}
+                break
+            fi
+        done
+    }
+
+    checkMitigation()
+    {
+        # Check mitigation
+        mitigated=0
+        while read -r line; do
+            if [[ "$line" == *"$MITIGATION_ON"* ]]; then
+                mitigated=1
+            elif [[ "$line" == *"$MITIGATION_OFF"* ]]; then
+                mitigated=0
+            fi
+        done < <( dmesg )
+    }
+
+    checkResult()
+    {
+        # Result interpretation
+        result=${VULNERABLE}
+        if (( mitigated )); then
+            result=${MITIGATED}
+        fi
+        if [[ ! "$vulnerable_kernel" ]]; then
+            result=${SAFE_KERNEL}
+        elif [[ "$applied_kpatch" ]]; then
+            result=${SAFE_KPATCH}
+        fi
+    }
+
+    getKernel
+    collectSystemStats
+    checkOS
+    validateOS
+    checkCurrentKernel
+    checkUpdateKernel
+    checkKPatch
+    checkMitigation
+    checkResult
+
+    # 打印结果  
+    echo -e "${red}9. CVE-2016–5195（Dirty Cow 脏牛Linux内核提权漏洞）${reset}"
+    if [[ ${result} == "$SAFE_KERNEL" ]]; then
+
+        echo -e "${green}您的内核版本为 $running_kernel，不受该漏洞影响。${reset}"
+        echo -e "-------------------------------------------------------------------------------------"
+        exit 0
+    elif [[ ${result} == "$SAFE_KPATCH" ]]; then
+        echo -e "您的内核版本为 $running_kernel，通常情况下是易受攻击的。"
+        echo -e "${green}但是，您已经应用了 kpatch$applied_kpatch，该补丁修复了该漏洞。${reset}"
+        echo -e "-------------------------------------------------------------------------------------"
+        EXITCODE=1
+    elif [[ ${result} == "$MITIGATED" ]]; then
+        echo -e "${yellow}您的内核版本为 $running_kernel，存在该漏洞。${reset}"
+        echo -e "${yellow}您已应用了部分缓解措施。${reset}"
+        echo -e "该缓解措施可防范大多数已被利用的常见攻击向量，"
+        echo -e "但无法防范所有可能的攻击向量。"
+        echo -e "建议您尽快更新内核。"
+        echo -e "-------------------------------------------------------------------------------------"
+        EXITCODE=2
+    else
+        echo -e "${red}您的内核版本为 $running_kernel，存在该漏洞。${reset}"
+        echo -e "建议您更新内核。或者，您可以应用部分缓解措施，"
+        echo -e "-------------------------------------------------------------------------------------"
+        EXITCODE=3
+    fi
+    if [[ -n $vulnerable_update_kernel ]]; then
+        echo -e "${red}可供更新的内核版本为 $UPDATE_VERSION，该版本同样存在漏洞。${reset}"
+        echo -e "-------------------------------------------------------------------------------------"
+    fi
+    exit $EXITCODE
+    
+
+}
+
+function dirty_pipe
+{
+    # 获取当前内核版本
+    kernel_version=$(uname -r)
+
+    # 定义受影响的内核版本范围
+    affected_version_start="5.8"
+    affected_version_end1="5.16.11"
+    affected_version_end2="5.15.25"
+    affected_version_end3="5.10.102"
+
+    # 比较版本号的函数
+    version_lt() {
+        [ "$1" = "$(echo -e "$1\n$2" | sort -V | head -n1)" ] && [ "$1" != "$2" ]
+    }
+
+    # 检测是否受影响
+    if version_lt "$affected_version_start" "$kernel_version" && \
+    (version_lt "$kernel_version" "$affected_version_end1" || \
+        version_lt "$kernel_version" "$affected_version_end2" || \
+        version_lt "$kernel_version" "$affected_version_end3"); then
+        echo "当前内核版本为 $kernel_version，可能存在 DirtyPipe（CVE-2022-0847）漏洞。"
+    else
+        echo "当前内核版本为 $kernel_version，不在受影响范围内。"
+    fi
+}
+
 function fk_vulcheck
 {
     color
@@ -869,11 +2436,117 @@ function fk_vulcheck
     echo -e  "${red}2. redis弱口令自查${reset}\n"
     find / -name "redis.conf" -exec grep --color=always -H "^requirepass " {} \; 2>/dev/null | awk '{split($0, a, " "); $NF="****"; print}'
     find / -name "redis.conf" -exec grep --color=always -H "^requirepass " {} \; 2>/dev/null | awk '{print $2}' > pass.tmp
-    echo "-------"
-    grep -E "admin123|test|123456|admin|root|12345678|111111|p@ssw0rd|test|qwerty|zxcvbnm|123123|12344321|123qwe|password|1qaz|000000|666666|888888" pass.tmp | awk '{print "[+] "$1}'
-    echo
+    echo "---------------"
+    grep -E "admin123|test|123456|admin|root|12345678|111111|p@ssw0rd|test|qwerty|zxcvbnm|123123|12344321|123qwe|password|1qaz|000000|666666|888888|foobared" pass.tmp | awk '{print "[+] "$1}'
+
     sed "s/\x1B\[[0-9;]*[JKmsu]//g" vuln.log > $OUTPUT/vuln.txt
     rm -f vuln.log pass.tmp
+    echo -e "-------------------------------------------------------------------------------------"
+
+    # 检测 CVE-2018-15473 (OpenSSH用户名枚举)
+    if which sshd &> /dev/null; then
+        ssh_version=$(sshd -v 2>&1 | grep -oP 'OpenSSH_\K[0-9]+\.[0-9]+')
+        version_major=${ssh_version%%.*}
+        version_minor=${ssh_version#*.}
+        if [[ "$version_major" -ge 2 && "$version_major" -le 7 ]] && [[ "$version_minor" -le 7 ]]; then
+            openssh_risk="OpenSSH版本 $ssh_version 受漏洞影响"
+        else
+            openssh_risk="${green}OpenSSH版本 $ssh_version 不受漏洞影响${reset}}"
+        fi
+    else
+        openssh_risk="无"
+    fi
+    echo -e "${red}3. CVE-2018-15473(OpenSSH用户名枚举)${reset} ${purple}${openssh_risk}${reset}"
+    echo -e "-------------------------------------------------------------------------------------"
+    
+
+    # 检测 CVE-2024-6387 (OpenSSH远程代码执行)
+    if which sshd &> /dev/null; then
+        ssh_version=$(sshd -v 2>&1 | grep -oP 'OpenSSH_\K[0-9]+\.[0-9]+')
+        version_major=${ssh_version%%.*}
+        version_minor=${ssh_version#*.}
+        if [[ "$version_major" -eq 8 && "$version_minor" -ge 5 ]] || [[ "$version_major" -eq 9 && "$version_minor" -lt 8 ]]; then
+            openssh_risk="OpenSSH版本 $ssh_version 受漏洞影响"
+        else
+            openssh_risk="${green}OpenSSH版本 $ssh_version 不受漏洞影响${reset}"
+        fi
+    else
+        openssh_risk="无"
+    fi
+    echo -e "${red}4. CVE-2024-6387(OpenSSH远程代码执行)${reset} ${purple}${openssh_risk}${reset}"
+    echo -e "-------------------------------------------------------------------------------------"
+
+    # --- | risk --> sudo  | ---
+
+    # 检测 CVE-2019-18634, CVE-2021-3156, CVE-2023-22809 (Sudo漏洞)
+    if which sudo &> /dev/null; then
+        sudo_version=$(sudo -V 2>&1 | grep -oP 'Sudo version \K[0-9]+\.[0-9]+\.[0-9]+')
+        version_major=${sudo_version%%.*}
+        version_minor=${sudo_version#*.}
+        version_minor=${version_minor%.*}
+        version_patch=${sudo_version##*.}
+
+        # 检测 CVE-2019-18634 (Sudo本地提权漏洞)
+        if [[ "$version_major" -eq 1 && "$version_minor" -ge 7 && "$version_minor" -le 8 && "$version_patch" -le 30 ]]; then
+            sudo_risk_2019="Sudo版本 $sudo_version 受漏洞影响"
+        else
+            sudo_risk_2019="${green}Sudo版本 $sudo_version 不受漏洞影响${reset}"
+        fi
+
+        # 检测 CVE-2021-3156 (Sudo溢出提权漏洞)
+        if { [[ "$version_major" -eq 1 && "$version_minor" -eq 8 && "$version_patch" -ge 2 && "$version_patch" -le 31 ]]; } || { [[ "$version_major" -eq 1 && "$version_minor" -eq 9 && "$version_patch" -ge 0 && "$version_patch" -le 5 ]]; }; then
+            sudo_risk_2021="Sudo版本 $sudo_version 受漏洞影响"
+        else
+            sudo_risk_2021="${green}Sudo版本 $sudo_version 不受漏洞影响${reset}"
+        fi
+
+        # 检测 CVE-2023-22809 (Sudo本地提权漏洞)
+        if [[ "$version_major" -eq 1 && "$version_minor" -ge 8 && "$version_minor" -le 9 && "$version_patch" -le 12 ]]; then
+            sudo_risk_2023="Sudo版本 $sudo_version 受漏洞影响"
+        else
+            sudo_risk_2023="${green}Sudo版本 $sudo_version 不受漏洞影响${reset}"
+        fi
+    else
+
+        sudo_risk_2019="无"
+        sudo_risk_2021="无"
+        sudo_risk_2023="无"
+    fi
+
+    echo -e "${red}5. CVE-2019-18634(Sudo本地提权漏洞)${reset} ${purple}${sudo_risk_2019}${reset}"
+    echo -e "-------------------------------------------------------------------------------------"
+
+    echo -e "${red}6. CVE-2021-3156 (Sudo溢出提权漏洞)${reset} ${purple}${sudo_risk_2021}${reset}"
+    echo -e "-------------------------------------------------------------------------------------"
+
+    echo -e "${red}7. CVE-2023-22809(Sudo本地提权漏洞)${reset} ${purple}${sudo_risk_2023}${reset}"
+    echo -e "-------------------------------------------------------------------------------------"
+
+    # --- | risk --> xz utils 漏洞 | ---
+    # 检测 CVE-2024-3094 XZ Utils 漏洞
+    if which xz &> /dev/null; then
+        xz_version=$(xz --version 2>&1 | grep -oP 'xz.* \K[0-9]+\.[0-9]+\.[0-9]+')
+        version_major=${xz_version%%.*}
+        version_minor=${xz_version#*.}
+        version_minor=${version_minor%.*}
+        version_patch=${xz_version##*.} 
+
+        if [[ "$version_major" -eq 5 && "$version_minor" -eq 6 && ( "$version_patch" -eq 0 || "$version_patch" -eq 1 ) ]]; then
+            xz_risk="XZ Utils版本 $xz_version 受漏洞影响"
+        else
+            xz_risk="${green}XZ Utils版本 $xz_version 不受漏洞影响${reset}"
+        fi
+    else
+        xz_risk="未安装 XZ Utils"
+    fi
+
+    echo -e "${red}8. CVE-2024-3094（XZ投毒植入恶意后门压缩命令）${reset} ${purple}${xz_risk}${reset}"
+    echo -e "-------------------------------------------------------------------------------------"
+
+    # --- | risk --> linux kernel 漏洞 | ---
+    # CVE-2016–5195 dirty cow
+    dirty_cow
+
 }
 
 # [ ++ Function Baseline_Check ++ ]
@@ -894,202 +2567,141 @@ function fk_baseline
     printf "%s\n" "$bar_base_line"
     echo
     # ----------------------------------------------------------------------
-    echo -e  "${purple}${bold}1. 身份鉴别${reset}\n"
-    echo # 1.1
-    echo -e  "${blue}1.1 应对登录操作系统和数据库系统的用户进行身份标识和鉴别${reset}\n"
-    echo "预期结果：""
-          1)操作系统使用口令鉴别机制对用户进行身份标识和鉴别；
-          2)登录时提示输入用户名和口令；以错误口令或空口令登录时提示登录失败，验证了登录控制功能的有效性；
-          3)操作系统不存在密码为空的用户。"
+    
+    base_section() {
+        local section=$1
+        local title=$2
+        local expected_result=$3
+        local check_command=$4
+        local rectification_suggestion=$5
 
-    echo -e "${red}cat /etc/passwd${reset}"
-    cat /etc/passwd | tail
-    echo -e "${red}cat /etc/shadow${reset}"
-    cat /etc/shadow | tail
-    echo "整改建议：操作系统和数据库每个用户都必须设置登录用户名和登录密码，不能存在空密码。"
-    echo # 1.2
-    echo -e  "${blue}1.2 操作系统和数据库系统管理用户身份标识应具有不易被冒用的特点，口令应有复杂度要求并定期更换${reset}\n"
-    echo "预期结果："
-    echo "密码策略如下：PASS_MAX_DAYS   90（生命期最大为90天）
-        PASS_MIN_DAYS   0（密码最短周期0天）
-        PASS_MIN_LEN   10（密码最小长度10位）
-        PASS_WARN_AGE 7（密码到期前7天提醒）
+        echo
+        echo -e "${blue}${section} ${title}${reset}\n"
+        echo "预期结果："
+        echo "${expected_result}"
+        echo -e "${red}${check_command}${reset}"
+        eval "${check_command}"
+        echo
+        echo "整改建议："
+        echo "${rectification_suggestion}"
+        echo
+    }    
+
+
+
+    echo -e  "${purple}${bold}1. 身份鉴别${reset}\n"
+
+    base_section "1.1" "应对登录操作系统和数据库系统的用户进行身份标识和鉴别" \
+    "     1)操作系统使用口令鉴别机制对用户进行身份标识和鉴别；
+     2)登录时提示输入用户名和口令；以错误口令或空口令登录时提示登录失败，验证了登录控制功能的有效性；
+     3)操作系统不存在密码为空的用户。" \
+    "cat /etc/passwd | tail ; cat /etc/shadow | tail" \
+    "操作系统和数据库每个用户都必须设置登录用户名和登录密码，不能存在空密码。"
+    
+    base_section "1.2" "操作系统和数据库系统管理用户身份标识应具有不易被冒用的特点，口令应有复杂度要求并定期更换" \
+    "     密码策略如下：
+     PASS_MAX_DAYS   90（生命期最大为90天）
+     PASS_MIN_DAYS   0（密码最短周期0天）
+     PASS_MIN_LEN   10（密码最小长度10位）
+     PASS_WARN_AGE 7（密码到期前7天提醒）
 
         口令复杂度：
-        口令长度8位以上，并包含数字、字母、特殊字符三种形式"
+        口令长度8位以上，并包含数字、字母、特殊字符三种形式" \
+    "more /etc/login.defs | grep 'PASS'" \
+    "     密码最大生存周期为90天
+     密码最短修改周期为0天，可以随时修改密码
+     密码最小长度为10位，包含数字，特殊字符，字母（大小写）三种形式
+     密码到期前7天必须提醒"
 
-    echo -e "${red}more /etc/login.defs${reset}"
-    more /etc/login.defs | grep "PASS"
-    echo "\n整改建议：密码最大生存周期为90天
-        密码最短修改周期为0天，可以随时修改密码
-        密码最小长度为10位，包含数字，特殊字符，字母（大小写）三种形式
-        密码到期前7天必须提醒"
-    echo
-    echo # 1.3
-    echo -e  "${blue}1.3 应启用登录失败处理功能，可采取结束会话、限制非法登录次数和自动退出等措施${reset}\n"
-    echo "预期结果："
-    echo "1)操作系统已启用登陆失败处理、结束会话、限制非法登录次数等措施；"
-    echo "2)当超过系统规定的非法登陆次数或时间登录操作系统时，系统锁定或自动断开连接"
+    base_section "1.3" "应启用登录失败处理功能，可采取结束会话、限制非法登录次数和自动退出等措施" \
+    "     1)操作系统已启用登陆失败处理、结束会话、限制非法登录次数等措施；
+    2)当超过系统规定的非法登陆次数或时间登录操作系统时，系统锁定或自动断开连接" \
+    "cat \$PAM_FILE | grep '^auth' ;  cat /etc/shadow | tail" \
+    "建议限制，密码过期后重设的密码不能和前三次的密码相同。"
 
-    echo -e "${red}cat $PAM_FILE | grep "^auth"${reset}"
-    cat $PAM_FILE | grep "^auth"
-    echo -e "${red}cat /etc/shadow${reset}"
-    cat /etc/shadow | tail
-    echo "整改建议：建议限制，密码过期后重设的密码不能和前三次的密码相同。"
-    echo
-    echo # 1.4
-    echo -e  "${blue}1.4 当对服务器进行远程管理时，应采取必要措施，防止鉴别信息在网络传输过程中被窃听${reset}\n"
-    echo "预期结果："
-    echo "1)操作系统使用SSH协议进行远程连接；
-        2)若未使用SSH方式进行远程管理，则查看是否使用telnet方式进行远程管理；"
+    base_section "1.4" "当对服务器进行远程管理时，应采取必要措施，防止鉴别信息在网络传输过程中被窃听" \
+    "     1)操作系统使用SSH协议进行远程连接；
+     2)若未使用SSH方式进行远程管理，则查看是否使用telnet方式进行远程管理；" \
+    "systemctl is-active 'ssh*' ;  systemctl is-active 'telnet*'" \
+    "系统远程登录时要采取SSH方式登录或采用密文传输信息，保障信息的安全性。"
 
-    echo -e "${red}systemctl is-active ssh*${reset}"
-    systemctl is-active "ssh*"
-    echo -e "${red}systemctl is-active telnet*${reset}"
-    systemctl is-active "telnet*"
-    echo
-    echo "整改建议：系统远程登录时要采取SSH方式登录或采用密文传输信息，保障信息的安全性。"
-    echo
-    echo # 1.5
-    echo -e  "${blue}1.5 为操作系统和数据库的不同用户分配不同的用户名，确保用户名具有唯一性${reset}\n"
-    echo "预期结果："
-    echo "用户的标识唯一，若系统允许用户名相同，UID不同，则UID是唯一性标识；若系统允许UID相同，则用户名是唯一性标识。"
+    base_section "1.5" "为操作系统和数据库的不同用户分配不同的用户名，确保用户名具有唯一性" \
+    "用户的标识唯一，若系统允许用户名相同，UID不同，则UID是唯一性标识；若系统允许UID相同，则用户名是唯一性标识。" \
+    "awk -F: '{print \$1, \$3}' /etc/passwd | sort -k2 | column -t ;  systemctl is-active telnet*" \
+    "UID是唯一性标识，每个用户必须采用不同的UID来区分。"
 
-
-    echo -e "${red}awk -F: '{print $1, $3}' /etc/passwd | sort -k2 | column -t${reset}"
-    systemctl is-active "ssh*"
-    echo -e "${red}systemctl is-active telnet*${reset}"
-    systemctl is-active "telnet*"
-    echo
-    echo "整改建议：UID是唯一性标识，每个用户必须采用不同的UID来区分。"
-    echo
-    echo
     # ----------------------------------------------------------------------
     echo -e  "${purple}${bold}2. 访问控制${reset}\n"
-    echo
-    echo # 2.1
-    echo -e  "${blue}2.1 应启用访问控制功能，依据安全策略控制用户对资源的访问${reset}\n"
-    echo "预期结果："
-    echo "root用户：
+    
+    base_section "2.1" "应启用访问控制功能，依据安全策略控制用户对资源的访问" \
+    "root用户：
         passwd文件夹只有rw-r-r权限
         shadow文件夹只有r- - -权限
 
-        r=4 w=2 x=1
-        "
+        r=4 w=2 x=1" \
+    "ls -l /etc/passwd ;  ls -l /etc/shadow" \
+    "根据实际需求，对每个用户的访问权限进行限制，对敏感的文件夹限制访问用户的权限。"
+   
+    base_section "2.2" "应根据管理用户的角色分配权限，实现管理用户的权限分离，仅授予管理用户所需的最小权限" \
+    "询问管理员，了解每个用户的作用、权限" \
+    "awk -F: '\$3==0 {print \$1}' /etc/passwd" \
+    "给予账户所需最小权限，避免出现特权用户。"
 
-    echo -e "${red}ls -l /etc/passwd${reset}"
-    ls -l /etc/passwd
-    echo -e "${red}ls -l /etc/shadow${reset}"
-    ls -l /etc/shadow
-    echo
-    echo "整改建议：根据实际需求，对每个用户的访问权限进行限制，对敏感的文件夹限制访问用户的权限。"
-    echo
-    echo # 2.2
-    echo -e  "${blue}2.2 应根据管理用户的角色分配权限，实现管理用户的权限分离，仅授予管理用户所需的最小权限${reset}\n"
-    echo "预期结果："
-    echo "询问管理员，了解每个用户的作用、权限"
-
-    echo -e "${red}awk -F: '$3==0 {print $1}' /etc/passwd${reset}"
-    awk -F: '$3==0 {print $1}' /etc/passwd
-    echo
-    echo "整改建议：给予账户所需最小权限，避免出现特权用户。"
-    echo
-    echo # 2.3
-    echo -e  "${blue}2.3 应实现操作系统和数据库系统特权用户的权限分离${reset}\n"
-    echo "预期结果："
-    echo "操作系统和数据库的特权用户的权限必须分离，避免一些特权用户拥有过大的权限，减少人为误操作。"
-
-    echo -e "${red}awk -F: '$3==0 {print $1}' /etc/passwd${reset}"
-    awk -F: '$3==0 {print $1}' /etc/passwd
+    base_section "2.3" "应实现操作系统和数据库系统特权用户的权限分离" \
+    "操作系统和数据库的特权用户的权限必须分离，避免一些特权用户拥有过大的权限，减少人为误操作" \
+    "awk -F: '\$3==0 {print \$1}' /etc/passwd" \
+    "分离数据库和操作系统的特权用户，不能使一个用户权限过大。"
     echo -e "${cyan}ps:具体情况还是得询问管理员是否存在数据库用户权限分离。${reset}"
-    echo
-    echo "整改建议：分离数据库和操作系统的特权用户，不能使一个用户权限过大。"
-    echo
-    echo # 2.4
-    echo -e  "${blue}2.4 应严格限制默认帐户的访问权限，重命名系统默认帐户，修改这些帐户的默认口令${reset}\n"
-    echo "预期结果："
-    echo "默认账户已更名，或已被禁用"
 
-    echo -e "${red}cat /etc/passwd | head${reset}"
-    cat /etc/passwd | head
-    echo
-    echo "整改建议：严格限制默认账户的访问权限，对存在的默认账户的用户名和口令进行修改。使用[usermod -l <新账户名> root]来修改用户名，使用 [ usermod -L 用户名]，来锁定默认用户。"
+    base_section "2.4" "应严格限制默认帐户的访问权限，重命名系统默认帐户，修改这些帐户的默认口令" \
+    "默认账户已更名，或已被禁用" \
+    "cat /etc/passwd | head" \
+    "严格限制默认账户的访问权限，对存在的默认账户的用户名和口令进行修改。使用[usermod -l <新账户名> root]来修改用户名，使用 [ usermod -L 用户名]，来锁定默认用户。"
     echo -e "${cyan}ps: 更改root名称可能导致telnet无法使用，是否配置按具体情况，具体等级分析。${reset}"
-    echo
-    echo # 2.5
-    echo -e  "${blue}2.5 应及时删除多余的、过期的帐户，避免共享帐户的存在${reset}\n"
-    echo "预期结果："
-    echo "不存在多余、过期和共享账户"
-    echo -e "${red}cat /etc/passwd | awk -F: '{print $1}' | paste -sd,${reset}"
-    cat /etc/passwd | awk -F: '{print $1}' | paste -sd,
-    echo
-    echo "整改建议：删除、禁用例如uucp，ftp等多余账户。"
-    echo
 
+    base_section "2.5" "应及时删除多余的、过期的帐户，避免共享帐户的存在" \
+    "不存在多余、过期和共享账户" \
+    "cat /etc/passwd | awk -F: '{print \$1}' | paste -sd," \
+    "整改建议：删除、禁用例如uucp，ftp等多余账户。"
 
     # ----------------------------------------------------------------------
     echo -e  "${purple}${bold}3. 安全审计${reset}\n"
-    echo # 3.1
-    echo -e  "${blue}3.1 审计范围应覆盖到服务器和重要客户端上的每个操作系统用户和数据库用户${reset}\n"
-    echo "预期结果："
-    echo "系统开启了安全审计功能或部署了第三方安全审计设备"
-    echo -e "${red}systemctl is-active auditd${reset}"
-    systemctl is-active auditd
-    echo
-    echo "整改建议：开启系统本身的安全审计功能，完整记录用户对操作系统和文件访问情况，或采用第三方的安全审计设备。"
-    echo
-    echo # 3.2
-    echo -e  "${blue}3.2 审计内容应包括重要用户行为、系统资源的异常使用和重要系统命令的使用等系统内重要的安全相关事件${reset}\n"
-    echo "预期结果："
-    echo "审计功能已开启，包括：用户的添加和删除、审计功能的启动和关闭、审计策略的调整、权限变更、系统资源的异常使用、重要的系统操作（如用户登录、退出）等设置"
-    echo -e "${red}ps -ef | grep auditd${reset}"
-    ps -ef | grep auditd
-    echo
-    echo "整改建议：开启审计功能，记录用户的添加和删除、审计功能的启动和关闭、审计策略的调整、权限变更、系统资源的异常使用、重要的系统操作（如用户登录、退出）等操作。"
-    echo
-    echo # 3.3
-    echo -e  "${blue}3.3 审计记录应包括事件的日期、时间、类型、主体标识、客体标识和结果等${reset}\n"
-    echo "预期结果："
-    echo "审计记录包括事件的日期、时间、类型、主体标识、客体标识和结果等内容"
-    echo -e "${red}ps -ef | grep auditd${reset}"
+
+    base_section "3.1" "审计范围应覆盖到服务器和重要客户端上的每个操作系统用户和数据库用户" \
+    "系统开启了安全审计功能或部署了第三方安全审计设备" \
+    "systemctl is-active auditd" \
+    "开启系统本身的安全审计功能，完整记录用户对操作系统和文件访问情况，或采用第三方的安全审计设备。"
+
+    base_section "3.2" "审计内容应包括重要用户行为、系统资源的异常使用和重要系统命令的使用等系统内重要的安全相关事件" \
+    "审计功能已开启，包括：用户的添加和删除、审计功能的启动和关闭、审计策略的调整、权限变更、系统资源的异常使用、重要的系统操作（如用户登录、退出）等设置" \
+    "ps -ef | grep auditd" \
+    "开启审计功能，记录用户的添加和删除、审计功能的启动和关闭、审计策略的调整、权限变更、系统资源的异常使用、重要的系统操作（如用户登录、退出）等操作。"
+ 
+    base_section "3.3" "审计记录应包括事件的日期、时间、类型、主体标识、客体标识和结果等" \
+    "审计记录包括事件的日期、时间、类型、主体标识、客体标识和结果等内容" \
+    "ps -ef | grep auditd" \
+    "记录事件产生的时间，日期，类型，主客体标识等"
     echo -e "${cyan}ps:具体查看cat /etc/audit/auditd.conf | cat /etc/audit/audit.rules。${reset}"
-    echo
-    echo "整改建议：记录事件产生的时间，日期，类型，主客体标识等。"
-    echo
-    echo # 3.4
-    echo -e  "${blue}3.4 操作系统应遵循最小安装的原则，仅安装需要的组件和应用程序，并通过设置升级服务器等方式保持系统补丁及时得到更新${reset}\n"
-    echo "预期结果："
-    echo "1)系统安装的组件和应用程序遵循了最小安装的原则；
-        2)不必要的服务没有启动；
-        3)不必要的端口没有打开；
-        "
-    echo -e "${red}lsof -i -P -n | grep LISTEN${reset}"
-    lsof -i -P -n | grep LISTEN
-    echo -e "${red}service --status-all | grep running${reset}"
-    service --status-all
-    echo
-    echo "整改建议：在不影响系统的正常使用的前提下，对系统的一些端口和服务可以进行关闭，避免这些端口或服务的问题导致系统问题。"
-    echo
+
+    base_section "3.4" "操作系统应遵循最小安装的原则，仅安装需要的组件和应用程序，并通过设置升级服务器等方式保持系统补丁及时得到更新" \
+    "     1)系统安装的组件和应用程序遵循了最小安装的原则；
+     2)不必要的服务没有启动；
+     3)不必要的端口没有打开；" \
+    "ss -tulpn ; service --status-all | grep running " \
+    "在不影响系统的正常使用的前提下，对系统的一些端口和服务可以进行关闭，避免这些端口或服务的问题导致系统问题。"
+
     # ----------------------------------------------------------------------
     echo -e  "${purple}${bold}4. 资源控制${reset}\n"
-    echo # 4.1
-    echo -e  "${blue}4.1 应通过设定终端接入方式、网络地址范围等条件限制终端登录${reset}\n"
-    echo "预期结果："
-    echo "已设定终端登录安全策略及措施，非授权终端无法登录管理。"
-    echo -e "${red}etc/hosts.deny、/etc/hosts.allow中对终端登录限制的相关配置参数${reset}"
-    echo -e "${cyan}ps:查看相关配置。${reset}"
-    echo
-    echo "整改建议：建议配置固定的终端、特定的网络范围内才能进行终端登录。"
-    echo
-    echo # 4.2
-    echo -e  "${blue}4.2 应根据安全策略设置登录终端的操作超时锁定${reset}\n"
-    echo "预期结果："
-    echo "已在/etc/profile中为TMOUT设置了合理的操作超时时间。"
-    echo -e "${red}cat /etc/profile | grep "TMOUT"${reset}"
-    cat /etc/profile | grep "TMOUT"
-    echo
-    echo "整改建议：超时时间建议设置为300秒。"
-    echo
+
+    base_section "4.1" "应通过设定终端接入方式、网络地址范围等条件限制终端登录" \
+    "已设定终端登录安全策略及措施，非授权终端无法登录管理。" \
+    "cat /etc/hosts.deny; cat /etc/hosts.allow" \
+    "建议配置固定的终端、特定的网络范围内才能进行终端登录。"
+
+    base_section "4.2" "应根据安全策略设置登录终端的操作超时锁定" \
+    "已在/etc/profile中为TMOUT设置了合理的操作超时时间。" \
+    "cat /etc/profile | grep 'TMOUT'" \
+    "超时时间建议设置为300秒。"
 }
 
 # [ ++ Function HTTP_STATUS_CODE ++ ]
@@ -1106,8 +2718,8 @@ function fk_http_scan
     if [ -f "$LIST" ]; then
         url_list=$LIST
         while IFS= read -r url_list; do
-            response=$(curl -k -A "${useragent}" --connect-timeout 10 --silent "${url_list}")
-            http_code=$(curl -k -A "${useragent}" --connect-timeout 10 --write-out "%{http_code}" --silent --output /dev/null "${url_list}")
+            response=$(curl -k  -A "${useragent}" --connect-timeout 10 --silent --location  "${url_list}")
+            http_code=$(curl -k -A "${useragent}" --connect-timeout 10 --location --write-out "%{http_code}" --silent --output /dev/null "${url_list}")
             title=$(echo "$response" | grep -oP '<title>\K(.*?)(?=<)')
             bytes=$(echo -n "$response" | wc -c)
             echo -e "[INFO] ${url_list} [${http_code}] [${bytes}] [${purple}${title}${reset}]" | tee -a output/http_info.txt
@@ -1115,8 +2727,8 @@ function fk_http_scan
         echo
     else
         url=$LIST
-        response=$(curl -k -A "${useragent}" --connect-timeout 10 --silent "${url}")
-        http_code=$(curl -k -A "${useragent}" --connect-timeout 10 --write-out "%{http_code}" --silent --output /dev/null "${url}")
+        response=$(curl -k -A "${useragent}" --connect-timeout 10 --silent --location "${url}")
+        http_code=$(curl -k -A "${useragent}" --connect-timeout 10 --location --write-out "%{http_code}" --silent --output /dev/null "${url}")
         title=$(echo "$response" | grep -oP '<title>\K(.*?)(?=<)')
         bytes=$(echo -n "$response" | wc -c)
         echo -e "[INFO] ${url} [${http_code}] [${bytes}] [${purple}${title}${reset}]" | tee -a output/http_info.txt
@@ -1307,6 +2919,11 @@ function fk_auto_run
         echo "TO=\"to Email\"" >>$EXT_FILE
         echo "CC=\"to Email\"" >>$EXT_FILE
         echo "SERVER=\"Your Email SERVER\"" >>$EXT_FILE
+        echo "EXT=\"false\"" >> $EXT_FILE
+        echo "# 以命令 + 描述的方式增加"  >>$EXT_FILE
+        echo "commands=(" >>$EXT_FILE
+        echo "#    \"cat /etc/passwd | grep -v nologin | cut -d: -f1 | paste -sd,;列出所有用户\""  >>$EXT_FILE
+        echo ")" >>$EXT_FILE
         printf "$OK 配置文件已生成，请前往配置文件${green}%s${reset}填写信息！\n" "$EXT_FILE"
         source $EXT_FILE
     fi
@@ -1420,7 +3037,14 @@ function fk_extention
     else
         printf "$ERR 配置文件%s未找到。\n" "$CONF_FILE"
         mkdir -p $CONF_PATH
-        echo "EXT=\"false\"" > $EXT_FILE
+        echo "EMAIL=\"false\"" > $EXT_FILE
+        echo "# 信使 - 邮箱配置，抄送CC可选"  >>$EXT_FILE
+        echo "FROM=\"Your Email\"" >>$EXT_FILE
+        echo "KEY=\"Your Email Auth Code\"" >>$EXT_FILE
+        echo "TO=\"to Email\"" >>$EXT_FILE
+        echo "CC=\"to Email\"" >>$EXT_FILE
+        echo "SERVER=\"Your Email SERVER\"" >>$EXT_FILE
+        echo "EXT=\"false\"" >> $EXT_FILE
         echo "# 以命令 + 描述的方式增加"  >>$EXT_FILE
         echo "commands=(" >>$EXT_FILE
         echo "#    \"cat /etc/passwd | grep -v nologin | cut -d: -f1 | paste -sd,;列出所有用户\""  >>$EXT_FILE
@@ -1574,8 +3198,8 @@ function fk_output
 function fk_reporthtml
 {
     bar
-    fk_hashfile
-    printf "%s\n" "$bar_repo_rest"
+    printf "%s\n" "$bar_repo_rest"  
+    fk_hashfile // 计算hash值
     mkdir -p $OUTPUT_M
 
     current_time=$(date "+%Y%m%d%H%M%S")
@@ -1598,7 +3222,8 @@ function fk_reporthtml
 
     # --- | Port and process | ---
     # 细节点：netstat没有怎么办，ss来代替
-    if command -v netstat > /dev/null; then
+    # 补充：发现很多系统lsof也是不存在的，需要先确保lsof存在，否则无法使用；lsof是用来判断端口号对于的服务的。
+    if command -v netstat > /dev/null &&  command -v lsof > /dev/null; then
         network_info=$(netstat -anltu)
         portsvt_info=$(netstat -tunlp | awk '/^tcp/ {print $4,$7}; /^udp/ {print $4,$6}' | sed -r 's/.*:(.*)\/.*/\1/' | sort -un | awk '{cmd = "sudo lsof -w -i :" $1 " | awk '\''NR==2{print $1}'\''"; cmd | getline serviceName; close(cmd); print $1 "\t" serviceName}')
     else
@@ -1740,14 +3365,26 @@ function fk_reporthtml
         openssh_risk="无"
     fi
 
-    # --- | risk --> CVE-2018-15473 | ---
+    # --- | risk --> CVE-2024-6387 | ---
     # CVE-2024-6387 Exist!!! 核弹级别 这个是采用@ahlfors老哥的，语法很紧凑
     vc(){ [[ "$(printf '%s\n' "$1" "$3"|sort -V|head -n1)" != "$1" || "$1" == "$3" ]]&&[[ "$2" == "<" ]]&&return 1;[[ "$(printf '%s\n' "$1" "$3"|sort -V|head -n1)" != "$3" || "$1" == "$3" ]]&&[[ "$2" == ">" ]]&&return 1;return 0;}
     gov(){ if command -v apt-get>/dev/null;then dpkg -s openssh-server|grep '^Version:'|awk '{print $2}';elif command -v yum>/dev/null||command -v dnf>/dev/null;then rpm -qi openssh-server|grep '^Version'|awk '{print $3}';elif command -v pacman>/dev/null;then pacman -Qi openssh|grep 'Version'|awk '{print $3}';else echo "未知的Linux发行版或不支持的包管理器。"&&return 1;fi;}
     ov=$(gov)
     [ $? -eq 0 ]&&sv="OpenSSH版本 $ov "&&vc "$ov" ">=" "8.5p1"&&vc "$ov" "<" "9.8p1"&&opensshvul="受漏洞影响"||opensshvul="不受漏洞影响"||echo "Fail to get OpenSSH version."
 
-
+    # 检测 CVE-2024-6387 (OpenSSH远程代码执行)
+    if which sshd &> /dev/null; then
+        ssh_version=$(sshd -v 2>&1 | grep -oP 'OpenSSH_\K[0-9]+\.[0-9]+')
+        version_major=${ssh_version%%.*}
+        version_minor=${ssh_version#*.}
+        if [[ "$version_major" -eq 8 && "$version_minor" -ge 5 ]] || [[ "$version_major" -eq 9 && "$version_minor" -lt 8 ]]; then
+            opensshvul="OpenSSH版本 $ssh_version 受漏洞影响"
+        else
+            opensshvul="OpenSSH版本 $ssh_version 不受漏洞影响"
+        fi
+    else
+        opensshvul="无"
+    fi
     # --- | backdoor --> SSH | ---
     fk_sshlink
     sshfileinfo=who_sshbackdoor.txt
@@ -2861,6 +4498,7 @@ function fk_options
             fk_history
             fk_crontab
             fk_filemove
+            fk_network
             fk_userinfo
             ;;
         -o | --output) OUT_NAME="$2"
@@ -2925,3 +4563,5 @@ fk_main "$@"
 # --------------------------------------
 #        | Futher |
 # --------------------------------------
+
+
