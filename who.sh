@@ -11,7 +11,7 @@
 function env
 {
     # [ ++ 基本信息 ++ ]
-    VER="2025.6.3@whoamifuck-version 6.3.1"
+    VER="2026.4.30@whoamifuck-version 7.1.0"
     WHOAMIFUCK=`whoami`
     FUCK=`who`
 
@@ -2307,11 +2307,11 @@ function dirty_cow
 
     validateOS()
     {
-        # If invalid OS is found, notify and exit
+        # If invalid OS is found, notify and return
         if [[ ! $VALID ]]; then
             echo -e "${red}This script is only meant to detect vulnerable kernels on Ubuntu 12.04, 14.04, and 16.04.${reset}"
             echo -e "${red}This script is only meant to detect vulnerable kernels on Red Hat Enterprise Linux 5, 6 and 7.${reset}"
-            exit 4
+            return 4
         fi
     }
 
@@ -2392,7 +2392,7 @@ function dirty_cow
 
         echo -e "${green}您的内核版本为 $running_kernel，不受该漏洞影响。${reset}"
         echo -e "-------------------------------------------------------------------------------------"
-        exit 0
+        return
     elif [[ ${result} == "$SAFE_KPATCH" ]]; then
         echo -e "您的内核版本为 $running_kernel，通常情况下是易受攻击的。"
         echo -e "${green}但是，您已经应用了 kpatch$applied_kpatch，该补丁修复了该漏洞。${reset}"
@@ -2416,7 +2416,7 @@ function dirty_cow
         echo -e "${red}可供更新的内核版本为 $UPDATE_VERSION，该版本同样存在漏洞。${reset}"
         echo -e "-------------------------------------------------------------------------------------"
     fi
-    exit $EXITCODE
+    return
 
 
 }
@@ -2438,14 +2438,68 @@ function dirty_pipe
     }
 
     # 检测是否受影响
+    echo -e "${red}10. CVE-2022-0847（Dirty Pipe Linux内核提权漏洞）${reset}"
     if version_lt "$affected_version_start" "$kernel_version" && \
     (version_lt "$kernel_version" "$affected_version_end1" || \
         version_lt "$kernel_version" "$affected_version_end2" || \
         version_lt "$kernel_version" "$affected_version_end3"); then
-        echo "当前内核版本为 $kernel_version，可能存在 DirtyPipe（CVE-2022-0847）漏洞。"
+        echo -e "${red}当前内核版本为 $kernel_version，存在 DirtyPipe（CVE-2022-0847）漏洞。${reset}"
     else
-        echo "当前内核版本为 $kernel_version，不在受影响范围内。"
+        echo -e "${green}当前内核版本为 $kernel_version，不在受影响范围内。${reset}"
     fi
+    echo -e "-------------------------------------------------------------------------------------"
+}
+
+function copy_fail
+{
+    # CVE-2026-31431 (Copy Fail) - Linux内核本地提权漏洞
+    # 漏洞引入: commit 72548b093ee3 (2017.08.09, kernel ~4.12+)
+    # 漏洞修复: commit a664bf3d603d (2026.03.31)
+    # 修复版本: mainline 7.0+, stable 6.18.22+, 6.19.12+
+
+    kernel_version=$(uname -r)
+
+    version_ge() {
+        [ "$(printf '%s\n' "$1" "$2" | sort -V | head -n1)" = "$2" ]
+    }
+
+    version_lt() {
+        [ "$1" = "$(printf '%s\n' "$1" "$2" | sort -V | head -n1)" ] && [ "$1" != "$2" ]
+    }
+
+    # 检查 algif_aead 模块状态
+    if lsmod 2>/dev/null | grep -q "algif_aead"; then
+        module_status="已加载"
+    elif [ -f "/lib/modules/$kernel_version/modules.builtin" ] && grep -q "algif_aead" "/lib/modules/$kernel_version/modules.builtin" 2>/dev/null; then
+        module_status="内置(builtin)"
+    else
+        module_status="未加载"
+    fi
+
+    # 判断内核版本是否受影响
+    affected=false
+    if version_ge "$kernel_version" "4.12"; then
+        if version_ge "$kernel_version" "7.0"; then
+            affected=false
+        elif version_ge "$kernel_version" "6.19.12"; then
+            affected=false
+        elif version_ge "$kernel_version" "6.18.22" && version_lt "$kernel_version" "6.19"; then
+            affected=false
+        else
+            affected=true
+        fi
+    fi
+
+    echo -e "${red}11. CVE-2026-31431 (Copy Fail Linux内核本地提权漏洞)${reset}"
+    if [ "$affected" = true ]; then
+        echo -e "${red}当前内核版本 $kernel_version 受该漏洞影响${reset}"
+        echo -e "algif_aead 模块状态: ${yellow}${module_status}${reset}"
+        echo -e "${red}建议: 升级内核至 6.18.22+/6.19.12+/7.0+ 或禁用 algif_aead 模块${reset}"
+    else
+        echo -e "${green}当前内核版本 $kernel_version 不受该漏洞影响${reset}"
+        [ "$module_status" != "未加载" ] && echo -e "algif_aead 模块状态: ${module_status}"
+    fi
+    echo -e "-------------------------------------------------------------------------------------"
 }
 
 function fk_vulcheck
@@ -2464,6 +2518,7 @@ function fk_vulcheck
     echo "---------------"
     grep -E "admin123|test|123456|admin|root|12345678|111111|p@ssw0rd|test|qwerty|zxcvbnm|123123|12344321|123qwe|password|1qaz|000000|666666|888888|foobared" pass.tmp | awk '{print "[+] "$1}'
 
+    mkdir -p $OUTPUT
     sed "s/\x1B\[[0-9;]*[JKmsu]//g" vuln.log > $OUTPUT/vuln.txt
     rm -f vuln.log pass.tmp
     echo -e "-------------------------------------------------------------------------------------"
@@ -2571,6 +2626,12 @@ function fk_vulcheck
     # --- | risk --> linux kernel 漏洞 | ---
     # CVE-2016–5195 dirty cow
     dirty_cow
+
+    # CVE-2022-0847 Dirty Pipe
+    dirty_pipe
+
+    # CVE-2026-31431 Copy Fail
+    copy_fail
 
 }
 
@@ -3256,6 +3317,22 @@ function fk_reporthtml
     fk_hashfile // 计算hash值
     mkdir -p $OUTPUT_M
 
+    # 进度条
+    _progress() {
+        local step="$1" desc="$2" total=12 width=40
+        local pct=$(( step * 100 / total ))
+        local filled=$(( pct * width / 100 ))
+        local empty=$(( width - filled ))
+        local i
+        printf "\r\033[K[${green}"
+        for ((i=0; i<filled; i++)); do printf "#"; done
+        printf "${reset}"
+        for ((i=0; i<empty; i++)); do printf "."; done
+        printf "] %3d%%  %s" "$pct" "$desc"
+    }
+
+    _progress 1 "正在初始化..."
+
     current_time=$(date "+%Y%m%d%H%M%S")
     event_date=$(date "+%Y年%m月%d日 %H:%M:%S")
 
@@ -3298,11 +3375,13 @@ function fk_reporthtml
 
     # 7.0 补充  - 添加服务的具体信息
     service_show=$(for service in $(systemctl list-units --all | awk '/\S+\.service/ {gsub(/^[^[:alnum:]]+/, ""); print $1}' | grep -v UNIT); do   echo -e "\n-------------\n服务: $service\n-------------";   systemctl show "$service" | grep -E "path|ActiveState="; done)
+    _progress 2 "端口、进程、服务采集完成"
 
     # --- | User Group | ---
     user_info=$(cat /etc/passwd)
     pass_info=$(cat /etc/shadow)
     grop_info=$(cat /etc/group)
+    _progress 3 "用户与组信息采集完成"
 
 
     # --- | History | ---
@@ -3324,6 +3403,7 @@ function fk_reporthtml
 
         fi
     done
+    _progress 4 "历史命令采集完成"
 
 
     # --- | Crontab | ---
@@ -3342,12 +3422,14 @@ function fk_reporthtml
     # /etc/cron.weekly/'
     # /etc/cron.hourly/'
     # /etc/cron.monthly/'
+    _progress 5 "计划任务采集完成"
 
 
     # --- | init | ---
     initpid_info=$(systemctl list-unit-files --type=service)
     initd_info=$(cat /etc/init.d/* 2>/dev/null | sed -e 's/</\&lt;/g; s/>/\&gt;/g')
     initrc_info=$(cat /etc/rc*/* 2>/dev/null | sed -e 's/</\&lt;/g; s/>/\&gt;/g')
+    _progress 6 "启动项采集完成"
 
 
     # --- | User Login | ---
@@ -3365,6 +3447,7 @@ function fk_reporthtml
         userlog_info=$(cat $SECURE_FILE 2>/dev/null | tail -2000)
         userlog_file=$SECURE_FILE
     fi
+    _progress 7 "登录日志采集完成"
 
     # --- | File Stat | ---
     fk_filemove "$show"
@@ -3377,6 +3460,7 @@ function fk_reporthtml
     sed "s/\x1B\[[0-9;]*[JKmsu]//g" $OUTPUT/$fileinfo_file > $OUTPUT/$fileinfo_deal_file
     rm -f $OUTPUT/$fileinfo_file
     fileinfo_output=$(cat $OUTPUT/$fileinfo_deal_file)
+    _progress 8 "文件信息采集完成"
 
     # --- | env profile | ---
     env_alias_info=$(cat ~/.bashrc | grep alias 2>/dev/null | sed -e 's/</\&lt;/g; s/>/\&gt;/g')
@@ -3409,6 +3493,7 @@ function fk_reporthtml
         fi
     done
     env_homeprofile_info=$(cat output/$env_homefile)
+    _progress 9 "环境变量采集完成"
 
 
     # --- | risk --> die process | ---
@@ -3459,6 +3544,103 @@ function fk_reporthtml
     else
         opensshvul="无"
     fi
+    # --- | risk --> CVE-2026-31431 Copy Fail | ---
+    kernel_version=$(uname -r)
+    version_ge() { [ "$(printf '%s\n' "$1" "$2" | sort -V | head -n1)" = "$2" ]; }
+    version_lt() { [ "$1" = "$(printf '%s\n' "$1" "$2" | sort -V | head -n1)" ] && [ "$1" != "$2" ]; }
+    if lsmod 2>/dev/null | grep -q "algif_aead"; then
+        cf_module="已加载"
+    elif [ -f "/lib/modules/$kernel_version/modules.builtin" ] && grep -q "algif_aead" "/lib/modules/$kernel_version/modules.builtin" 2>/dev/null; then
+        cf_module="内置"
+    else
+        cf_module="未加载"
+    fi
+    cf_affected=false
+    if version_ge "$kernel_version" "4.12"; then
+        if version_ge "$kernel_version" "7.0"; then
+            cf_affected=false
+        elif version_ge "$kernel_version" "6.19.12"; then
+            cf_affected=false
+        elif version_ge "$kernel_version" "6.18.22" && version_lt "$kernel_version" "6.19"; then
+            cf_affected=false
+        else
+            cf_affected=true
+        fi
+    fi
+    if [ "$cf_affected" = true ]; then
+        copy_fail_html="内核 $kernel_version 受漏洞影响 | 模块: $cf_module"
+    else
+        copy_fail_html="内核 $kernel_version 不受漏洞影响"
+    fi
+    # --- | risk --> CVE-2016-5195 Dirty Cow | ---
+    dirty_cow > /dev/null 2>&1
+    case "$result" in
+        "$SAFE_KERNEL") dirty_cow_html="内核 $running_kernel 不受该漏洞影响" ;;
+        "$SAFE_KPATCH") dirty_cow_html="内核 $running_kernel 已应用 $applied_kpatch，漏洞已修复" ;;
+        "$MITIGATED")   dirty_cow_html="内核 $running_kernel 存在漏洞(已应用部分缓解措施)" ;;
+        *)              dirty_cow_html="内核 $running_kernel 存在该漏洞，建议更新内核" ;;
+    esac
+
+    # --- | risk --> CVE-2022-0847 Dirty Pipe | ---
+    dpipe_kernel=$(uname -r)
+    dpipe_ver_lt() { [ "$1" = "$(printf '%s\n' "$1" "$2" | sort -V | head -n1)" ] && [ "$1" != "$2" ]; }
+    if dpipe_ver_lt "5.8" "$dpipe_kernel" && \
+       (dpipe_ver_lt "$dpipe_kernel" "5.16.11" || \
+        dpipe_ver_lt "$dpipe_kernel" "5.15.25" || \
+        dpipe_ver_lt "$dpipe_kernel" "5.10.102"); then
+        dirty_pipe_html="内核 $dpipe_kernel 存在该漏洞"
+    else
+        dirty_pipe_html="内核 $dpipe_kernel 不在受影响范围内"
+    fi
+
+    # --- | risk --> Sudo CVEs | ---
+    if which sudo &> /dev/null; then
+        sudo_version=$(sudo -V 2>&1 | grep -oP 'Sudo version \K[0-9]+\.[0-9]+\.[0-9]+')
+        sv_major=${sudo_version%%.*}
+        sv_tmp=${sudo_version#*.}
+        sv_minor=${sv_tmp%.*}
+        sv_patch=${sudo_version##*.}
+
+        if [[ "$sv_major" -eq 1 && "$sv_minor" -ge 7 && "$sv_minor" -le 8 && "$sv_patch" -le 30 ]]; then
+            sudo_2019_html="Sudo $sudo_version 受漏洞影响"
+        else
+            sudo_2019_html="Sudo $sudo_version 不受漏洞影响"
+        fi
+
+        if { [[ "$sv_major" -eq 1 && "$sv_minor" -eq 8 && "$sv_patch" -ge 2 && "$sv_patch" -le 31 ]]; } || \
+           { [[ "$sv_major" -eq 1 && "$sv_minor" -eq 9 && "$sv_patch" -ge 0 && "$sv_patch" -le 5 ]]; }; then
+            sudo_2021_html="Sudo $sudo_version 受漏洞影响"
+        else
+            sudo_2021_html="Sudo $sudo_version 不受漏洞影响"
+        fi
+
+        if [[ "$sv_major" -eq 1 && "$sv_minor" -ge 8 && "$sv_minor" -le 9 && "$sv_patch" -le 12 ]]; then
+            sudo_2023_html="Sudo $sudo_version 受漏洞影响"
+        else
+            sudo_2023_html="Sudo $sudo_version 不受漏洞影响"
+        fi
+    else
+        sudo_2019_html="未安装sudo"
+        sudo_2021_html="未安装sudo"
+        sudo_2023_html="未安装sudo"
+    fi
+
+    # --- | risk --> CVE-2024-3094 XZ Utils | ---
+    if which xz &> /dev/null; then
+        xz_version=$(xz --version 2>&1 | grep -oP 'xz.* \K[0-9]+\.[0-9]+\.[0-9]+')
+        xzv_major=${xz_version%%.*}
+        xzv_tmp=${xz_version#*.}
+        xzv_minor=${xzv_tmp%.*}
+        xzv_patch=${xz_version##*.}
+        if [[ "$xzv_major" -eq 5 && "$xzv_minor" -eq 6 && ( "$xzv_patch" -eq 0 || "$xzv_patch" -eq 1 ) ]]; then
+            xz_risk_html="XZ $xz_version 受漏洞影响"
+        else
+            xz_risk_html="XZ $xz_version 不受漏洞影响"
+        fi
+    else
+        xz_risk_html="未安装 XZ Utils"
+    fi
+    _progress 10 "漏洞检测完成"
     # --- | backdoor --> SSH | ---
     fk_sshlink
     sshfileinfo=who_sshbackdoor.txt
@@ -3474,6 +3656,7 @@ function fk_reporthtml
     else
         sshpubkey="未找到该文件"
     fi
+    _progress 11 "SSH后门检测完成"
 
     # -----------------------------------------------------------
     #                   HTML Report Format
@@ -3918,6 +4101,34 @@ function fk_reporthtml
                         <tr>
                             <td>CVE-2024-6387(OpenSSH远程代码执行)</td>
                             <td>$sv$opensshvul</td>
+                        </tr>
+                        <tr>
+                            <td>CVE-2026-31431(Copy Fail内核提权)</td>
+                            <td>$copy_fail_html</td>
+                        </tr>
+                        <tr>
+                            <td>CVE-2016-5195(Dirty Cow内核提权)</td>
+                            <td>$dirty_cow_html</td>
+                        </tr>
+                        <tr>
+                            <td>CVE-2022-0847(Dirty Pipe内核提权)</td>
+                            <td>$dirty_pipe_html</td>
+                        </tr>
+                        <tr>
+                            <td>CVE-2019-18634(Sudo本地提权)</td>
+                            <td>$sudo_2019_html</td>
+                        </tr>
+                        <tr>
+                            <td>CVE-2021-3156(Sudo溢出提权)</td>
+                            <td>$sudo_2021_html</td>
+                        </tr>
+                        <tr>
+                            <td>CVE-2023-22809(Sudo本地提权)</td>
+                            <td>$sudo_2023_html</td>
+                        </tr>
+                        <tr>
+                            <td>CVE-2024-3094(XZ Utils后门)</td>
+                            <td>$xz_risk_html</td>
                         </tr>
                         <tr>
                             <td>SSH软链接后门</td>
@@ -4543,6 +4754,8 @@ function fk_reporthtml
     </body>
     </html>
 EOF
+    _progress 12 "HTML报告生成完毕"
+    echo
     printf "$SUC 导出Html结果成功。路径：$OUTPUT_M/$html_name\n"
     rm -f $OUTPUT/who_*
 }
@@ -4652,5 +4865,3 @@ fk_main "$@"
 # --------------------------------------
 #        | Futher |
 # --------------------------------------
-
-
