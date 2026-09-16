@@ -1,0 +1,9 @@
+# Rust 构建产物
+/target
+
+# 运行时生成的报告与临时文件
+/output
+*.tar.gz
+vuln.log
+pass.tmp
+chief_*.txt
