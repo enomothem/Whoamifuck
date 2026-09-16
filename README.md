@@ -81,6 +81,52 @@ git clone https://github.com/enomothem/Whoamifuck.git
 cd Whoamifuck
 chmod +x whoamifuck.sh
 ```
+
+### 🦀 Rust 重构版（Rust Refactor）
+> [!NOTE]
+> 项目已提供一份 **Rust 重构版本**，位于本仓库的 `src/` 目录（Cargo 项目）。它忠实保留了原
+> `who.sh` 的命令行接口、输出风格与检测逻辑；控制流、参数分发、内核 CVE 数据表、版本比较等
+> 均由 Rust 原生实现，对系统状态的采集仍复用底层系统命令（`ps`/`ss`/`last`/`find` 等）——
+> 这与任何应急响应工具的做法一致，也保证了输出与原版一致。
+
+**为什么用 Rust 重构？**
+- 单一静态二进制，便于在应急现场分发，无需依赖特定 shell 版本；
+- 类型安全，避免 bash 中大量的变量引用/引号陷阱；
+- 内核 CVE 版本表、版本比较、日志解析等逻辑以结构化代码组织，易于维护与扩展。
+
+**编译：**
+```bash
+cargo build --release
+# 产物：target/release/who
+```
+
+**运行（需要 root 权限）：**
+```bash
+sudo ./target/release/who -h      # 帮助
+sudo ./target/release/who -n      # 基本输出模式
+sudo ./target/release/who -r      # 常见漏洞自查
+sudo ./target/release/who -m report.html   # 导出 HTML 报告
+```
+
+命令行参数与下方“使用方法”完全一致。
+
+**代码结构：**
+
+| 路径 | 说明 |
+| --- | --- |
+| `src/main.rs` | 入口与命令分发（对应 `fk_main` / `fk_options`） |
+| `src/color.rs` | ANSI 调色板（对应 `color`） |
+| `src/ui.rs` | LOGO / 帮助 / 标题栏 / 状态标记（`logo`/`help_*`/`bar`/`stats`） |
+| `src/env.rs` | 全局环境与默认路径（`env`） |
+| `src/sys.rs` | 命令执行、OS 识别、root 判断（`os_name` 等） |
+| `src/util.rs` | 依赖检测与安装提示（`fk_command` / `i`） |
+| `src/version.rs` | 版本比较（复用 `sort -V` 语义） |
+| `src/modules/*.rs` | 各 `fk_*` 检测模块（每个功能一个文件） |
+| `src/modules/kernel_cve_data.rs` | Dirty Cow 受影响内核版本表（自 `who.sh` 移植） |
+
+> [!TIP]
+> HTML 报告（`-m`）为**功能性移植**：采集与原版相同类别的信息，并渲染为一份带折叠区块与
+> 搜索框的自包含 HTML 报告，而非逐字节复刻原 1400 行内嵌模板。
 ### 使用方法
 ```
 使用方法:                                                                    
