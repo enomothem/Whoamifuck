@@ -1221,9 +1221,7 @@ pub const VULNERABLE_KERNELS: &[&str] = &[
     "3.10.0-327.36.1.rt56.237.el7",
 ];
 
-pub const KPATCH_MODULE_NAMES: &[&str] = &[
-    "kpatch_3_10_0_327_36_1_1_1",
-    "kpatch_3_10_0_327_36_2_1_1",
-];
+pub const KPATCH_MODULE_NAMES: &[&str] =
+    &["kpatch_3_10_0_327_36_1_1_1", "kpatch_3_10_0_327_36_2_1_1"];
 
 pub const VALID_OS: &[&str] = &["precise", "trusty", "xenial", "5", "6", "7"];

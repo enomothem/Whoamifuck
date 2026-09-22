@@ -8,7 +8,10 @@ use std::io::{self, Write};
 /// 对应 `fk_command`：curl 缺失时给出警告。
 pub fn check_command() {
     if !command_exists("curl") {
-        println!("{} curl 命令不存在将导致web存活模块无法使用。", Stats::war());
+        println!(
+            "{} curl 命令不存在将导致web存活模块无法使用。",
+            Stats::war()
+        );
     }
 }
 

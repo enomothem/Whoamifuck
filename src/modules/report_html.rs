@@ -41,7 +41,8 @@ pub fn run(env: &Env, report_name: Option<&str>) {
         "无lsof命令。".to_string()
     };
     let process_info = capture("ps aux");
-    let service_info = capture("systemctl | grep -E \"\\.service.*running\" | awk -F. '{print $1}'");
+    let service_info =
+        capture("systemctl | grep -E \"\\.service.*running\" | awk -F. '{print $1}'");
     progress(2, "端口、进程、服务采集完成");
 
     // 用户与组
@@ -72,7 +73,10 @@ pub fn run(env: &Env, report_name: Option<&str>) {
     let userlogin = strip_ansi(&capture(&format!("'{self_exe}' -l")));
     let (userlog_info, userlog_file) = match os.os_type {
         OsType::Debian => (
-            capture(&format!("cat {} 2>/dev/null | tail -2000", env.authlog_file)),
+            capture(&format!(
+                "cat {} 2>/dev/null | tail -2000",
+                env.authlog_file
+            )),
             env.authlog_file.clone(),
         ),
         OsType::RedHat => (
@@ -125,13 +129,17 @@ pub fn run(env: &Env, report_name: Option<&str>) {
 
     // 组装 HTML
     let mut body = String::new();
-    add_section(&mut body, "系统基本信息", &format!(
-        "操作系统: {}\n内核: {}\n主机名: {}\n报告时间: {event_date}\n当前用户: {}",
-        os.name,
-        capture("uname -a"),
-        capture("hostname"),
-        env.whoamifuck,
-    ));
+    add_section(
+        &mut body,
+        "系统基本信息",
+        &format!(
+            "操作系统: {}\n内核: {}\n主机名: {}\n报告时间: {event_date}\n当前用户: {}",
+            os.name,
+            capture("uname -a"),
+            capture("hostname"),
+            env.whoamifuck,
+        ),
+    );
     add_section(&mut body, "端口 - 网络连接", &network_info);
     add_section(&mut body, "端口 - 服务映射", &portsvt_info);
     add_section(&mut body, "网络 - lsof", &lsof_info);
@@ -147,7 +155,11 @@ pub fn run(env: &Env, report_name: Option<&str>) {
     add_section(&mut body, "启动项 (service units)", &initpid_info);
     add_section(&mut body, "启动项 (/etc/init.d)", &initd_info);
     add_section(&mut body, "用户登录分析", &userlogin);
-    add_section(&mut body, &format!("登录日志 ({userlog_file})"), &userlog_info);
+    add_section(
+        &mut body,
+        &format!("登录日志 ({userlog_file})"),
+        &userlog_info,
+    );
     add_section(&mut body, "最近3天修改的文件", &m_file);
     add_section(&mut body, "最近3天创建的文件", &c_file);
     add_section(&mut body, "/var 最近3天修改", &m_file_var);
@@ -155,9 +167,21 @@ pub fn run(env: &Env, report_name: Option<&str>) {
     add_section(&mut body, "环境变量 - profile", &env_profile);
     add_section(&mut body, "风险 - 僵尸进程", &kill_process);
     add_section(&mut body, "风险 - Redis 未授权", &redis_risk);
-    add_section(&mut body, "风险 - CVE-2016-5195 Dirty Cow", &dirty_cow_status());
-    add_section(&mut body, "风险 - CVE-2022-0847 Dirty Pipe", &dirty_pipe_html);
-    add_section(&mut body, "风险 - CVE-2026-31431 Copy Fail", &copy_fail_html);
+    add_section(
+        &mut body,
+        "风险 - CVE-2016-5195 Dirty Cow",
+        &dirty_cow_status(),
+    );
+    add_section(
+        &mut body,
+        "风险 - CVE-2022-0847 Dirty Pipe",
+        &dirty_pipe_html,
+    );
+    add_section(
+        &mut body,
+        "风险 - CVE-2026-31431 Copy Fail",
+        &copy_fail_html,
+    );
     add_section(&mut body, "后门 - SSH 进程", &ssh_info);
     add_section(&mut body, "后门 - SSH 公钥", &sshpubkey);
 
@@ -168,22 +192,17 @@ pub fn run(env: &Env, report_name: Option<&str>) {
     let _ = fs::write(&courier_path, &html);
     progress(12, "报告生成完成");
     println!();
-    println!(
-        "{} HTML报告已生成：{out_path}",
-        crate::ui::Stats::suc()
-    );
+    println!("{} HTML报告已生成：{out_path}", crate::ui::Stats::suc());
 }
 
 fn progress(step: u32, desc: &str) {
     let total = 12u32;
     let width = 40u32;
     let pct = step * 100 / total;
-    let filled = pct * width / 100;
-    let bar: String = std::iter::repeat('#')
-        .take(filled as usize)
-        .chain(std::iter::repeat('.').take((width - filled) as usize))
-        .collect();
-    print!("\r\x1b[K[{}] {pct:3}%  {desc}", bar);
+    let filled = (pct * width / 100) as usize;
+    let empty = width as usize - filled;
+    let bar = format!("{}{}", "#".repeat(filled), ".".repeat(empty));
+    print!("\r\x1b[K[{bar}] {pct:3}%  {desc}");
     use std::io::Write;
     let _ = std::io::stdout().flush();
 }

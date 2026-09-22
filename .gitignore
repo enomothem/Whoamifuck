@@ -7,3 +7,6 @@
 vuln.log
 pass.tmp
 chief_*.txt
+
+# 本地文稿（不纳入版本管理）
+/docs/

@@ -26,8 +26,14 @@ pub fn run(env: &Env, out_name: Option<&str>) {
         strip_ansi(&userlogin_raw),
     );
     let login_all = match os.os_type {
-        OsType::Debian => capture(&format!("cat {} 2>/dev/null | tail -20000", env.authlog_file)),
-        OsType::RedHat => capture(&format!("cat {} 2>/dev/null | tail -20000", env.secure_file)),
+        OsType::Debian => capture(&format!(
+            "cat {} 2>/dev/null | tail -20000",
+            env.authlog_file
+        )),
+        OsType::RedHat => capture(&format!(
+            "cat {} 2>/dev/null | tail -20000",
+            env.secure_file
+        )),
     };
     let _ = fs::write(format!("{output}/chief_userlogin_info_all.txt"), login_all);
 

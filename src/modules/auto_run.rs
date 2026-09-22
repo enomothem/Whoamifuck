@@ -93,7 +93,9 @@ pub fn run(env: &Env, hour_arg: Option<&str>, minute_arg: Option<&str>) {
     let key = capture(&format!("source '{ext_file}' 2>/dev/null; echo \"$KEY\""));
     let to = capture(&format!("source '{ext_file}' 2>/dev/null; echo \"$TO\""));
     let cc = capture(&format!("source '{ext_file}' 2>/dev/null; echo \"$CC\""));
-    let server = capture(&format!("source '{ext_file}' 2>/dev/null; echo \"$SERVER\""));
+    let server = capture(&format!(
+        "source '{ext_file}' 2>/dev/null; echo \"$SERVER\""
+    ));
 
     // 设置 cron 作业
     match email.as_str() {
@@ -152,6 +154,9 @@ fn sq(s: &str) -> String {
 
 fn append_line(path: &str, line: &str) -> std::io::Result<()> {
     use std::io::Write;
-    let mut f = std::fs::OpenOptions::new().create(true).append(true).open(path)?;
+    let mut f = std::fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(path)?;
     writeln!(f, "{line}")
 }

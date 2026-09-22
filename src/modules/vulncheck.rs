@@ -8,7 +8,8 @@ use crate::version::{version_ge, version_lt};
 use std::fs;
 use std::path::Path;
 
-const SEP: &str = "-------------------------------------------------------------------------------------";
+const SEP: &str =
+    "-------------------------------------------------------------------------------------";
 
 pub fn run() {
     println!();
@@ -177,7 +178,9 @@ fn dirty_cow() {
         .iter()
         .any(|k| running_kernel.contains(k));
     let vulnerable_update_kernel = !update_version.is_empty()
-        && VULNERABLE_KERNELS.iter().any(|k| update_version.contains(k));
+        && VULNERABLE_KERNELS
+            .iter()
+            .any(|k| update_version.contains(k));
 
     let modules = capture("lsmod");
     let applied_kpatch = KPATCH_MODULE_NAMES
@@ -272,19 +275,19 @@ fn dirty_pipe() {
 fn copy_fail() {
     let kernel = capture("uname -r");
 
-    let module_status = if capture("lsmod 2>/dev/null | grep -q 'algif_aead' && echo y").contains('y')
-    {
-        "已加载"
-    } else if Path::new(&format!("/lib/modules/{kernel}/modules.builtin")).is_file()
-        && capture(&format!(
+    let module_status =
+        if capture("lsmod 2>/dev/null | grep -q 'algif_aead' && echo y").contains('y') {
+            "已加载"
+        } else if Path::new(&format!("/lib/modules/{kernel}/modules.builtin")).is_file()
+            && capture(&format!(
             "grep -q 'algif_aead' '/lib/modules/{kernel}/modules.builtin' 2>/dev/null && echo y"
         ))
-        .contains('y')
-    {
-        "内置(builtin)"
-    } else {
-        "未加载"
-    };
+            .contains('y')
+        {
+            "内置(builtin)"
+        } else {
+            "未加载"
+        };
 
     let mut affected = false;
     if version_ge(&kernel, "4.12") {
@@ -315,6 +318,9 @@ fn copy_fail() {
 
 fn append_file(path: &str, content: &str) -> std::io::Result<()> {
     use std::io::Write;
-    let mut f = fs::OpenOptions::new().create(true).append(true).open(path)?;
+    let mut f = fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(path)?;
     f.write_all(content.as_bytes())
 }
