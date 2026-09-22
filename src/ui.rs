@@ -131,7 +131,11 @@ pub fn help_en(env: &Env) {
     row("\t", "-a --all", "All print.");
     println!();
     row("  ", "SPECIAL", "");
-    row("\t", "-x --proc-serv", "Check service and process information.");
+    row(
+        "\t",
+        "-x --proc-serv",
+        "Check service and process information.",
+    );
     row("\t", "-p --port", "Show port information.");
     row("\t", "-s --os-status", "Show os status information.");
     println!();

@@ -54,6 +54,9 @@ fn sq(s: &str) -> String {
 
 fn append_file(path: &str, content: &str) -> std::io::Result<()> {
     use std::io::Write;
-    let mut f = fs::OpenOptions::new().create(true).append(true).open(path)?;
+    let mut f = fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(path)?;
     f.write_all(content.as_bytes())
 }

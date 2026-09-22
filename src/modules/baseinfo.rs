@@ -39,8 +39,7 @@ pub fn run(env: &Env) {
     let mut current_user_tasks = capture("crontab -l 2>/dev/null | wc -l");
     let mut etc_crontab_tasks =
         capture("grep -vE '^\\s*#|^\\s*$' /etc/crontab | grep -vE '^[A-Za-z]' | wc -l");
-    let mut var_spool_tasks =
-        capture("grep -s . /var/spool/cron/* | grep -v '^Binary' | wc -l");
+    let mut var_spool_tasks = capture("grep -s . /var/spool/cron/* | grep -v '^Binary' | wc -l");
     if current_user_tasks.is_empty() {
         current_user_tasks = "0".to_string();
     }
@@ -90,17 +89,29 @@ fn collect_interfaces() -> (String, String) {
         match eth {
             1 => {
                 let ethx = capture("ifconfig -s | grep ^e | awk '{print $1}'");
-                let ip = capture(&format!("ifconfig {ethx} | head -2 | tail -1 | awk '{{print $2}}'"));
-                let zw = capture(&format!("ifconfig {ethx} | head -2 | tail -1 | awk '{{print $4}}'"));
+                let ip = capture(&format!(
+                    "ifconfig {ethx} | head -2 | tail -1 | awk '{{print $2}}'"
+                ));
+                let zw = capture(&format!(
+                    "ifconfig {ethx} | head -2 | tail -1 | awk '{{print $4}}'"
+                ));
                 (ip, zw)
             }
             2 => {
                 let eth0 = capture("ifconfig -s | grep ^e | awk 'NR==1{print $1}'");
                 let eth1 = capture("ifconfig -s | grep ^e | awk 'NR==2{print $1}'");
-                let ip1 = capture(&format!("ifconfig {eth0} | head -2 | tail -1 | awk '{{print $2}}'"));
-                let zw1 = capture(&format!("ifconfig {eth0} | head -2 | tail -1 | awk '{{print $4}}'"));
-                let ip2 = capture(&format!("ifconfig {eth1} | head -2 | tail -1 | awk '{{print $2}}'"));
-                let zw2 = capture(&format!("ifconfig {eth1} | head -2 | tail -1 | awk '{{print $4}}'"));
+                let ip1 = capture(&format!(
+                    "ifconfig {eth0} | head -2 | tail -1 | awk '{{print $2}}'"
+                ));
+                let zw1 = capture(&format!(
+                    "ifconfig {eth0} | head -2 | tail -1 | awk '{{print $4}}'"
+                ));
+                let ip2 = capture(&format!(
+                    "ifconfig {eth1} | head -2 | tail -1 | awk '{{print $2}}'"
+                ));
+                let zw2 = capture(&format!(
+                    "ifconfig {eth1} | head -2 | tail -1 | awk '{{print $4}}'"
+                ));
                 (format!("{ip1},{ip2}"), format!("{zw1},{zw2}"))
             }
             n if n > 2 => {
@@ -113,24 +124,42 @@ fn collect_interfaces() -> (String, String) {
             }
         }
     } else {
-        let eth: usize = capture("ip -o link show | grep '^[0-9]*: e' | awk '{print $2}' | tr -d ':' | wc -l")
-            .trim()
-            .parse()
-            .unwrap_or(0);
+        let eth: usize =
+            capture("ip -o link show | grep '^[0-9]*: e' | awk '{print $2}' | tr -d ':' | wc -l")
+                .trim()
+                .parse()
+                .unwrap_or(0);
         match eth {
             1 => {
-                let ethx = capture("ip -o link show | grep '^[0-9]*: e' | awk '{print $2}' | tr -d ':'");
-                let ip = capture(&format!("ip -o -4 addr show {ethx} | awk '{{print $4}}' | cut -d/ -f1"));
-                let zw = capture(&format!("ip -o -4 addr show {ethx} | awk '{{print $4}}' | cut -d/ -f2"));
+                let ethx =
+                    capture("ip -o link show | grep '^[0-9]*: e' | awk '{print $2}' | tr -d ':'");
+                let ip = capture(&format!(
+                    "ip -o -4 addr show {ethx} | awk '{{print $4}}' | cut -d/ -f1"
+                ));
+                let zw = capture(&format!(
+                    "ip -o -4 addr show {ethx} | awk '{{print $4}}' | cut -d/ -f2"
+                ));
                 (ip, zw)
             }
             2 => {
-                let eth0 = capture("ip -o link show | grep '^[0-9]*: e' | awk 'NR==1{print $2}' | tr -d ':'");
-                let eth1 = capture("ip -o link show | grep '^[0-9]*: e' | awk 'NR==2{print $2}' | tr -d ':'");
-                let ip1 = capture(&format!("ip -o -4 addr show {eth0} | awk '{{print $4}}' | cut -d/ -f1"));
-                let zw1 = capture(&format!("ip -o -4 addr show {eth0} | awk '{{print $4}}' | cut -d/ -f2"));
-                let ip2 = capture(&format!("ip -o -4 addr show {eth1} | awk '{{print $4}}' | cut -d/ -f1"));
-                let zw2 = capture(&format!("ip -o -4 addr show {eth1} | awk '{{print $4}}' | cut -d/ -f2"));
+                let eth0 = capture(
+                    "ip -o link show | grep '^[0-9]*: e' | awk 'NR==1{print $2}' | tr -d ':'",
+                );
+                let eth1 = capture(
+                    "ip -o link show | grep '^[0-9]*: e' | awk 'NR==2{print $2}' | tr -d ':'",
+                );
+                let ip1 = capture(&format!(
+                    "ip -o -4 addr show {eth0} | awk '{{print $4}}' | cut -d/ -f1"
+                ));
+                let zw1 = capture(&format!(
+                    "ip -o -4 addr show {eth0} | awk '{{print $4}}' | cut -d/ -f2"
+                ));
+                let ip2 = capture(&format!(
+                    "ip -o -4 addr show {eth1} | awk '{{print $4}}' | cut -d/ -f1"
+                ));
+                let zw2 = capture(&format!(
+                    "ip -o -4 addr show {eth1} | awk '{{print $4}}' | cut -d/ -f2"
+                ));
                 (format!("{ip1},{ip2}"), format!("{zw1},{zw2}"))
             }
             n if n > 2 => {

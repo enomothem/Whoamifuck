@@ -104,7 +104,9 @@ pub fn run() {
         "cat /etc/passwd | head",
         "严格限制默认账户的访问权限，对存在的默认账户的用户名和口令进行修改。使用[usermod -l <新账户名> root]来修改用户名，使用 [ usermod -L 用户名]，来锁定默认用户。",
     );
-    println!("{CYAN}ps: 更改root名称可能导致telnet无法使用，是否配置按具体情况，具体等级分析。{RESET}");
+    println!(
+        "{CYAN}ps: 更改root名称可能导致telnet无法使用，是否配置按具体情况，具体等级分析。{RESET}"
+    );
 
     section(
         "2.5",

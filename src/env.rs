@@ -3,7 +3,7 @@
 use crate::sys;
 
 /// 版本号字符串（对应 `VER`）。
-pub const VER: &str = "2026.4.30@whoamifuck-version 7.1.0";
+pub const VER: &str = "2026.9.22@whoamifuck-version 8.0.0";
 
 /// 运行期环境：默认路径、当前用户等。
 #[derive(Debug, Clone)]

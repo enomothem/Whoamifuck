@@ -1,6 +1,6 @@
 [package]
 name = "whoamifuck"
-version = "7.1.0"
+version = "8.0.0"
 edition = "2021"
 description = "司稽 (Whoamifuck / Chief-Inspector) - Linux 应急响应与入侵检测工具 (Rust 重构版)"
 authors = ["Enomothem", "Eonian Sharp"]

@@ -7,7 +7,8 @@ use std::fs;
 use std::path::Path;
 
 const RULE_PHP: &str = r#"array_map\(|pcntl_exec\(|proc_open\(|popen\(|assert\(|phpspy|c99sh|milw0rm|eval?\(|\(gunerpress|\(base64_decoolcode|spider_bc|shell_exec\(|passthru\(|base64_decode\s?\(|gzuncompress\s?\(|gzinflate|\(\$\$\w+|call_user_func\(|call_user_func_array\(|preg_replace_callback\(|preg_replace\(|register_shutdown_function\(|register_tick_function\(|mb_ereg_replace_callback\(|filter_var\(|ob_start\(|usort\(|uksort\(|uasort\(|GzinFlate\s?\(|\$\w+\(\d+\)\.\$\w+\(\d+\)\.|\$\w+=str_replace\(|eval\/\*.*\*\/\("#;
-const RULE_PHP_1: &str = r#"^(\xff\xd8|\x89\x50|GIF89a|GIF87a|BM|\x00\x00\x01\x00\x01)[\s\S]*<\?\s*php"#;
+const RULE_PHP_1: &str =
+    r#"^(\xff\xd8|\x89\x50|GIF89a|GIF87a|BM|\x00\x00\x01\x00\x01)[\s\S]*<\?\s*php"#;
 const RULE_PHP_2: &str = r#"\b(assert|eval|system|exec|shell_exec|passthru|popen|proc_open|pcntl_exec)\b[\/*\s]*\(+[\/*\s]*((\$_(GET|POST|REQUEST|COOKIE)\[.{0,25})|(base64_decode|gzinflate|gzuncompress|gzdecode|str_rot13)[\s\(]*(\$_(GET|POST|REQUEST|COOKIE)\[.{0,25}))"#;
 const RULE_PHP_3: &str = r#"\$\s*(\w+)\s*=[\s\(\{]*(\$_(GET|POST|REQUEST|COOKIE)\[.{0,25});[\s\S]{0,200}\b(assert|eval|system|exec|shell_exec|passthru|popen|proc_open|pcntl_exec)\b[\/*\s]*\(+[\s"\/*]*(\$\s*\1|((base64_decode|gzinflate|gzuncompress|gzdecode|str_rot13)[\s\("]*\$\s*\1))"#;
 const RULE_PHP_4: &str = r#"\b(filter_var|filter_var_array)\b\s*\(.*FILTER_CALLBACK[^;]*((\$_(GET|POST|REQUEST|COOKIE|SERVER)\[.{0,25})|(eval|assert|ass\\x65rt|system|exec|shell_exec|passthru|popen|proc_open|pcntl_exec))"#;
@@ -46,7 +47,9 @@ pub fn run(webshell_path: Option<&str>) {
             if Path::new(path).is_dir() {
                 scan_dir(
                     path,
-                    &[RULE_PHP, RULE_PHP_1, RULE_PHP_2, RULE_PHP_3, RULE_PHP_4, RULE_PHP_5],
+                    &[
+                        RULE_PHP, RULE_PHP_1, RULE_PHP_2, RULE_PHP_3, RULE_PHP_4, RULE_PHP_5,
+                    ],
                     RULE_JSP,
                 );
             } else {
