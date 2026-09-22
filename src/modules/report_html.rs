@@ -199,12 +199,10 @@ fn progress(step: u32, desc: &str) {
     let total = 12u32;
     let width = 40u32;
     let pct = step * 100 / total;
-    let filled = pct * width / 100;
-    let bar: String = std::iter::repeat('#')
-        .take(filled as usize)
-        .chain(std::iter::repeat('.').take((width - filled) as usize))
-        .collect();
-    print!("\r\x1b[K[{}] {pct:3}%  {desc}", bar);
+    let filled = (pct * width / 100) as usize;
+    let empty = width as usize - filled;
+    let bar = format!("{}{}", "#".repeat(filled), ".".repeat(empty));
+    print!("\r\x1b[K[{bar}] {pct:3}%  {desc}");
     use std::io::Write;
     let _ = std::io::stdout().flush();
 }
